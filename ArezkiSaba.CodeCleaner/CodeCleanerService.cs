@@ -67,12 +67,6 @@ public sealed class CodeCleanerService
         foreach (var projectId in projectIds)
         {
             var project = newSolution.GetProject(projectId);
-            ////var compilation = await project.GetCompilationAsync();
-            ////if (compilation is null)
-            ////{
-            ////    continue;
-            ////}
-
             var documentIds = project.DocumentIds;
             foreach (var documentId in documentIds)
             {

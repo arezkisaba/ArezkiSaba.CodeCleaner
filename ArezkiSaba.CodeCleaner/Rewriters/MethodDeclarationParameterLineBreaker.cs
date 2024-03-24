@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Rewriters;
 
-public class MethodDeclarationParameterLineBreaker : CSharpSyntaxRewriter
+public sealed class MethodDeclarationParameterLineBreaker : CSharpSyntaxRewriter
 {
     public override bool VisitIntoStructuredTrivia
     {
@@ -31,10 +31,6 @@ public class MethodDeclarationParameterLineBreaker : CSharpSyntaxRewriter
             token.IsKind(SyntaxKind.CommaToken) &&
             (token.Parent?.IsKind(SyntaxKind.ParameterList) ?? false) &&
             !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
-        ////var isClosingParentheseForMethodParameters =
-        ////    token.IsKind(SyntaxKind.CloseParenToken) &&
-        ////    (token.Parent?.IsKind(SyntaxKind.ParameterList) ?? false) &&
-        ////    !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
 
         var statement = token.Parent.Ancestors().FirstOrDefault(
             obj => obj.IsKind(SyntaxKind.ConstructorDeclaration) || obj.IsKind(SyntaxKind.MethodDeclaration)
@@ -68,16 +64,6 @@ public class MethodDeclarationParameterLineBreaker : CSharpSyntaxRewriter
                 )
             );
         }
-        ////else if (isClosingParentheseForMethodParameters &&
-        ////    !token.LeadingTrivia.Any(obj => obj.IsKind(SyntaxKind.EndOfLineTrivia)))
-        ////{
-        ////    token = token.WithLeadingTrivia(
-        ////        SyntaxFactory.TriviaList(
-        ////            SyntaxFactory.EndOfLine(Environment.NewLine),
-        ////            expressionStatementTrivia
-        ////        )
-        ////    );
-        ////}
 
         return base.VisitToken(token);
     }

@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Rewriters;
 
-public class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewriter
+public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewriter
 {
     public override bool VisitIntoStructuredTrivia
     {
