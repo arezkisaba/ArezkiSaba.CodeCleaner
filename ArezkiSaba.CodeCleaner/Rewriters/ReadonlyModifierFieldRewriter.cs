@@ -8,16 +8,13 @@ namespace ArezkiSaba.CodeCleaner.Rewriters;
 public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
 {
     private readonly Solution _solution;
-    private readonly SyntaxNode _root;
     private readonly SemanticModel _semanticModel;
 
     public ReadonlyModifierFieldRewriter(
         Solution solution,
-        SyntaxNode root,
         SemanticModel semanticModel)
     {
         _solution = solution;
-        _root = root;
         _semanticModel = semanticModel;
     }
 
@@ -62,7 +59,10 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
         var canAddReadonlyModifier = true;
         foreach (var referenceLocation in referenceLocations)
         {
-            var referencedNode = _root.FindNode(referenceLocation.Location.SourceSpan);
+            var referencedNode = referenceLocation.Document.GetSyntaxRootAsync()
+                .GetAwaiter()
+                .GetResult()
+                .FindNode(referenceLocation.Location.SourceSpan);
             var simpleAssignmentExpression = referencedNode.Ancestors()
                 .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SimpleAssignmentExpression));
             var constructorDeclaration = referencedNode.Ancestors()
