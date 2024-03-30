@@ -56,6 +56,14 @@ public static class DocumentExtensions
         var root = await document.GetSyntaxRootAsync();
         return document.WithSyntaxRoot(new DuplicatedEmptyLinesRemover().Visit(root));
     }
+    
+    public static async Task<Document> StartReadonlyModifierFieldRewriterAsync(
+        this Document document)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        return document.WithSyntaxRoot(new ReadonlyModifierFieldRewriter(document.Project.Solution, root, semanticModel).Visit(root));
+    }
 
     public static async Task<Document> StartTypeInferenceRewriterAsync(
         this Document document)
@@ -96,8 +104,10 @@ public static class DocumentExtensions
                 continue;
             }
 
-            var senderParameterToken = parameters[0].DescendantTokens().OfType<SyntaxToken>().LastOrDefault(obj => obj.ValueText == "sender");
-            var argsParameterToken = parameters[1].DescendantTokens().OfType<SyntaxToken>().FirstOrDefault(obj => obj.ValueText.EndsWith("Args"));
+            var senderParameterToken = parameters[0].DescendantTokens().OfType<SyntaxToken>()
+                .LastOrDefault(obj => obj.ValueText == "sender");
+            var argsParameterToken = parameters[1].DescendantTokens().OfType<SyntaxToken>()
+                .FirstOrDefault(obj => obj.ValueText.EndsWith("Args"));
 
             var isCallbackMethod =
                 !string.IsNullOrWhiteSpace(senderParameterToken.ValueText) &&

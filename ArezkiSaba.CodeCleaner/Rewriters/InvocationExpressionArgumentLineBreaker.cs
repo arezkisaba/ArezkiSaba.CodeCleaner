@@ -14,13 +14,12 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
     public override SyntaxToken VisitToken(
         SyntaxToken token)
     {
-        var defaultReturn = base.VisitToken(token);
         if (token.Parent is not ArgumentListSyntax argumentList ||
             token.Parent.Ancestors().OfType<LocalFunctionStatementSyntax>().Any() ||
             token.Parent.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any() ||
             argumentList.Arguments.Count < 3)
         {
-            return defaultReturn;
+            return token;
         }
 
         var isOpeningParentheseForMethodParameters =
@@ -41,7 +40,7 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
         );
         if (statement == null)
         {
-            return defaultReturn;
+            return token;
         }
 
         var indentationTrivia = SyntaxFactory.Whitespace("\t");

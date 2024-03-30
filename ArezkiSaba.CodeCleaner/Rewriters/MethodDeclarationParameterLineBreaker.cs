@@ -14,13 +14,12 @@ public sealed class MethodDeclarationParameterLineBreaker : CSharpSyntaxRewriter
     public override SyntaxToken VisitToken(
         SyntaxToken token)
     {
-        var defaultReturn = base.VisitToken(token);
         if (token.Parent is not ParameterListSyntax parameterList ||
             token.Parent.Ancestors().OfType<LocalFunctionStatementSyntax>().Any() ||
             token.Parent.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any() ||
             !parameterList.Parameters.Any())
         {
-            return defaultReturn;
+            return token;
         }
 
         var isOpeningParentheseForMethodParameters =
@@ -37,7 +36,7 @@ public sealed class MethodDeclarationParameterLineBreaker : CSharpSyntaxRewriter
         );
         if (statement == null)
         {
-            return defaultReturn;
+            return token;
         }
 
         var indentationTrivia = SyntaxFactory.Whitespace("\t");
