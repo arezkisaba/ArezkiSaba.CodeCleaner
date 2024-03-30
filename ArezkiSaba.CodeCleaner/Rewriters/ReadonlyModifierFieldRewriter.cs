@@ -28,31 +28,24 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
         var variableDeclaratorSymbol = _semanticModel.GetDeclaredSymbol(variableDeclarator);
         var hasPrivateKeyWordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.PrivateKeyword));
         var hasReadonlyKeywordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.ReadOnlyKeyword));
+        var hasStaticKeywordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.StaticKeyword));
 
-        if (!hasPrivateKeyWordToken || hasReadonlyKeywordToken)
+        if (!hasPrivateKeyWordToken || hasReadonlyKeywordToken || hasStaticKeywordToken)
         {
             return node;
         }
 
-        var canAddReadonlyModifier = true;
-        var variableDeclaratorReference = SymbolFinder.FindReferencesAsync(variableDeclaratorSymbol, _solution).GetAwaiter().GetResult().FirstOrDefault();
+        var variableDeclaratorReference = SymbolFinder.FindReferencesAsync(variableDeclaratorSymbol, _solution)
+            .GetAwaiter()
+            .GetResult()
+            .FirstOrDefault();
         var referenceLocations = variableDeclaratorReference.Locations.ToList();
-        if (referenceLocations.Any())
+        if (!referenceLocations.Any())
         {
-            foreach (var referenceLocation in referenceLocations)
-            {
-                var foundNode = _root.FindNode(referenceLocation.Location.SourceSpan);
-                var simpleAssignmentExpression = foundNode.Ancestors().FirstOrDefault(obj => obj.IsKind(SyntaxKind.SimpleAssignmentExpression));
-                var constructorDeclaration = foundNode.Ancestors().FirstOrDefault(obj => obj.IsKind(SyntaxKind.ConstructorDeclaration));
-
-                if (simpleAssignmentExpression != null && constructorDeclaration == null)
-                {
-                    canAddReadonlyModifier = false;
-                    break;
-                }
-            }
+            return node;
         }
 
+        var canAddReadonlyModifier = CanAddReadonlyModifier(referenceLocations);
         if (canAddReadonlyModifier)
         {
             node = node.AddModifiers(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword).WithTrailingTrivia());
@@ -60,4 +53,30 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
 
         return base.VisitFieldDeclaration(node);
     }
+
+    #region Private use
+
+    private bool CanAddReadonlyModifier(
+        List<ReferenceLocation> referenceLocations)
+    {
+        var canAddReadonlyModifier = true;
+        foreach (var referenceLocation in referenceLocations)
+        {
+            var referencedNode = _root.FindNode(referenceLocation.Location.SourceSpan);
+            var simpleAssignmentExpression = referencedNode.Ancestors()
+                .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SimpleAssignmentExpression));
+            var constructorDeclaration = referencedNode.Ancestors()
+                .FirstOrDefault(obj => obj.IsKind(SyntaxKind.ConstructorDeclaration));
+
+            if (simpleAssignmentExpression != null && constructorDeclaration == null)
+            {
+                canAddReadonlyModifier = false;
+                break;
+            }
+        }
+
+        return canAddReadonlyModifier;
+    }
+
+    #endregion
 }

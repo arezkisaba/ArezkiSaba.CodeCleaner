@@ -9,12 +9,11 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class DocumentExtensions
 {
-    public static async Task<Document> StartDuplicatedUsingDirectivesRemoverAsync(
+    public static async Task<Document> StartDuplicatedUsingDirectiveRemoverAsync(
         this Document document)
     {
-        var root = await document.GetSyntaxRootAsync();
         var documentEditor = await DocumentEditor.CreateAsync(document);
-        var usingDirectives = root.ChildNodes().OfType<UsingDirectiveSyntax>().ToList();
+        var usingDirectives = documentEditor.OriginalRoot.ChildNodes().OfType<UsingDirectiveSyntax>().ToList();
         var usingDirectivesToRemove = new List<UsingDirectiveSyntax>();
 
         for (var i = 0; i < usingDirectives.Count; i++)
@@ -34,7 +33,7 @@ public static class DocumentExtensions
         return documentEditor.GetChangedDocument();
     }
 
-    public static async Task<Document> StartUsingDirectivesSorterAsync(
+    public static async Task<Document> StartUsingDirectiveSorterAsync(
         this Document document)
     {
         var root = await document.GetSyntaxRootAsync();
@@ -48,6 +47,63 @@ public static class DocumentExtensions
         compilationUnit = compilationUnit.WithUsings(sortedUsingDirectives);
         document = document.WithSyntaxRoot(compilationUnit);
         return document;
+    }
+
+    public static async Task<Document> StartFieldDeclarationSorterAsync(
+        this Document document)
+    {
+        var semanticModel = await document.GetSemanticModelAsync();
+        var documentEditor = await DocumentEditor.CreateAsync(document);
+        var forbiddenTypes = new List<SyntaxKind>()
+        {
+            SyntaxKind.BaseList,
+            SyntaxKind.AttributeList,
+            SyntaxKind.TypeParameterList,
+            SyntaxKind.TypeParameterConstraintClause
+        };
+
+        var classDeclarationsToAdd = new List<(string className, List<FieldDeclarationSyntax> fieldDeclarations)>();
+        foreach (var classDeclaration in documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>())
+        {
+            var fieldDeclarationsToAdd = new List<FieldDeclarationSyntax>();
+            foreach (var fieldDeclaration in classDeclaration.DescendantNodes().OfType<FieldDeclarationSyntax>())
+            {
+                documentEditor.RemoveNode(fieldDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
+                fieldDeclarationsToAdd.Add(fieldDeclaration);
+            }
+
+            classDeclarationsToAdd.Add((classDeclaration.Identifier.ValueText, fieldDeclarationsToAdd));
+        }
+
+        documentEditor = await DocumentEditor.CreateAsync(documentEditor.GetChangedDocument());
+
+        var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
+        foreach (var (className, fieldDeclarations) in classDeclarationsToAdd)
+        {
+            var match = classDeclarations.FirstOrDefault(classDeclaration =>
+            {
+                return className == classDeclaration.Identifier.Text;
+            });
+
+            if (match != null)
+            {
+                var nodeToPlaceBefore = match.ChildNodes().FirstOrDefault(obj => forbiddenTypes.All(ft => !obj.IsKind(ft)));
+                documentEditor.InsertBefore(
+                    nodeToPlaceBefore,
+                    fieldDeclarations
+                        .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.StaticKeyword)))
+                        .ThenByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.ReadOnlyKeyword)))
+                        .Select(obj => SyntaxFactory.FieldDeclaration(
+                            obj.AttributeLists,
+                            obj.Modifiers,
+                            obj.Declaration
+                        )
+                    )
+                );
+            }
+        }
+        
+        return documentEditor.GetChangedDocument();
     }
 
     public static async Task<Document> StartDuplicatedEmptyLinesRemoverAsync(
@@ -91,11 +147,10 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var documentEditor = await DocumentEditor.CreateAsync(document);
 
-        var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
+        var methodDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
         foreach (var methodDeclaration in methodDeclarations)
         {
             var parameters = methodDeclaration.DescendantNodes().OfType<ParameterSyntax>().ToList();
@@ -119,9 +174,9 @@ public static class DocumentExtensions
             }
 
             var senderParameter = parameters[0];
-            await RenameParameterNameIfUnreferenced(solution, documentEditor, semanticModel, senderParameter, "_");
+            await RenameParameterNameIfUnreferencedAsync(solution, documentEditor, semanticModel, senderParameter, "_");
             var argsParameter = parameters[1];
-            await RenameParameterNameIfUnreferenced(solution, documentEditor, semanticModel, argsParameter, "__");
+            await RenameParameterNameIfUnreferencedAsync(solution, documentEditor, semanticModel, argsParameter, "__");
         }
 
         return documentEditor.GetChangedDocument();
@@ -144,7 +199,7 @@ public static class DocumentExtensions
 
     #region Private use
 
-    private static async Task RenameParameterNameIfUnreferenced(
+    private static async Task RenameParameterNameIfUnreferencedAsync(
         Solution solution,
         DocumentEditor documentEditor,
         SemanticModel semanticModel,

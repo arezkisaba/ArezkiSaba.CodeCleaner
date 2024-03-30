@@ -78,14 +78,15 @@ public sealed class CodeCleanerService
                     continue;
                 }
 
-                var updatedDocument = await originalDocument.StartDuplicatedUsingDirectivesRemoverAsync();
-                updatedDocument = await updatedDocument.StartUsingDirectivesSorterAsync();
-                updatedDocument = await updatedDocument.StartDuplicatedEmptyLinesRemoverAsync();
-                updatedDocument = await updatedDocument.StartMethodDeclarationParameterLineBreakerAsync();
-                updatedDocument = await updatedDocument.StartTypeInferenceRewriterAsync();
+                var updatedDocument = await originalDocument.StartTypeInferenceRewriterAsync();
                 updatedDocument = await updatedDocument.StartReadonlyModifierFieldRewriterAsync();
-                updatedDocument = await updatedDocument.StartInvocationExpressionArgumentLineBreakerAsync();
                 updatedDocument = await updatedDocument.StartUnusedMethodParameterDiscarderAsync(newSolution);
+                updatedDocument = await updatedDocument.StartMethodDeclarationParameterLineBreakerAsync();
+                updatedDocument = await updatedDocument.StartInvocationExpressionArgumentLineBreakerAsync();
+                updatedDocument = await updatedDocument.StartUsingDirectiveSorterAsync();
+                updatedDocument = await updatedDocument.StartFieldDeclarationSorterAsync();
+                updatedDocument = await updatedDocument.StartDuplicatedUsingDirectiveRemoverAsync();
+                updatedDocument = await updatedDocument.StartDuplicatedEmptyLinesRemoverAsync();
                 updatedDocument = await Formatter.FormatAsync(updatedDocument);
 
                 project = updatedDocument.Project;
