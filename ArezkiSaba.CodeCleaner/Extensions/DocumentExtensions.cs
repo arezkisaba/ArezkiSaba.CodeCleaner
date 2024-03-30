@@ -57,6 +57,14 @@ public static class DocumentExtensions
         return document.WithSyntaxRoot(new DuplicatedEmptyLinesRemover().Visit(root));
     }
 
+    public static async Task<Document> StartTypeInferenceRewriterAsync(
+        this Document document)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        return document.WithSyntaxRoot(new TypeInferenceRewriter(semanticModel).Visit(root));
+    }
+
     public static async Task<Document> StartMethodDeclarationParameterLineBreakerAsync(
         this Document document)
     {

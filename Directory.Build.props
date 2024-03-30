@@ -1,0 +1,16 @@
+﻿<Project>
+
+	<PropertyGroup Label="CommonPropertyGroup">
+		<Compagny>Arezki SABA</Compagny>
+		<Author>Arezki SABA</Author>
+		<LangVersion>Latest</LangVersion>
+		<TargetFramework>net8.0</TargetFramework>
+		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+		<Platforms>AnyCPU</Platforms>
+		<Nullable>disable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	</PropertyGroup>
+
+</Project>

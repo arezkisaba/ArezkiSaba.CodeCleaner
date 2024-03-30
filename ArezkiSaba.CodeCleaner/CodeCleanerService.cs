@@ -82,6 +82,7 @@ public sealed class CodeCleanerService
                 updatedDocument = await updatedDocument.StartUsingDirectivesSorterAsync();
                 updatedDocument = await updatedDocument.StartDuplicatedEmptyLinesRemoverAsync();
                 updatedDocument = await updatedDocument.StartMethodDeclarationParameterLineBreakerAsync();
+                updatedDocument = await updatedDocument.StartTypeInferenceRewriterAsync();
                 updatedDocument = await updatedDocument.StartInvocationExpressionArgumentLineBreakerAsync();
                 updatedDocument = await updatedDocument.StartUnusedMethodParameterDiscarderAsync(newSolution);
                 updatedDocument = await Formatter.FormatAsync(updatedDocument);

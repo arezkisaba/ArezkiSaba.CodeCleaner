@@ -12,8 +12,12 @@ public static class Program
         }
         else
         {
+#if DEBUG
+            sourceCodeLocation = @"C:\git2";
+#else
             Console.Write("Please enter target folder : ");
             sourceCodeLocation = Console.ReadLine();
+#endif
         }
 
         var codeCleaner = new CodeCleanerService(sourceCodeLocation);
