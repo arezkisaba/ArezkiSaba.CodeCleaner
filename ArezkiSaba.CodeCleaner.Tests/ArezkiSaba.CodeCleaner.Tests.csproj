@@ -18,8 +18,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Resources\Expected.txt" />
-	  <None Remove="Resources\Source.txt" />
+		<None Remove="Resources\Expected.txt" />
+		<None Remove="Resources\Source.txt" />
 	</ItemGroup>
 
 	<ItemGroup>
