@@ -23,3 +23,4 @@ If you want to learn more about creating good readme files then refer the follow
 - Add abstract/sealed modifiers for a non-nuget project
 - Add "Private use" region
 - Remove empty line after braces
+- Add Async suffix for async Methods

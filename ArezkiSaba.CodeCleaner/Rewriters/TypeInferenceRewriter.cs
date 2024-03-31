@@ -27,24 +27,28 @@ public sealed class TypeInferenceRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var declarator = node.Declaration.Variables.First();
         var variableTypeName = node.Declaration.Type;
-        var variableType = (ITypeSymbol)_semanticModel
-            .GetSymbolInfo(variableTypeName)
-            .Symbol;
+        var varTypeName = SyntaxFactory.IdentifierName("var")
+            .WithLeadingTrivia(variableTypeName.GetLeadingTrivia())
+            .WithTrailingTrivia(variableTypeName.GetTrailingTrivia());
+        return node.ReplaceNode(variableTypeName, varTypeName);
 
-        var initializerInfo = _semanticModel.GetTypeInfo(declarator.Initializer.Value);
-        if (variableType == initializerInfo.Type)
-        {
-            var varTypeName = SyntaxFactory.IdentifierName("var")
-                .WithLeadingTrivia(variableTypeName.GetLeadingTrivia())
-                .WithTrailingTrivia(variableTypeName.GetTrailingTrivia());
+        ////var declarator = node.Declaration.Variables.First();
+        ////var variableType = (ITypeSymbol)_semanticModel
+        ////    .GetSymbolInfo(variableTypeName)
+        ////    .Symbol;
+        ////var initializerInfo = _semanticModel.GetTypeInfo(declarator.Initializer.Value);
 
-            return node.ReplaceNode(variableTypeName, varTypeName);
-        }
-        else
-        {
-            return node;
-        }
+        ////if (variableType == initializerInfo.Type)
+        ////{
+        ////    var varTypeName = SyntaxFactory.IdentifierName("var")
+        ////        .WithLeadingTrivia(variableTypeName.GetLeadingTrivia())
+        ////        .WithTrailingTrivia(variableTypeName.GetTrailingTrivia());
+        ////    return node.ReplaceNode(variableTypeName, varTypeName);
+        ////}
+        ////else
+        ////{
+        ////    return node;
+        ////}
     }
 }

@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArezkiSaba.CodeCleaner", "ArezkiSaba.CodeCleaner\ArezkiSaba.CodeCleaner.csproj", "{1FD9B217-F0F3-4A6D-8C99-88713AA20FED}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArezkiSaba.CodeCleaner.Tests", "ArezkiSaba.CodeCleaner.Tests\ArezkiSaba.CodeCleaner.Tests.csproj", "{7774E070-6C86-430A-B1F7-E633C4E7732D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,6 +24,10 @@ Global
 		{1FD9B217-F0F3-4A6D-8C99-88713AA20FED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FD9B217-F0F3-4A6D-8C99-88713AA20FED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FD9B217-F0F3-4A6D-8C99-88713AA20FED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7774E070-6C86-430A-B1F7-E633C4E7732D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7774E070-6C86-430A-B1F7-E633C4E7732D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7774E070-6C86-430A-B1F7-E633C4E7732D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7774E070-6C86-430A-B1F7-E633C4E7732D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

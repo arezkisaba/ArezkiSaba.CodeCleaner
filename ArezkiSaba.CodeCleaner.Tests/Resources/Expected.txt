@@ -1,0 +1,42 @@
+﻿using ArezkiSaba.CodeCleaner.Tests;
+using System;
+
+namespace ArezkiSaba.CodeCleaner.Tests;
+
+public partial class TestClass1<T>
+{
+    private readonly string _readonlyStringField;
+    private string _nonReadonlyStringField;
+
+    public TestClass1()
+    {
+        _readonlyStringField = "some useless value";
+        _nonReadonlyStringField = "some other useless value";
+    }
+
+    public void OnSomeEventCallback(
+        object _,
+        EventArgs __)
+    {
+        var variable1 = "1";
+        var variable2 = "2";
+        var variable3 = "3";
+        var variable4 = "4";
+
+        HandleOnSomeEventCallback(
+            variable1,
+            variable2,
+            variable3,
+            variable4
+        );
+    }
+
+    public void HandleOnSomeEventCallback(
+        string variable1,
+        string variable2,
+        string variable3,
+        string variable4)
+    {
+        _nonReadonlyStringField = "some other useless value";
+    }
+}

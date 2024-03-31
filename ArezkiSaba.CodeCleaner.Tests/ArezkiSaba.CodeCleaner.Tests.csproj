@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup Label="TestPropertyGroup">
+		<IsTestProject>true</IsTestProject>
+		<UserSecretsId>eb27a17d-baba-4bb8-b658-aedc15f1caaa</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup Label="PackageReferencesItemGroup">
+		<PackageReference Include="coverlet.collector" Version="6.0.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+		<PackageReference Include="NUnit" Version="3.14.0" />
+		<PackageReference Include="NUnit.Analyzers" Version="3.9.0" />
+		<PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+	</ItemGroup>
+
+	<ItemGroup Label="ProjectReferencesItemGroup">
+		<ProjectReference Include="..\ArezkiSaba.CodeCleaner\ArezkiSaba.CodeCleaner.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Resources\Expected.txt" />
+	  <None Remove="Resources\Source.txt" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Resources\Expected.txt" />
+		<EmbeddedResource Include="Resources\Source.txt">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
+	</ItemGroup>
+
+</Project>
