@@ -1,7 +1,5 @@
 ﻿using ArezkiSaba.CodeCleaner.Extensions;
 using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace ArezkiSaba.CodeCleaner;

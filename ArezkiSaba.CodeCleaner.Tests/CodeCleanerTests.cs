@@ -1,6 +1,5 @@
 using ArezkiSaba.CodeCleaner.Extensions;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 using System.Reflection;
@@ -9,36 +8,75 @@ using System.Text;
 namespace ArezkiSaba.CodeCleaner.Tests;
 
 [TestFixture]
-public sealed class CodeCleanerServiceTests
+public sealed class CodeCleanerTests
 {
+    private string _resourcesFolderPath;
+    private string _projectName;
+    private string _fileName;
+
     [SetUp]
     public void Setup()
     {
+        _resourcesFolderPath = $"{Assembly.GetExecutingAssembly().GetName().Name}/Resources";
+        _projectName = "TestProject";
+        _fileName = "TestClass.cs";
     }
 
     [Test]
-    public async Task RefactorAsync_Test()
+    public async Task RefactorAsync_ContentAfterRefactoring_EqualsTo_ExpectedContent()
     {
-        var resourcesFolderPath = $"ArezkiSaba.CodeCleaner.Tests/Resources";
-        var sourceContent = ReadEmbeddedResource($"{resourcesFolderPath}/Source.txt");
-
-        var projectName = "TestProject";
-        var fileName = "TestClass.cs";
+        var sourceContent = ReadEmbeddedResource($"{_resourcesFolderPath}/Source.txt");
 
         var filesToAdd = new List<(string fileName, string fileContent)>();
-        filesToAdd.Add((fileName, sourceContent));
+        filesToAdd.Add((_fileName, sourceContent));
 
         var workspace = CreateInMemoryWorkspace(
-            projectName,
+            _projectName,
             filesToAdd
         );
         workspace = await workspace.RefactorAsync();
 
-        var contentAfterRefactoring = ReadDocumentContent(workspace, projectName, fileName);
-        var expectedContent = ReadEmbeddedResource($"{resourcesFolderPath}/Expected.txt");
+        var contentAfterRefactoring = ReadDocumentContent(workspace, _projectName, _fileName);
+        var expectedContent = ReadEmbeddedResource($"{_resourcesFolderPath}/Expected.txt");
 
         Assert.That(contentAfterRefactoring, Is.EqualTo(expectedContent));
     }
+
+    ////[Test]
+    ////public async Task OpenAI_Test()
+    ////{
+    ////    var api = new OpenAIAPI(APIAuthentication.LoadFromEnv());
+    ////    var chat = api.Chat.CreateConversation();
+    ////    chat.Model = Model.ChatGPTTurbo;
+    ////    chat.RequestParameters.Temperature = 0;
+
+    ////    /// give instruction as System
+    ////    chat.AppendSystemMessage("You are a teacher who helps children understand if things are animals or not.  If the user tells you an animal, you say \"yes\".  If the user tells you something that is not an animal, you say \"no\".  You only ever respond with \"yes\" or \"no\".  You do not say anything else.");
+
+    ////    // give a few examples as user and assistant
+    ////    chat.AppendUserInput("Is this an animal? Cat");
+    ////    chat.AppendExampleChatbotOutput("Yes");
+    ////    chat.AppendUserInput("Is this an animal? House");
+    ////    chat.AppendExampleChatbotOutput("No");
+
+    ////    // now let's ask it a question
+    ////    chat.AppendUserInput("Is this an animal? Dog");
+    ////    // and get the response
+    ////    var response = await chat.GetResponseFromChatbotAsync();
+    ////    Console.WriteLine(response); // "Yes"
+
+    ////    // and continue the conversation by asking another
+    ////    chat.AppendUserInput("Is this an animal? Chair");
+    ////    // and get another response
+    ////    response = await chat.GetResponseFromChatbotAsync();
+    ////    Console.WriteLine(response); // "No"
+
+    ////    // the entire chat history is available in chat.Messages
+    ////    foreach (var msg in chat.Messages)
+    ////    {
+    ////        Console.WriteLine($"{msg.Role}: {msg.Content}");
+    ////    }
+    ////}
 
     #region Private use
 

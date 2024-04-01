@@ -5,8 +5,13 @@ namespace ArezkiSaba.CodeCleaner.Tests;
 
 public partial class TestClass1<T>
 {
+    public event EventHandler RequestReceived;
+    public event EventHandler RequestSent;
+
     private readonly string _readonlyStringField;
     private string _nonReadonlyStringField;
+
+    public bool CanDoSomething { get; set; }
 
     public TestClass1()
     {
@@ -14,9 +19,16 @@ public partial class TestClass1<T>
         _nonReadonlyStringField = "some other useless value";
     }
 
+    public TestClass1(
+         string arg1)
+    {
+        _readonlyStringField = arg1;
+        _nonReadonlyStringField = "some other useless value";
+    }
+
     public void OnSomeEventCallback(
-        object _,
-        EventArgs __)
+         object _,
+         EventArgs __)
     {
         var variable1 = "1";
         var variable2 = "2";
@@ -32,10 +44,10 @@ public partial class TestClass1<T>
     }
 
     public void HandleOnSomeEventCallback(
-        string variable1,
-        string variable2,
-        string variable3,
-        string variable4)
+         string variable1,
+         string variable2,
+         string variable3,
+         string variable4)
     {
         _nonReadonlyStringField = "some other useless value";
     }

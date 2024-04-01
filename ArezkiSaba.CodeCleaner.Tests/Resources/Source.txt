@@ -7,33 +7,62 @@ using ArezkiSaba.CodeCleaner.Tests;
 namespace ArezkiSaba.CodeCleaner.Tests;
 
 
+
 public partial class TestClass1<T>
 {
+
+
+
     public TestClass1()
     {
+
+
         _readonlyStringField = "some useless value";
         _nonReadonlyStringField = "some other useless value";
+
     }
 
 
     private string _readonlyStringField;
 
+    public TestClass1(string arg1)
+    {
+
+        _readonlyStringField = arg1;
+        _nonReadonlyStringField = "some other useless value";
+
+    }
+
 
 
     public void OnSomeEventCallback(object sender, EventArgs e)
     {
+
+
         string variable1 = "1";
         string variable2 = "2";
         string variable3 = "3";
         string variable4 = "4";
 
         HandleOnSomeEventCallback(variable1, variable2, variable3, variable4);
+
+
     }
+
+    public event EventHandler RequestReceived;
 
     public void HandleOnSomeEventCallback(string variable1, string variable2, string variable3, string variable4)
     {
+
         _nonReadonlyStringField = "some other useless value";
+
     }
+
+    public bool CanDoSomething { get; set; }
+    
+    public event EventHandler RequestSent;
+
+
 
 
     private string _nonReadonlyStringField;

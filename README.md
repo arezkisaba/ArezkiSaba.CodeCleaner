@@ -24,3 +24,7 @@ If you want to learn more about creating good readme files then refer the follow
 - Add "Private use" region
 - Remove empty line after braces
 - Add Async suffix for async Methods
+- PascalCase formatter for methods
+- camelCase formatter for local variables
+- _snakecase formatter for fields
+- large functions locator => OpenAI API Suggestions for refactoring

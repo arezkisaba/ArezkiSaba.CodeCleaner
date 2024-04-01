@@ -6,12 +6,8 @@ namespace ArezkiSaba.CodeCleaner.Rewriters;
 
 public sealed class TypeInferenceRewriter : CSharpSyntaxRewriter
 {
-    private readonly SemanticModel _semanticModel;
-
-    public TypeInferenceRewriter(
-        SemanticModel semanticModel)
+    public TypeInferenceRewriter()
     {
-        _semanticModel = semanticModel;
     }
 
     public override SyntaxNode VisitLocalDeclarationStatement(
@@ -32,23 +28,5 @@ public sealed class TypeInferenceRewriter : CSharpSyntaxRewriter
             .WithLeadingTrivia(variableTypeName.GetLeadingTrivia())
             .WithTrailingTrivia(variableTypeName.GetTrailingTrivia());
         return node.ReplaceNode(variableTypeName, varTypeName);
-
-        ////var declarator = node.Declaration.Variables.First();
-        ////var variableType = (ITypeSymbol)_semanticModel
-        ////    .GetSymbolInfo(variableTypeName)
-        ////    .Symbol;
-        ////var initializerInfo = _semanticModel.GetTypeInfo(declarator.Initializer.Value);
-
-        ////if (variableType == initializerInfo.Type)
-        ////{
-        ////    var varTypeName = SyntaxFactory.IdentifierName("var")
-        ////        .WithLeadingTrivia(variableTypeName.GetLeadingTrivia())
-        ////        .WithTrailingTrivia(variableTypeName.GetTrailingTrivia());
-        ////    return node.ReplaceNode(variableTypeName, varTypeName);
-        ////}
-        ////else
-        ////{
-        ////    return node;
-        ////}
     }
 }
