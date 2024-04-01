@@ -33,13 +33,15 @@ public static class WorkspaceExtensions
                 updatedDocument = await updatedDocument.StartDuplicatedEmptyLinesRemoverAsync();
                 updatedDocument = await updatedDocument.StartDuplicatedMethodEmptyLinesRemoverAsync();
                 updatedDocument = await updatedDocument.ReorderClassMembersAsync();
-                updatedDocument = await updatedDocument.StartUnusedMethodParameterDiscarderAsync(newSolution);
                 updatedDocument = await updatedDocument.StartMethodDeclarationParameterLineBreakerAsync();
                 updatedDocument = await updatedDocument.StartInvocationExpressionArgumentLineBreakerAsync();
                 updatedDocument = await Formatter.FormatAsync(updatedDocument);
 
                 project = updatedDocument.Project;
                 newSolution = project.Solution;
+
+                newSolution = await updatedDocument.StartUnusedMethodParameterRenamerAsync(newSolution);
+                newSolution = await updatedDocument.StartAsyncMethodRenamerAsync(newSolution);
 
                 var originalText = (await originalDocument.GetTextAsync()).ToString();
                 var updatedText = (await updatedDocument.GetTextAsync()).ToString();

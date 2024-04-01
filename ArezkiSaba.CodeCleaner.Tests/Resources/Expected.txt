@@ -35,7 +35,7 @@ public partial class TestClass1<T>
         var variable3 = "3";
         var variable4 = "4";
 
-        HandleOnSomeEventCallback(
+        HandleOnSomeEventCallbackAsync(
             variable1,
             variable2,
             variable3,
@@ -43,7 +43,7 @@ public partial class TestClass1<T>
         );
     }
 
-    public void HandleOnSomeEventCallback(
+    public async Task HandleOnSomeEventCallbackAsync(
          string variable1,
          string variable2,
          string variable3,
