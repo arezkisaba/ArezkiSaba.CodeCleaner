@@ -176,7 +176,6 @@ public static class DocumentExtensions
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
-        var newDocument = document;
 
         var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
         foreach (var methodDeclaration in methodDeclarations)
@@ -217,7 +216,6 @@ public static class DocumentExtensions
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
-        var newDocument = document;
 
         var asyncSuffix = "Async";
         var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
