@@ -7,22 +7,32 @@ public partial class TestClass1<T>
 {
     public event EventHandler RequestReceived;
     public event EventHandler RequestSent;
-
-    private readonly string _readonlyStringField;
+    
+    private readonly string _readonlyStringField1;
+    private readonly string _readonlyStringField2;
+    private int _canDoSomething;
     private string _nonReadonlyStringField;
 
-    public bool CanDoSomething { get; set; }
+    public int CanDoSomething
+    {
+        get { return _canDoSomething; }
+        set { _canDoSomething = value; }
+    }
+
+    public bool CanSend { get; set; }
 
     public TestClass1()
     {
-        _readonlyStringField = "some useless value";
+        _readonlyStringField1 = "some useless value";
+        _readonlyStringField2 = "some useless value";
         _nonReadonlyStringField = "some other useless value";
     }
 
     public TestClass1(
          string arg1)
     {
-        _readonlyStringField = arg1;
+        _readonlyStringField1 = arg1;
+        _readonlyStringField2 = arg1;
         _nonReadonlyStringField = "some other useless value";
     }
 

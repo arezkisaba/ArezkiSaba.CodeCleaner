@@ -17,18 +17,22 @@ public partial class TestClass1<T>
     {
 
 
-        _readonlyStringField = "some useless value";
+        _readonlyStringField1 = "some useless value";
+        _readonlyStringField2 = "some useless value";
         _nonReadonlyStringField = "some other useless value";
 
     }
 
+    
+    private string _readonlyStringField2;
 
-    private string _readonlyStringField;
+    private string _readonlyStringField1;
 
     public TestClass1(string arg1)
     {
 
-        _readonlyStringField = arg1;
+        _readonlyStringField1 = arg1;
+        _readonlyStringField2 = arg1;
         _nonReadonlyStringField = "some other useless value";
 
     }
@@ -50,6 +54,13 @@ public partial class TestClass1<T>
     }
 
     public event EventHandler RequestReceived;
+    
+    private int _canDoSomething;
+    public int CanDoSomething
+    {
+        get { return _canDoSomething; }
+        set { _canDoSomething = value; }
+    }
 
     public async Task HandleOnSomeEventCallback(string variable1, string variable2, string variable3, string variable4)
     {
@@ -58,7 +69,7 @@ public partial class TestClass1<T>
 
     }
 
-    public bool CanDoSomething { get; set; }
+    public bool CanSend { get; set; }
     
     public event EventHandler RequestSent;
 

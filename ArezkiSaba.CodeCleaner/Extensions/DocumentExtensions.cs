@@ -230,7 +230,7 @@ public static class DocumentExtensions
 
             var methodDeclarationSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration);
             var methodDeclarationReferences = await SymbolFinder.FindReferencesAsync(methodDeclarationSymbol, solution);
-            foreach (var parameterReference in methodDeclarationReferences)
+            foreach (var methodDeclarationReference in methodDeclarationReferences)
             {
                 newSolution = await Renamer.RenameSymbolAsync(
                     newSolution,
@@ -318,6 +318,27 @@ public static class DocumentExtensions
         return classDeclarationsToAdd;
     }
 
+    public static void InsertOrderedMemberDeclarationsIntoClass(
+        this DocumentEditor documentEditor,
+        List<(string className, List<MemberDeclarationSyntax> memberDeclarations)> memberDeclarationsWithClassName)
+    {
+        var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
+        foreach (var (className, memberDeclarations) in memberDeclarationsWithClassName)
+        {
+            var match = classDeclarations.FirstOrDefault(classDeclaration => className == classDeclaration.Identifier.Text);
+            if (match != null)
+            {
+                var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration));
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.FieldDeclaration));
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.PropertyDeclaration));
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.ConstructorDeclaration));
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.MethodDeclaration));
+                documentEditor.InsertMembers(match, 0, orderedMemberDeclarations);
+            }
+        }
+    }
+
     private static void AddLeadingTriviaToMemberDeclarations(
         this DocumentEditor documentEditor)
     {
@@ -357,40 +378,15 @@ public static class DocumentExtensions
         }
     }
 
-    public static void InsertOrderedMemberDeclarationsIntoClass(
-        this DocumentEditor documentEditor,
-        List<(string className, List<MemberDeclarationSyntax> memberDeclarations)> memberDeclarationsWithClassName)
-    {
-        var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
-        foreach (var (className, memberDeclarations) in memberDeclarationsWithClassName)
-        {
-            var match = classDeclarations.FirstOrDefault(classDeclaration =>
-            {
-                return className == classDeclaration.Identifier.Text;
-            });
-            if (match != null)
-            {
-                var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.FieldDeclaration));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.PropertyDeclaration));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.ConstructorDeclaration));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.MethodDeclaration));
-                documentEditor.InsertMembers(match, 0, orderedMemberDeclarations);
-            }
-        }
-    }
-
     private static List<MemberDeclarationSyntax> GetMemberDeclarations(
         List<MemberDeclarationSyntax> memberDeclarations,
         SyntaxKind syntaxKind)
     {
-        var filteredMethodDeclarations = memberDeclarations
+        return memberDeclarations
             .Where(obj => obj.IsKind(syntaxKind))
-            .ToList();
-        filteredMethodDeclarations = filteredMethodDeclarations
             .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.StaticKeyword)))
             .ThenByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.ReadOnlyKeyword)))
+            .ThenBy(obj => obj.GetName())
             .Select(
                 (obj, i) =>
                 {
@@ -404,7 +400,6 @@ public static class DocumentExtensions
                 }
             )
             .ToList();
-        return filteredMethodDeclarations;
     }
 
     private static bool CanAddLeadingTrivia(
@@ -437,11 +432,6 @@ public static class DocumentExtensions
 
         return canAddLeadingTrivia;
     }
-
-    private record class ClassMemberModel(
-        string ClassName,
-        List<MemberDeclarationSyntax> MemberDeclarations
-    );
 
     #endregion
 }
