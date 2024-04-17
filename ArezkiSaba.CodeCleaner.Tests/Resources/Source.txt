@@ -54,7 +54,11 @@ public partial class TestClass1<T>
     }
 
     public event EventHandler RequestReceived;
-    
+
+    private void PrivateMethods()
+    {
+    }
+
     private int _canDoSomething;
     public int CanDoSomething
     {

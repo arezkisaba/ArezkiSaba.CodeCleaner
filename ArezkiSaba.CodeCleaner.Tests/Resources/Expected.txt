@@ -7,7 +7,7 @@ public partial class TestClass1<T>
 {
     public event EventHandler RequestReceived;
     public event EventHandler RequestSent;
-    
+
     private readonly string _readonlyStringField1;
     private readonly string _readonlyStringField2;
     private int _canDoSomething;
@@ -36,6 +36,15 @@ public partial class TestClass1<T>
         _nonReadonlyStringField = "some other useless value";
     }
 
+    public async Task HandleOnSomeEventCallbackAsync(
+         string variable1,
+         string variable2,
+         string variable3,
+         string variable4)
+    {
+        _nonReadonlyStringField = "some other useless value";
+    }
+
     public void OnSomeEventCallback(
          object _,
          EventArgs __)
@@ -53,12 +62,7 @@ public partial class TestClass1<T>
         );
     }
 
-    public async Task HandleOnSomeEventCallbackAsync(
-         string variable1,
-         string variable2,
-         string variable3,
-         string variable4)
+    private void PrivateMethods()
     {
-        _nonReadonlyStringField = "some other useless value";
     }
 }

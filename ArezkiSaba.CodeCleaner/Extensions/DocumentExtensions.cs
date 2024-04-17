@@ -384,6 +384,9 @@ public static class DocumentExtensions
     {
         return memberDeclarations
             .Where(obj => obj.IsKind(syntaxKind))
+            .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.PublicKeyword)))
+            .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.ProtectedKeyword)))
+            .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.PrivateKeyword)))
             .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.StaticKeyword)))
             .ThenByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.ReadOnlyKeyword)))
             .ThenBy(obj => obj.GetName())
