@@ -225,7 +225,7 @@ public static class DocumentExtensions
             var hasAsyncKeyword = declaration.ChildTokens().Any(obj => obj.IsKind(SyntaxKind.AsyncKeyword));
             var hasTaskReturnTypeKeyword = declaration.ChildNodes().Any(node =>
             {
-                return node.ChildTokens().Any(token => token.ValueText == "Task"); 
+                return node.ChildTokens().Any(token => token.ValueText == "Task");
             });
             if (hasAsyncSuffix || (!hasAsyncKeyword && !hasTaskReturnTypeKeyword))
             {
@@ -265,16 +265,19 @@ public static class DocumentExtensions
                 continue;
             }
 
-            var symbol = semanticModel.GetDeclaredSymbol(declaration);
-            var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
-            foreach (var reference in references)
+            foreach (var variable in declaration.Declaration.Variables)
             {
-                newSolution = await Renamer.RenameSymbolAsync(
-                    newSolution,
-                    symbol,
-                    new SymbolRenameOptions(),
-                    $"_{name}"
-                );
+                var symbol = semanticModel.GetDeclaredSymbol(variable);
+                var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
+                foreach (var reference in references)
+                {
+                    newSolution = await Renamer.RenameSymbolAsync(
+                        newSolution,
+                        symbol,
+                        new SymbolRenameOptions(),
+                        $"_{name}"
+                    );
+                }
             }
         }
 
@@ -293,7 +296,7 @@ public static class DocumentExtensions
         foreach (var declaration in declarations)
         {
             var name = declaration.GetName();
-            if (name[0] >= 65 && name[0] <= 90)
+            if (name.StartsWith("_"))
             {
                 continue;
             }

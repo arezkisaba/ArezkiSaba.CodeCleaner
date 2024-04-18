@@ -19,7 +19,6 @@ public static class WorkspaceExtensions
     private static async Task CleanAsync(
         this Workspace workspace)
     {
-        var changesCount = 0;
         var newSolution = workspace.CurrentSolution;
         var projectIds = workspace.CurrentSolution.ProjectIds;
 
@@ -49,17 +48,10 @@ public static class WorkspaceExtensions
 
                 project = updatedDocument.Project;
                 newSolution = project.Solution;
-
-                var originalText = (await originalDocument.GetTextAsync()).ToString();
-                var updatedText = (await updatedDocument.GetTextAsync()).ToString();
-                if (!originalText.Equals(updatedText))
-                {
-                    changesCount++;
-                }
             }
         }
 
-        ApplyChanges(workspace, newSolution, changesCount);
+        ApplyChanges(workspace, newSolution);
     }
 
     private static async Task RefactorAsync(
@@ -68,12 +60,11 @@ public static class WorkspaceExtensions
         var refactoringFuncs = new List<Func<Document, Solution, Task<Solution>>>();
         refactoringFuncs.Add((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartAsyncMethodRenamerAsync(solution));
-        ////refactoringFuncs.Add((document, solution) => document.StartFieldRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartFieldRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartMethodRenamerAsync(solution));
 
         foreach (var refactoringFunc in refactoringFuncs)
         {
-            var changesCount = 0;
             var newSolution = workspace.CurrentSolution;
             var projectIds = workspace.CurrentSolution.ProjectIds;
 
@@ -94,14 +85,13 @@ public static class WorkspaceExtensions
                 }
             }
 
-            ApplyChanges(workspace, newSolution, changesCount);
+            ApplyChanges(workspace, newSolution);
         }
     }
 
     private static void ApplyChanges(
         this Workspace workspace,
-        Solution newSolution,
-        int changesCount)
+        Solution newSolution)
     {
         string sender;
         if (string.IsNullOrWhiteSpace(newSolution.FilePath))
@@ -117,7 +107,7 @@ public static class WorkspaceExtensions
             workspace.TryApplyChanges(newSolution))
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"{sender} => Changes applied in {changesCount} files");
+            Console.WriteLine($"{sender} => Changes applied");
         }
         else
         {
