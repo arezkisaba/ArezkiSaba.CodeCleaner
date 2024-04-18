@@ -5,7 +5,7 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class WorkspaceExtensions
 {
-    public static async Task<Workspace> RefactorAsync(
+    public static async Task<Workspace> CleanAsync(
         this Workspace workspace)
     {
         var changesCount = 0;

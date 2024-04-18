@@ -221,9 +221,13 @@ public static class DocumentExtensions
         var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
         foreach (var methodDeclaration in methodDeclarations)
         {
-            var hasAsyncKeyword = methodDeclaration.ChildTokens().Any(obj => obj.IsKind(SyntaxKind.AsyncKeyword));
             var hasAsyncSuffix = methodDeclaration.Identifier.ValueText.EndsWith(asyncSuffix);
-            if (!hasAsyncKeyword || hasAsyncSuffix)
+            var hasAsyncKeyword = methodDeclaration.ChildTokens().Any(obj => obj.IsKind(SyntaxKind.AsyncKeyword));
+            var hasTaskReturnTypeKeyword = methodDeclaration.ChildNodes().Any(node =>
+            {
+                return node.ChildTokens().Any(token => token.ValueText == "Task"); 
+            });
+            if (hasAsyncSuffix || (!hasAsyncKeyword && !hasTaskReturnTypeKeyword))
             {
                 continue;
             }
@@ -382,27 +386,74 @@ public static class DocumentExtensions
         List<MemberDeclarationSyntax> memberDeclarations,
         SyntaxKind syntaxKind)
     {
-        return memberDeclarations
+        var sortedemberDeclarations = memberDeclarations
             .Where(obj => obj.IsKind(syntaxKind))
-            .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.PublicKeyword)))
-            .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.ProtectedKeyword)))
-            .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.PrivateKeyword)))
-            .OrderByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.StaticKeyword)))
-            .ThenByDescending(obj => obj.Modifiers.Any(obj => obj.IsKind(SyntaxKind.ReadOnlyKeyword)))
-            .ThenBy(obj => obj.GetName())
-            .Select(
-                (obj, i) =>
-                {
-                    var memberDeclaration = obj.WithoutLeadingTrivia();
-                    memberDeclaration = memberDeclaration.WithTrailingTrivia(
-                        SyntaxFactory.TriviaList(
-                            SyntaxFactory.EndOfLine(Environment.NewLine)
-                        )
-                    );
-                    return memberDeclaration;
-                }
-            )
-            .ToList();
+            .OrderBy(obj => GetMemberDeclarationModifierRank(obj, syntaxKind))
+            .ThenBy(obj => obj.GetName());
+
+        return sortedemberDeclarations.Select(
+            (obj, i) =>
+            {
+                var memberDeclaration = obj.WithoutLeadingTrivia();
+                memberDeclaration = memberDeclaration.WithTrailingTrivia(
+                    SyntaxFactory.TriviaList(
+                        SyntaxFactory.EndOfLine(Environment.NewLine)
+                    )
+                );
+                return memberDeclaration;
+            }
+        ).ToList();
+    }
+
+    private static int GetMemberDeclarationModifierRank(
+        MemberDeclarationSyntax memberDeclaration,
+        SyntaxKind syntaxKind)
+    {
+        var modifiers = memberDeclaration.Modifiers;
+
+        if (syntaxKind == SyntaxKind.FieldDeclaration)
+        {
+            if (modifiers.Any(SyntaxKind.StaticKeyword))
+            {
+                return 1;
+            }
+            else if (modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+            {
+                return 2;
+            }
+            else
+            {
+                return 3;
+            }
+        }
+
+        if (modifiers.Any(SyntaxKind.PublicKeyword) &&
+            modifiers.Any(SyntaxKind.StaticKeyword))
+        {
+            return 1;
+        }
+        else if (modifiers.Any(SyntaxKind.PublicKeyword))
+        {
+            return 2;
+        }
+        else if (modifiers.Any(SyntaxKind.ProtectedKeyword))
+        {
+            return 3;
+        }
+        else if (modifiers.Any(SyntaxKind.InternalKeyword))
+        {
+            return 4;
+        }
+        else if (modifiers.Any(SyntaxKind.PrivateKeyword))
+        {
+            return 5;
+        }
+        else if (modifiers.Any(SyntaxKind.StaticKeyword))
+        {
+            return 6;
+        }
+
+        return 7;
     }
 
     private static bool CanAddLeadingTrivia(

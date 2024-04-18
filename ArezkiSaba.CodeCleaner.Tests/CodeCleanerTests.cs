@@ -23,9 +23,9 @@ public sealed class CodeCleanerTests
     }
 
     [Test]
-    public async Task RefactorAsync_ContentAfterRefactoring_EqualsTo_ExpectedContent()
+    public async Task CleanAsync_ContentAfterRefactoring_EqualsTo_ExpectedContent()
     {
-        var sourceContent = ReadEmbeddedResource($"{_resourcesFolderPath}/Source.txt");
+        var sourceContent = await ReadEmbeddedResourceAsync($"{_resourcesFolderPath}/Source.txt");
 
         var filesToAdd = new List<(string fileName, string fileContent)>();
         filesToAdd.Add((_fileName, sourceContent));
@@ -34,10 +34,10 @@ public sealed class CodeCleanerTests
             _projectName,
             filesToAdd
         );
-        workspace = await workspace.RefactorAsync();
+        workspace = await workspace.CleanAsync();
 
-        var contentAfterRefactoring = ReadDocumentContent(workspace, _projectName, _fileName);
-        var expectedContent = ReadEmbeddedResource($"{_resourcesFolderPath}/Expected.txt");
+        var contentAfterRefactoring = await ReadDocumentContentAsync(workspace, _projectName, _fileName);
+        var expectedContent = await ReadEmbeddedResourceAsync($"{_resourcesFolderPath}/Expected.txt");
 
         Assert.That(contentAfterRefactoring, Is.EqualTo(expectedContent));
     }
@@ -112,7 +112,7 @@ public sealed class CodeCleanerTests
         throw new InvalidOperationException($"Failed to create in memory workspace with project '{projectName}'.");
     }
 
-    public static string ReadDocumentContent(
+    public static async  Task<string> ReadDocumentContentAsync(
         Workspace workspace,
         string projectName,
         string fileName)
@@ -129,11 +129,10 @@ public sealed class CodeCleanerTests
             throw new ArgumentException($"Document '{fileName}' not found in project '{projectName}'.");
         }
 
-        var content = document.GetTextAsync().Result.ToString();
-        return content;
+        return (await document.GetTextAsync()).ToString();
     }
 
-    private static string ReadEmbeddedResource(
+    private static async Task<string> ReadEmbeddedResourceAsync(
         string resourcePath)
     {
         var assembly = Assembly.GetExecutingAssembly();
@@ -153,7 +152,7 @@ public sealed class CodeCleanerTests
 
             using (var reader = new StreamReader(stream))
             {
-                return reader.ReadToEnd();
+                return await reader.ReadToEndAsync();
             }
         }
     }

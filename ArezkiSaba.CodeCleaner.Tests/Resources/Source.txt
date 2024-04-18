@@ -26,8 +26,6 @@ public partial class TestClass1<T>
     
     private string _readonlyStringField2;
 
-    private string _readonlyStringField1;
-
     public TestClass1(string arg1)
     {
 
@@ -36,6 +34,8 @@ public partial class TestClass1<T>
         _nonReadonlyStringField = "some other useless value";
 
     }
+
+    private string _readonlyStringField1;
 
 
 
@@ -53,17 +53,36 @@ public partial class TestClass1<T>
 
     }
 
-    public event EventHandler RequestReceived;
-
-    private void PrivateMethods()
+    private TestClass1()
     {
     }
 
-    private int _canDoSomething;
+    public Task SomeAsyncMethodWithSuffixAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public event EventHandler RequestReceived;
+
+    private void SomePrivateMethod()
+    {
+    }
+
     public int CanDoSomething
     {
         get { return _canDoSomething; }
         set { _canDoSomething = value; }
+    }
+    
+    public Task SomeAsyncMethod()
+    {
+
+        return Task.CompletedTask;
+
+    }
+
+    private static void SomePrivateStaticMethod()
+    {
     }
 
     public async Task HandleOnSomeEventCallback(string variable1, string variable2, string variable3, string variable4)
@@ -73,12 +92,21 @@ public partial class TestClass1<T>
 
     }
 
-    public bool CanSend { get; set; }
-    
-    public event EventHandler RequestSent;
+    public bool CanDoSomeOtherThing { get; set; }
+
+    private static string _someStaticField;
+
+    public event EventHandler SomeEventTriggered;
 
 
 
 
     private string _nonReadonlyStringField;
+
+    public static TestClass1 SomePublicFactoryMethod()
+    {
+        return new TestClass1();
+    }
+
+    private int _canDoSomething;
 }

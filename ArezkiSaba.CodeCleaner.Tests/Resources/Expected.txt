@@ -6,20 +6,21 @@ namespace ArezkiSaba.CodeCleaner.Tests;
 public partial class TestClass1<T>
 {
     public event EventHandler RequestReceived;
-    public event EventHandler RequestSent;
+    public event EventHandler SomeEventTriggered;
 
+    private static string _someStaticField;
     private readonly string _readonlyStringField1;
     private readonly string _readonlyStringField2;
     private int _canDoSomething;
     private string _nonReadonlyStringField;
+
+    public bool CanDoSomeOtherThing { get; set; }
 
     public int CanDoSomething
     {
         get { return _canDoSomething; }
         set { _canDoSomething = value; }
     }
-
-    public bool CanSend { get; set; }
 
     public TestClass1()
     {
@@ -34,6 +35,15 @@ public partial class TestClass1<T>
         _readonlyStringField1 = arg1;
         _readonlyStringField2 = arg1;
         _nonReadonlyStringField = "some other useless value";
+    }
+
+    private TestClass1()
+    {
+    }
+
+    public static TestClass1 SomePublicFactoryMethod()
+    {
+        return new TestClass1();
     }
 
     public async Task HandleOnSomeEventCallbackAsync(
@@ -62,7 +72,21 @@ public partial class TestClass1<T>
         );
     }
 
-    private void PrivateMethods()
+    public Task SomeAsyncMethodAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task SomeAsyncMethodWithSuffixAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    private void SomePrivateMethod()
+    {
+    }
+
+    private static void SomePrivateStaticMethod()
     {
     }
 }
