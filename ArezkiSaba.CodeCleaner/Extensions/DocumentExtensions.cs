@@ -218,12 +218,12 @@ public static class DocumentExtensions
         var newSolution = solution;
 
         var asyncSuffix = "Async";
-        var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
-        foreach (var methodDeclaration in methodDeclarations)
+        var declarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
+        foreach (var declaration in declarations)
         {
-            var hasAsyncSuffix = methodDeclaration.Identifier.ValueText.EndsWith(asyncSuffix);
-            var hasAsyncKeyword = methodDeclaration.ChildTokens().Any(obj => obj.IsKind(SyntaxKind.AsyncKeyword));
-            var hasTaskReturnTypeKeyword = methodDeclaration.ChildNodes().Any(node =>
+            var hasAsyncSuffix = declaration.Identifier.ValueText.EndsWith(asyncSuffix);
+            var hasAsyncKeyword = declaration.ChildTokens().Any(obj => obj.IsKind(SyntaxKind.AsyncKeyword));
+            var hasTaskReturnTypeKeyword = declaration.ChildNodes().Any(node =>
             {
                 return node.ChildTokens().Any(token => token.ValueText == "Task"); 
             });
@@ -232,15 +232,81 @@ public static class DocumentExtensions
                 continue;
             }
 
-            var methodDeclarationSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration);
-            var methodDeclarationReferences = await SymbolFinder.FindReferencesAsync(methodDeclarationSymbol, solution);
-            foreach (var methodDeclarationReference in methodDeclarationReferences)
+            var symbol = semanticModel.GetDeclaredSymbol(declaration);
+            var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
+            foreach (var reference in references)
             {
                 newSolution = await Renamer.RenameSymbolAsync(
                     newSolution,
-                    methodDeclarationSymbol,
+                    symbol,
                     new SymbolRenameOptions(),
-                    $"{methodDeclaration.Identifier.ValueText}{asyncSuffix}"
+                    $"{declaration.Identifier.ValueText}{asyncSuffix}"
+                );
+            }
+        }
+
+        return newSolution;
+    }
+
+    public static async Task<Solution> StartFieldRenamerAsync(
+        this Document document,
+        Solution solution)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var newSolution = solution;
+
+        var declarations = root.DescendantNodes().OfType<FieldDeclarationSyntax>().ToList();
+        foreach (var declaration in declarations)
+        {
+            var name = declaration.GetName();
+            if (name.StartsWith("_"))
+            {
+                continue;
+            }
+
+            var symbol = semanticModel.GetDeclaredSymbol(declaration);
+            var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
+            foreach (var reference in references)
+            {
+                newSolution = await Renamer.RenameSymbolAsync(
+                    newSolution,
+                    symbol,
+                    new SymbolRenameOptions(),
+                    $"_{name}"
+                );
+            }
+        }
+
+        return newSolution;
+    }
+
+    public static async Task<Solution> StartMethodRenamerAsync(
+        this Document document,
+        Solution solution)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var newSolution = solution;
+
+        var declarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
+        foreach (var declaration in declarations)
+        {
+            var name = declaration.GetName();
+            if (name[0] >= 65 && name[0] <= 90)
+            {
+                continue;
+            }
+
+            var symbol = semanticModel.GetDeclaredSymbol(declaration);
+            var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
+            foreach (var reference in references)
+            {
+                newSolution = await Renamer.RenameSymbolAsync(
+                    newSolution,
+                    symbol,
+                    new SymbolRenameOptions(),
+                    string.Concat(name[0].ToString().ToUpper(), name.AsSpan(1))
                 );
             }
         }
@@ -274,17 +340,22 @@ public static class DocumentExtensions
         string discard)
     {
         var newSolution = solution;
-        var parameterSymbol = semanticModel.GetDeclaredSymbol(senderParameter);
-        var parameterReferences = await SymbolFinder.FindReferencesAsync(parameterSymbol, solution);
-        foreach (var parameterReference in parameterReferences)
+        var symbol = semanticModel.GetDeclaredSymbol(senderParameter);
+        var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
+        foreach (var reference in references)
         {
-            var locations = parameterReference.Locations.ToList();
+            var locations = reference.Locations.ToList();
             if (locations.Any())
             {
                 continue;
             }
 
-            newSolution = await Renamer.RenameSymbolAsync(newSolution, parameterSymbol, new SymbolRenameOptions(), discard);
+            newSolution = await Renamer.RenameSymbolAsync(
+                newSolution,
+                symbol,
+                new SymbolRenameOptions(),
+                discard
+            );
         }
 
         return newSolution;

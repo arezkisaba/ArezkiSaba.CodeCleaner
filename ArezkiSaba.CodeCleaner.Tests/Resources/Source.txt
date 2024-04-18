@@ -19,7 +19,7 @@ public partial class TestClass1<T>
 
         _readonlyStringField1 = "some useless value";
         _readonlyStringField2 = "some useless value";
-        _nonReadonlyStringField = "some other useless value";
+        nonReadonlyStringField = "some other useless value";
 
     }
 
@@ -31,7 +31,7 @@ public partial class TestClass1<T>
 
         _readonlyStringField1 = arg1;
         _readonlyStringField2 = arg1;
-        _nonReadonlyStringField = "some other useless value";
+        nonReadonlyStringField = "some other useless value";
 
     }
 
@@ -48,7 +48,7 @@ public partial class TestClass1<T>
         string variable3 = "3";
         string variable4 = "4";
 
-        HandleOnSomeEventCallback(variable1, variable2, variable3, variable4);
+        handleOnSomeEventCallback(variable1, variable2, variable3, variable4);
 
 
     }
@@ -85,10 +85,10 @@ public partial class TestClass1<T>
     {
     }
 
-    public async Task HandleOnSomeEventCallback(string variable1, string variable2, string variable3, string variable4)
+    public async Task handleOnSomeEventCallback(string variable1, string variable2, string variable3, string variable4)
     {
 
-        _nonReadonlyStringField = "some other useless value";
+        nonReadonlyStringField = "some other useless value";
 
     }
 
@@ -101,7 +101,7 @@ public partial class TestClass1<T>
 
 
 
-    private string _nonReadonlyStringField;
+    private string nonReadonlyStringField;
 
     public static TestClass1 SomePublicFactoryMethod()
     {

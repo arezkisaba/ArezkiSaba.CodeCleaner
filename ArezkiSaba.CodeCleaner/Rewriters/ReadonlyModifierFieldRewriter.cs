@@ -21,17 +21,16 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
     public override SyntaxNode VisitFieldDeclaration(
         FieldDeclarationSyntax node)
     {
-        var variableDeclarator = node.DescendantNodes().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
-        var variableDeclaratorSymbol = _semanticModel.GetDeclaredSymbol(variableDeclarator);
         var hasPrivateKeyWordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.PrivateKeyword));
         var hasReadonlyKeywordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.ReadOnlyKeyword));
         var hasStaticKeywordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.StaticKeyword));
-
         if (!hasPrivateKeyWordToken || hasReadonlyKeywordToken || hasStaticKeywordToken)
         {
             return node;
         }
 
+        var variableDeclarator = node.DescendantNodes().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+        var variableDeclaratorSymbol = _semanticModel.GetDeclaredSymbol(variableDeclarator);
         var variableDeclaratorReference = SymbolFinder.FindReferencesAsync(variableDeclaratorSymbol, _solution)
             .GetAwaiter()
             .GetResult()
