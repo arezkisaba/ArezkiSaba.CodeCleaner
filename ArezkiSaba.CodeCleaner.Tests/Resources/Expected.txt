@@ -5,14 +5,14 @@ namespace ArezkiSaba.CodeCleaner.Tests;
 
 public partial class TestClass1<T>
 {
-    public event EventHandler SomeEventTriggered;
-    public event EventHandler SomeOtherEventCamelCasedTriggered;
-
     private static string _someStaticField;
     private readonly string _readonlyStringField1;
     private readonly string _readonlyStringField2;
     private int _canDoSomething;
     private string _nonReadonlyStringField;
+
+    public event EventHandler SomeEventTriggered;
+    public event EventHandler SomeOtherEventCamelCasedTriggered;
 
     public bool CanDoSomeOtherThing { get; set; }
 
@@ -52,7 +52,11 @@ public partial class TestClass1<T>
          string variable3,
          string variable4)
     {
+        var someVariableWithBadNamingConvention = "Hi";
+        var someOtherVariableWithBadNamingConvention = "there !";
         _nonReadonlyStringField = "some other useless value";
+
+        Console.WriteLine($"{someVariableWithBadNamingConvention} {someOtherVariableWithBadNamingConvention}");
     }
 
     public void OnSomeEventCallback(

@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
@@ -233,14 +235,42 @@ public static class DocumentExtensions
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(declaration);
-            var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
-            foreach (var reference in references)
+            newSolution = await Renamer.RenameSymbolAsync(
+                newSolution,
+                symbol,
+                new SymbolRenameOptions(),
+                $"{declaration.Identifier.ValueText}{asyncSuffix}"
+            );
+        }
+
+        return newSolution;
+    }
+
+    public static async Task<Solution> StartFieldRenamerAsync(
+        this Document document,
+        Solution solution)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var newSolution = solution;
+
+        var declarations = root.DescendantNodes().OfType<FieldDeclarationSyntax>().ToList();
+        foreach (var declaration in declarations)
+        {
+            var name = declaration.GetName();
+            if (name.StartsWith('_'))
             {
+                continue;
+            }
+
+            foreach (var variable in declaration.Declaration.Variables)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(variable);
                 newSolution = await Renamer.RenameSymbolAsync(
                     newSolution,
                     symbol,
                     new SymbolRenameOptions(),
-                    $"{declaration.Identifier.ValueText}{asyncSuffix}"
+                    $"_{name}"
                 );
             }
         }
@@ -260,7 +290,7 @@ public static class DocumentExtensions
         foreach (var declaration in declarations)
         {
             var name = declaration.GetName();
-            if (name[0] >= 65 && name[0] <= 90)
+            if (char.IsUpper(name[0]))
             {
                 continue;
             }
@@ -268,52 +298,13 @@ public static class DocumentExtensions
             foreach (var variable in declaration.Declaration.Variables)
             {
                 var symbol = semanticModel.GetDeclaredSymbol(variable);
-                var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
-                foreach (var reference in references)
-                {
-                    newSolution = await Renamer.RenameSymbolAsync(
-                        newSolution,
-                        symbol,
-                        new SymbolRenameOptions(),
-                        string.Concat(name[0].ToString().ToUpper(), name.AsSpan(1))
-                    );
-                }
-            }
-        }
-
-        return newSolution;
-    }
-
-    public static async Task<Solution> StartFieldRenamerAsync(
-        this Document document,
-        Solution solution)
-    {
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-
-        var declarations = root.DescendantNodes().OfType<FieldDeclarationSyntax>().ToList();
-        foreach (var declaration in declarations)
-        {
-            var name = declaration.GetName();
-            if (name.StartsWith("_"))
-            {
-                continue;
-            }
-
-            foreach (var variable in declaration.Declaration.Variables)
-            {
-                var symbol = semanticModel.GetDeclaredSymbol(variable);
-                var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
-                foreach (var reference in references)
-                {
-                    newSolution = await Renamer.RenameSymbolAsync(
-                        newSolution,
-                        symbol,
-                        new SymbolRenameOptions(),
-                        $"_{name}"
-                    );
-                }
+                var newName = symbol.Name.ToPascalCase();
+                newSolution = await Renamer.RenameSymbolAsync(
+                    newSolution,
+                    symbol,
+                    new SymbolRenameOptions(),
+                    newName
+                );
             }
         }
 
@@ -332,20 +323,49 @@ public static class DocumentExtensions
         foreach (var declaration in declarations)
         {
             var name = declaration.GetName();
-            if (name[0] >= 65 && name[0] <= 90)
+            if (char.IsUpper(name[0]))
             {
                 continue;
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(declaration);
-            var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
-            foreach (var reference in references)
+            var newName = symbol.Name.ToPascalCase();
+            newSolution = await Renamer.RenameSymbolAsync(
+                newSolution,
+                symbol,
+                new SymbolRenameOptions(),
+                newName
+            );
+        }
+
+        return newSolution;
+    }
+
+    public static async Task<Solution> StartLocalVariableRenamerAsync(
+        this Document document,
+        Solution solution)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var newSolution = solution;
+
+        var declarations = root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToList();
+        foreach (var localDeclaration in declarations)
+        {
+            foreach (var declaration in localDeclaration.Declaration.Variables)
             {
+                var symbol = semanticModel.GetDeclaredSymbol(declaration);
+                if (char.IsLower(symbol.Name[0]))
+                {
+                    continue;
+                }
+
+                var newName = symbol.Name.ToCamelCase();
                 newSolution = await Renamer.RenameSymbolAsync(
                     newSolution,
                     symbol,
                     new SymbolRenameOptions(),
-                    string.Concat(name[0].ToString().ToUpper(), name.AsSpan(1))
+                    newName
                 );
             }
         }
@@ -383,8 +403,7 @@ public static class DocumentExtensions
         var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
         foreach (var reference in references)
         {
-            var locations = reference.Locations.ToList();
-            if (locations.Any())
+            if (reference.Locations.Any())
             {
                 continue;
             }
@@ -405,8 +424,8 @@ public static class DocumentExtensions
     {
         var declarationsToExtract = new List<SyntaxKind>()
         {
-            SyntaxKind.EventFieldDeclaration,
             SyntaxKind.FieldDeclaration,
+            SyntaxKind.EventFieldDeclaration,
             SyntaxKind.PropertyDeclaration,
             SyntaxKind.ConstructorDeclaration,
             SyntaxKind.MethodDeclaration
@@ -443,8 +462,8 @@ public static class DocumentExtensions
             if (match != null)
             {
                 var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration));
                 orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.FieldDeclaration));
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration));
                 orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.PropertyDeclaration));
                 orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.ConstructorDeclaration));
                 orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.MethodDeclaration));

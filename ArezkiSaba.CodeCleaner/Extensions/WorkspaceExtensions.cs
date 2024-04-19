@@ -58,9 +58,10 @@ public static class WorkspaceExtensions
         this Workspace workspace)
     {
         var refactoringFuncs = new List<Func<Document, Solution, Task<Solution>>>();
-        refactoringFuncs.Add((document, solution) => document.StartEventFieldRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartFieldRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartEventFieldRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartMethodRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartLocalVariableRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartAsyncMethodRenamerAsync(solution));
 

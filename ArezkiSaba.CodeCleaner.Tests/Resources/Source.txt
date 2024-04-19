@@ -48,7 +48,7 @@ public partial class TestClass1<T>
         string variable3 = "3";
         string variable4 = "4";
 
-        handleOnSomeEventCallback(variable1, variable2, variable3, variable4);
+        _handleOnSomeEventCallback(variable1, variable2, variable3, variable4);
 
 
     }
@@ -85,11 +85,13 @@ public partial class TestClass1<T>
     {
     }
 
-    public async Task handleOnSomeEventCallback(string variable1, string variable2, string variable3, string variable4)
+    public async Task _handleOnSomeEventCallback(string variable1, string variable2, string variable3, string variable4)
     {
-
+        var _someVariableWithBadNamingConvention = "Hi";
+        var SomeOtherVariableWithBadNamingConvention = "there !";
         nonReadonlyStringField = "some other useless value";
 
+        Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention}");
     }
 
     public bool CanDoSomeOtherThing { get; set; }

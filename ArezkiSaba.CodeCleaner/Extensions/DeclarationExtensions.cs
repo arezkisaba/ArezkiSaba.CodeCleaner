@@ -2,12 +2,12 @@
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
-public static class MemberDeclarationExtensions
+public static class DeclarationExtensions
 {
     public static string GetName(
-        this MemberDeclarationSyntax member)
+        this MemberDeclarationSyntax declaration)
     {
-        switch (member)
+        switch (declaration)
         {
             case EventFieldDeclarationSyntax eventField:
                 return eventField.Declaration.Variables.First().Identifier.Text;
