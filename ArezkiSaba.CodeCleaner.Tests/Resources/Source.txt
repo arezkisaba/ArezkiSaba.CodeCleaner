@@ -19,7 +19,7 @@ public partial class TestClass1<T>
 
         _readonlyStringField1 = "some useless value";
         _readonlyStringField2 = "some useless value";
-        nonReadonlyStringField = "some other useless value";
+        nonReadonlyBooleanField = false;
 
     }
 
@@ -31,7 +31,7 @@ public partial class TestClass1<T>
 
         _readonlyStringField1 = arg1;
         _readonlyStringField2 = arg1;
-        nonReadonlyStringField = "some other useless value";
+        nonReadonlyBooleanField = false;
 
     }
 
@@ -82,35 +82,44 @@ public partial class TestClass1<T>
     public Task SomeAsyncMethod()
     {
 
+
         return Task.CompletedTask;
 
     }
 
     private static void SomePrivateStaticMethod()
     {
+
+
     }
 
-    public async Task _handleOnSomeEventCallback(string variable1, string variable2, string variable3, string variable4)
+    public async Task _handleOnSomeEventCallback(string variable1, 
+                string variable2, 
+        string variable3, string variable4)
     {
 
 
         var _someVariableWithBadNamingConvention = "Hi";
-        var SomeOtherVariableWithBadNamingConvention = "there !";
-        nonReadonlyStringField = "some other useless value";
+        var SomeOtherVariableWithBadNamingConvention = "there";
+
+        Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention} !");
 
 
-        if (true)
+
+        nonReadonlyBooleanField = true;
+
+
+        if (nonReadonlyBooleanField)
         {
 
 
-            Console.WriteLine("Hello");
+            Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention} again !");
 
 
 
         }
 
 
-        Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention}");
 
 
     }
@@ -124,7 +133,7 @@ public partial class TestClass1<T>
 
 
 
-    private string nonReadonlyStringField;
+    private bool nonReadonlyBooleanField;
 
     public static TestClass1 SomePublicFactoryMethod()
     {
@@ -134,6 +143,8 @@ public partial class TestClass1<T>
 
 
     }
+
+
 
     private int _canDoSomething;
 

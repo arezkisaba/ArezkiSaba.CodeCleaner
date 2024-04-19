@@ -24,12 +24,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Remove="Resources\Source.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Remove="Resources\Expected.txt" />
 		<None Remove="Resources\Source.txt" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<EmbeddedResource Include="Resources\Expected.txt" />
+		<EmbeddedResource Include="Resources\Source.cs">
+		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
 		<EmbeddedResource Include="Resources\Source.txt">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</EmbeddedResource>

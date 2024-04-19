@@ -72,13 +72,6 @@ public static class DocumentExtensions
         return documentEditor.GetChangedDocument();
     }
 
-    public static async Task<Document> StartDuplicatedEmptyLinesRemoverAsync(
-        this Document document)
-    {
-        var root = await document.GetSyntaxRootAsync();
-        return document.WithSyntaxRoot(new DuplicatedEmptyLinesRemover().Visit(root));
-    }
-
     public static async Task<Document> StartEmptyLinesBracesRemoverAsync(
         this Document document)
     {
@@ -148,6 +141,13 @@ public static class DocumentExtensions
         } while (isUpdated);
 
         return documentEditor.GetChangedDocument();
+    }
+
+    public static async Task<Document> StartDuplicatedEmptyLinesRemoverAsync(
+        this Document document)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        return document.WithSyntaxRoot(new DuplicatedEmptyLinesRemover().Visit(root));
     }
 
     public static async Task<Document> ReorderClassMembersAsync(
