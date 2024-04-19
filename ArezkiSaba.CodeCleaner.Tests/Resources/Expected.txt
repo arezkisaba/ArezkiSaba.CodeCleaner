@@ -30,7 +30,7 @@ public partial class TestClass1<T>
     }
 
     public TestClass1(
-         string arg1)
+        string arg1)
     {
         _readonlyStringField1 = arg1;
         _readonlyStringField2 = arg1;
@@ -47,10 +47,10 @@ public partial class TestClass1<T>
     }
 
     public async Task HandleOnSomeEventCallbackAsync(
-         string variable1,
-         string variable2,
-         string variable3,
-         string variable4)
+        string variable1,
+        string variable2,
+        string variable3,
+        string variable4)
     {
         var someVariableWithBadNamingConvention = "Hi";
         var someOtherVariableWithBadNamingConvention = "there !";
@@ -60,8 +60,8 @@ public partial class TestClass1<T>
     }
 
     public void OnSomeEventCallback(
-         object _,
-         EventArgs __)
+        object _,
+        EventArgs __)
     {
         var variable1 = "1";
         var variable2 = "2";

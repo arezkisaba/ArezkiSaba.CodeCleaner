@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Rename;
 using System.Drawing;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
@@ -92,7 +93,12 @@ public static class DocumentExtensions
                 continue;
             }
 
-            var block = node.DescendantNodes().Single(obj => obj.IsKind(SyntaxKind.Block));
+            var block = node.ChildNodes().SingleOrDefault(obj => obj.IsKind(SyntaxKind.Block));
+            if (block == null)
+            {
+                continue;
+            }
+
             var blockTokens = block.DescendantTokens();
             if (blockTokens.Count() == 2) // OpenBrace + CloseBrace
             {
@@ -124,7 +130,12 @@ public static class DocumentExtensions
                 continue;
             }
 
-            var block = node.DescendantNodes().Single(obj => obj.IsKind(SyntaxKind.Block));
+            var block = node.ChildNodes().SingleOrDefault(obj => obj.IsKind(SyntaxKind.Block));
+            if (block == null)
+            {
+                continue;
+            }
+
             var blockTokens = block.DescendantTokens();
             if (blockTokens.Count() == 2) // OpenBrace + CloseBrace
             {
@@ -184,12 +195,14 @@ public static class DocumentExtensions
                     )
                 )
             ))
-            .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
-            .Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+            .Add(SyntaxTriviaHelper.GetEndOfLine())
+            .Add(SyntaxTriviaHelper.GetEndOfLine())
+            .Add(SyntaxTriviaHelper.GetTab());
         var trailingTrivia = lastDeclaration.GetTrailingTrivia()
-            .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
+            .Add(SyntaxTriviaHelper.GetEndOfLine())
+            .Add(SyntaxTriviaHelper.GetTab())
             .Add(SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)))
-            .Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+            .Add(SyntaxTriviaHelper.GetEndOfLine());
 
         if (ReferenceEquals(firstDeclaration, lastDeclaration))
         {
@@ -514,16 +527,17 @@ public static class DocumentExtensions
         var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
         foreach (var (className, memberDeclarations) in memberDeclarationsWithClassName)
         {
-            var match = classDeclarations.FirstOrDefault(classDeclaration => className == classDeclaration.Identifier.Text);
-            if (match != null)
+            var classDeclaration = classDeclarations.FirstOrDefault(classDeclaration => className == classDeclaration.Identifier.Text);
+            if (classDeclaration != null)
             {
+                var indentationTrivia = classDeclaration.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
                 var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.FieldDeclaration));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.PropertyDeclaration));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.ConstructorDeclaration));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.MethodDeclaration));
-                documentEditor.InsertMembers(match, 0, orderedMemberDeclarations);
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.FieldDeclaration, indentationTrivia));
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration, indentationTrivia));
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.PropertyDeclaration, indentationTrivia));
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.ConstructorDeclaration, indentationTrivia));
+                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.MethodDeclaration, indentationTrivia));
+                documentEditor.InsertMembers(classDeclaration, 0, orderedMemberDeclarations);
             }
         }
     }
@@ -540,6 +554,7 @@ public static class DocumentExtensions
 
             var i = 0;
             var canAddLeadingTrivia = false;
+            var declarationTrivia = classDeclaration.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
             foreach (var memberDeclaration in memberDeclarationsReversed)
             {
                 if (i != memberDeclarations.Count - 1)
@@ -550,7 +565,9 @@ public static class DocumentExtensions
                         var originalLeadingToken = memberDeclaration.GetFirstToken();
                         var leadingToken = originalLeadingToken.WithLeadingTrivia(
                             SyntaxFactory.TriviaList(
-                                SyntaxFactory.EndOfLine(Environment.NewLine)
+                                SyntaxTriviaHelper.GetEndOfLine(),
+                                declarationTrivia,
+                                SyntaxTriviaHelper.GetTab()
                             )
                         );
 
@@ -569,7 +586,8 @@ public static class DocumentExtensions
 
     private static List<MemberDeclarationSyntax> GetMemberDeclarations(
         List<MemberDeclarationSyntax> memberDeclarations,
-        SyntaxKind syntaxKind)
+        SyntaxKind syntaxKind,
+        SyntaxTrivia indentationTrivia)
     {
         var sortedemberDeclarations = memberDeclarations
             .Where(obj => obj.IsKind(syntaxKind))
@@ -577,11 +595,18 @@ public static class DocumentExtensions
             .ThenBy(obj => obj.GetName())
             .Select((obj, i) =>
             {
-                return obj.WithoutLeadingTrivia().WithTrailingTrivia(
-                    SyntaxFactory.TriviaList(
-                        SyntaxFactory.EndOfLine(Environment.NewLine)
-                    )
-                );
+                return obj
+                    .RemoveAllTrivias()
+                    .WithLeadingTrivia(
+                        SyntaxFactory.TriviaList(
+                            indentationTrivia,
+                            SyntaxTriviaHelper.GetTab()
+                        ))
+                    .WithTrailingTrivia(
+                        SyntaxFactory.TriviaList(
+                            SyntaxTriviaHelper.GetEndOfLine()
+                        )
+                    );
             });
         return sortedemberDeclarations.ToList();
     }

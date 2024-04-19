@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -22,5 +24,29 @@ public static class DeclarationExtensions
             default:
                 return string.Empty;
         }
+    }
+
+    public static MemberDeclarationSyntax RemoveAllTrivias(
+        this MemberDeclarationSyntax declaration)
+    {
+        var parameterList = declaration.DescendantNodes().OfType<ParameterListSyntax>().FirstOrDefault();
+        if (parameterList != null)
+        {
+            var newParameters = parameterList.Parameters.Select(p => p.WithoutTrivia());
+            var newParameterList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
+            newParameterList = newParameterList.WithOpenParenToken(newParameterList.OpenParenToken.WithoutTrivia());
+            declaration = declaration.ReplaceNode(parameterList, newParameterList);
+        }
+
+        var argumentList = declaration.DescendantNodes().OfType<ArgumentListSyntax>().FirstOrDefault();
+        if (argumentList != null)
+        {
+            var newParameters = argumentList.Arguments.Select(p => p.WithoutTrivia());
+            var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newParameters));
+            newArgumentList = newArgumentList.WithOpenParenToken(newArgumentList.OpenParenToken.WithoutTrivia());
+            declaration = declaration.ReplaceNode(argumentList, newArgumentList);
+        }
+
+        return declaration;
     }
 }

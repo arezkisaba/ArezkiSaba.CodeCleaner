@@ -39,7 +39,9 @@ public partial class TestClass1<T>
 
 
 
-    public void OnSomeEventCallback(object sender, EventArgs e)
+    public void OnSomeEventCallback(
+                    object sender,
+            EventArgs e)
     {
 
 
@@ -48,7 +50,10 @@ public partial class TestClass1<T>
         string variable3 = "3";
         string variable4 = "4";
 
-        _handleOnSomeEventCallback(variable1, variable2, variable3, variable4);
+        _handleOnSomeEventCallback(
+                                        variable1,
+            variable2, variable3, variable4
+        );
 
 
     }

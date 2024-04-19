@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ArezkiSaba.CodeCleaner.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -43,27 +44,24 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
             return token;
         }
 
-        var indentationTrivia = SyntaxFactory.Whitespace("\t");
-        var statementTrivia = statement.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-        if (isOpeningParentheseForMethodParameters &&
-            !token.TrailingTrivia.Any(obj => obj.IsKind(SyntaxKind.EndOfLineTrivia)))
+        var declarationTrivia = statement.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+        if (isOpeningParentheseForMethodParameters)
         {
             token = token.WithTrailingTrivia(
                 SyntaxFactory.TriviaList(
-                    SyntaxFactory.EndOfLine(Environment.NewLine),
-                    statementTrivia,
-                    indentationTrivia
+                    SyntaxTriviaHelper.GetEndOfLine(),
+                    declarationTrivia,
+                    SyntaxTriviaHelper.GetTab()
                 )
             );
         }
-        else if (isCommaSeparatorForMethodParameters &&
-            !token.TrailingTrivia.Any(obj => obj.IsKind(SyntaxKind.EndOfLineTrivia)))
+        else if (isCommaSeparatorForMethodParameters)
         {
             token = token.WithTrailingTrivia(
                 SyntaxFactory.TriviaList(
-                    SyntaxFactory.EndOfLine(Environment.NewLine),
-                    statementTrivia,
-                    indentationTrivia
+                    SyntaxTriviaHelper.GetEndOfLine(),
+                    declarationTrivia,
+                    SyntaxTriviaHelper.GetTab()
                 )
             );
         }
@@ -72,8 +70,8 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
         {
             token = token.WithLeadingTrivia(
                 SyntaxFactory.TriviaList(
-                    SyntaxFactory.EndOfLine(Environment.NewLine),
-                    statementTrivia
+                    SyntaxTriviaHelper.GetEndOfLine(),
+                    declarationTrivia
                 )
             );
         }

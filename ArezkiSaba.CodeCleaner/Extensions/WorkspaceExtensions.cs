@@ -19,6 +19,18 @@ public static class WorkspaceExtensions
     private static async Task CleanAsync(
         this Workspace workspace)
     {
+        var cleaningFuncs = new List<Func<Document, Task<Document>>>();
+        cleaningFuncs.Add((document) => document.StartTypeInferenceRewriterAsync());
+        cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
+        cleaningFuncs.Add((document) => document.StartUsingDirectiveSorterAsync());
+        cleaningFuncs.Add((document) => document.StartDuplicatedUsingDirectiveRemoverAsync());
+        cleaningFuncs.Add((document) => document.StartDuplicatedEmptyLinesRemoverAsync());
+        cleaningFuncs.Add((document) => document.StartDuplicatedMethodEmptyLinesRemoverAsync());
+        cleaningFuncs.Add((document) => document.ReorderClassMembersAsync());
+        cleaningFuncs.Add((document) => document.StartRegionInserterAsync());
+        cleaningFuncs.Add((document) => document.StartMethodDeclarationParameterLineBreakerAsync());
+        cleaningFuncs.Add((document) => document.StartInvocationExpressionArgumentLineBreakerAsync());
+
         var newSolution = workspace.CurrentSolution;
         var projectIds = workspace.CurrentSolution.ProjectIds;
 
@@ -35,18 +47,13 @@ public static class WorkspaceExtensions
                     continue;
                 }
 
-                var updatedDocument = await originalDocument.StartTypeInferenceRewriterAsync();
-                updatedDocument = await updatedDocument.StartReadonlyModifierFieldRewriterAsync();
-                updatedDocument = await updatedDocument.StartUsingDirectiveSorterAsync();
-                updatedDocument = await updatedDocument.StartDuplicatedUsingDirectiveRemoverAsync();
-                updatedDocument = await updatedDocument.StartDuplicatedEmptyLinesRemoverAsync();
-                updatedDocument = await updatedDocument.StartDuplicatedMethodEmptyLinesRemoverAsync();
-                updatedDocument = await updatedDocument.ReorderClassMembersAsync();
-                updatedDocument = await updatedDocument.StartRegionInserterAsync();
-                updatedDocument = await updatedDocument.StartMethodDeclarationParameterLineBreakerAsync();
-                updatedDocument = await updatedDocument.StartInvocationExpressionArgumentLineBreakerAsync();
-                updatedDocument = await Formatter.FormatAsync(updatedDocument);
-
+                var updatedDocument = originalDocument;
+                foreach (var cleaningFunc in cleaningFuncs)
+                {
+                    updatedDocument = await cleaningFunc(updatedDocument);
+                    updatedDocument = await Formatter.FormatAsync(updatedDocument);
+                }
+                
                 project = updatedDocument.Project;
                 newSolution = project.Solution;
             }
