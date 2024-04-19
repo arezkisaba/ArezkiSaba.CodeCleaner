@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
@@ -78,82 +79,73 @@ public static class DocumentExtensions
         return document.WithSyntaxRoot(new DuplicatedEmptyLinesRemover().Visit(root));
     }
 
-    public static async Task<Document> StartDuplicatedMethodEmptyLinesRemoverAsync(
+    public static async Task<Document> StartEmptyLinesBracesRemoverAsync(
         this Document document)
     {
+        bool isUpdated;
+        DocumentEditor documentEditor;
+        List<SyntaxToken> tokens = [];
+
         // After open brace
 
-        var documentEditor = await DocumentEditor.CreateAsync(document);
-        var allNodes = documentEditor.OriginalRoot.DescendantNodes().ToList();
-        foreach (var node in allNodes)
+        do
         {
-            if (!node.IsKind(SyntaxKind.ConstructorDeclaration) &&
-                !node.IsKind(SyntaxKind.MethodDeclaration))
-            {
-                continue;
-            }
+            isUpdated = false;
+            documentEditor = await DocumentEditor.CreateAsync(document);
+            tokens = documentEditor.OriginalRoot.DescendantTokens().ToList();
 
-            var block = node.ChildNodes().SingleOrDefault(obj => obj.IsKind(SyntaxKind.Block));
-            if (block == null)
+            for (var i = tokens.Count - 1; i >= 0; i--)
             {
-                continue;
-            }
+                var token = tokens[i];
+                if (token.IsKind(SyntaxKind.OpenBraceToken))
+                {
+                    var targetToken = tokens[i + 1];
+                    if (targetToken.HasLeadingTrivia)
+                    {
+                        var targetTokenUpdated = targetToken.WithLeadingTrivia();
+                        var node = targetToken.Parent;
+                        var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
 
-            var blockTokens = block.DescendantTokens();
-            if (blockTokens.Count() == 2) // OpenBrace + CloseBrace
-            {
-                continue;
+                        if (targetToken.HasLeadingTrivia != targetTokenUpdated.HasLeadingTrivia)
+                        {
+                            documentEditor.ReplaceNode(node, nodeUpdated);
+                            document = documentEditor.GetChangedDocument();
+                            isUpdated = true;
+                            break;
+                        }
+                    }
+                }
             }
-
-            var originalFirstToken = blockTokens.ElementAt(1);
-            var updatedFirstToken = originalFirstToken.WithLeadingTrivia(
-                SyntaxFactory.TriviaList(
-                )
-            );
-
-            var nodeWithTrivia = node.ReplaceToken(originalFirstToken, updatedFirstToken);
-            if (!nodeWithTrivia.IsEquivalentTo(node))
-            {
-                documentEditor.ReplaceNode(node, nodeWithTrivia);
-            }
-        }
+        } while (isUpdated);
 
         // Before close brace
 
-        documentEditor = await DocumentEditor.CreateAsync(documentEditor.GetChangedDocument());
-        allNodes = documentEditor.OriginalRoot.DescendantNodes().ToList();
-        foreach (var node in allNodes)
+        do
         {
-            if (!node.IsKind(SyntaxKind.ConstructorDeclaration) &&
-                !node.IsKind(SyntaxKind.MethodDeclaration))
-            {
-                continue;
-            }
+            isUpdated = false;
+            documentEditor = await DocumentEditor.CreateAsync(document);
+            tokens = documentEditor.OriginalRoot.DescendantTokens().ToList();
 
-            var block = node.ChildNodes().SingleOrDefault(obj => obj.IsKind(SyntaxKind.Block));
-            if (block == null)
+            for (var i = 0; i < tokens.Count; i++)
             {
-                continue;
-            }
+                var token = tokens[i];
+                if (token.IsKind(SyntaxKind.CloseBraceToken))
+                {
+                    var targetToken = token;
+                    var targetTokenUpdated = targetToken.WithLeadingTrivia();
+                    var node = targetToken.Parent;
+                    var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
 
-            var blockTokens = block.DescendantTokens();
-            if (blockTokens.Count() == 2) // OpenBrace + CloseBrace
-            {
-                continue;
+                    if (targetToken.HasLeadingTrivia != targetTokenUpdated.HasLeadingTrivia)
+                    {
+                        documentEditor.ReplaceNode(node, nodeUpdated);
+                        document = documentEditor.GetChangedDocument();
+                        isUpdated = true;
+                        break;
+                    }
+                }
             }
-
-            var originalCloseBrace = node.DescendantTokens().LastOrDefault(obj => obj.IsKind(SyntaxKind.CloseBraceToken));
-            var updatedCloseBrace = originalCloseBrace.WithLeadingTrivia(
-                SyntaxFactory.TriviaList(
-                )
-            );
-
-            var nodeWithTrivia = node.ReplaceToken(originalCloseBrace, updatedCloseBrace);
-            if (!nodeWithTrivia.IsEquivalentTo(node))
-            {
-                documentEditor.ReplaceNode(node, nodeWithTrivia);
-            }
-        }
+        } while (isUpdated);
 
         return documentEditor.GetChangedDocument();
     }

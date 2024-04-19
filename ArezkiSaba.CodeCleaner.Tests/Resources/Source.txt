@@ -92,11 +92,27 @@ public partial class TestClass1<T>
 
     public async Task _handleOnSomeEventCallback(string variable1, string variable2, string variable3, string variable4)
     {
+
+
         var _someVariableWithBadNamingConvention = "Hi";
         var SomeOtherVariableWithBadNamingConvention = "there !";
         nonReadonlyStringField = "some other useless value";
 
+
+        if (true)
+        {
+
+
+            Console.WriteLine("Hello");
+
+
+
+        }
+
+
         Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention}");
+
+
     }
 
     public bool CanDoSomeOtherThing { get; set; }
@@ -112,8 +128,14 @@ public partial class TestClass1<T>
 
     public static TestClass1 SomePublicFactoryMethod()
     {
+
+
         return new TestClass1();
+
+
     }
 
     private int _canDoSomething;
+
+
 }
