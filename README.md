@@ -21,8 +21,6 @@ If you want to learn more about creating good readme files then refer the follow
 
 # Todo
 - Add abstract/sealed modifiers for a non-nuget project
-- Add "Private use" region
-- camelCase formatter for local variables
 - large functions locator => OpenAI API Suggestions for refactoring
 - ignore Controllers
 - source generators generation

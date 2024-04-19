@@ -42,6 +42,7 @@ public static class WorkspaceExtensions
                 updatedDocument = await updatedDocument.StartDuplicatedEmptyLinesRemoverAsync();
                 updatedDocument = await updatedDocument.StartDuplicatedMethodEmptyLinesRemoverAsync();
                 updatedDocument = await updatedDocument.ReorderClassMembersAsync();
+                updatedDocument = await updatedDocument.StartRegionInserterAsync();
                 updatedDocument = await updatedDocument.StartMethodDeclarationParameterLineBreakerAsync();
                 updatedDocument = await updatedDocument.StartInvocationExpressionArgumentLineBreakerAsync();
                 updatedDocument = await Formatter.FormatAsync(updatedDocument);

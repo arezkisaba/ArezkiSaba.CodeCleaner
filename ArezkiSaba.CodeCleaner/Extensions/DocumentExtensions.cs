@@ -1,10 +1,12 @@
 ﻿using ArezkiSaba.CodeCleaner.Rewriters;
+using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
+using System.Drawing;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -154,6 +156,60 @@ public static class DocumentExtensions
         documentEditor.InsertOrderedMemberDeclarationsIntoClass(memberDeclarationsWithClassName);
         documentEditor = await DocumentEditor.CreateAsync(documentEditor.GetChangedDocument());
         documentEditor.AddLeadingTriviaToMemberDeclarations();
+        return documentEditor.GetChangedDocument();
+    }
+
+    public static async Task<Document> StartRegionInserterAsync(
+        this Document document)
+    {
+        var documentEditor = await DocumentEditor.CreateAsync(document);
+        var declarations = documentEditor.OriginalRoot.DescendantNodes().OfType<MethodDeclarationSyntax>()
+            .Where(obj => obj.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
+            .ToList();
+
+        if (!declarations.Any())
+        {
+            return document;
+        }
+
+        var firstDeclaration = declarations.First();
+        var lastDeclaration = declarations.Last();
+
+        var leadingTrivia = firstDeclaration.GetLeadingTrivia()
+            .Add(SyntaxFactory.Trivia(SyntaxFactory.RegionDirectiveTrivia(true)
+                .WithTrailingTrivia(
+                    SyntaxFactory.TriviaList(
+                        SyntaxFactory.Whitespace(" "),
+                        SyntaxFactory.PreprocessingMessage("\"Private use\"")
+                    )
+                )
+            ))
+            .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
+            .Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+        var trailingTrivia = lastDeclaration.GetTrailingTrivia()
+            .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
+            .Add(SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)))
+            .Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+
+        if (ReferenceEquals(firstDeclaration, lastDeclaration))
+        {
+            documentEditor.ReplaceNode(firstDeclaration, firstDeclaration
+                .WithLeadingTrivia(leadingTrivia)
+                .WithTrailingTrivia(trailingTrivia)
+            );
+        }
+        else
+        {
+            documentEditor.ReplaceNode(
+                firstDeclaration,
+                firstDeclaration.WithLeadingTrivia(leadingTrivia)
+            );
+            documentEditor.ReplaceNode(
+                lastDeclaration,
+                lastDeclaration.WithTrailingTrivia(trailingTrivia)
+            );
+        }
+
         return documentEditor.GetChangedDocument();
     }
 
@@ -436,7 +492,7 @@ public static class DocumentExtensions
             var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
             foreach (var node in classDeclaration.DescendantNodes())
             {
-                if (!declarationsToExtract.Any(obj => node.IsKind(obj)))
+                if (!declarationsToExtract.Any(node.IsKind))
                 {
                     continue;
                 }
@@ -518,20 +574,16 @@ public static class DocumentExtensions
         var sortedemberDeclarations = memberDeclarations
             .Where(obj => obj.IsKind(syntaxKind))
             .OrderBy(obj => GetMemberDeclarationModifierRank(obj, syntaxKind))
-            .ThenBy(obj => obj.GetName());
-
-        return sortedemberDeclarations.Select(
-            (obj, i) =>
+            .ThenBy(obj => obj.GetName())
+            .Select((obj, i) =>
             {
-                var memberDeclaration = obj.WithoutLeadingTrivia();
-                memberDeclaration = memberDeclaration.WithTrailingTrivia(
+                return obj.WithoutLeadingTrivia().WithTrailingTrivia(
                     SyntaxFactory.TriviaList(
                         SyntaxFactory.EndOfLine(Environment.NewLine)
                     )
                 );
-                return memberDeclaration;
-            }
-        ).ToList();
+            });
+        return sortedemberDeclarations.ToList();
     }
 
     private static int GetMemberDeclarationModifierRank(

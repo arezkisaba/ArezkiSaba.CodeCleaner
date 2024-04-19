@@ -86,6 +86,8 @@ public partial class TestClass1<T>
         return Task.CompletedTask;
     }
 
+    #region "Private use"
+
     private void SomePrivateMethod()
     {
     }
@@ -93,4 +95,6 @@ public partial class TestClass1<T>
     private static void SomePrivateStaticMethod()
     {
     }
+
+    #endregion
 }
