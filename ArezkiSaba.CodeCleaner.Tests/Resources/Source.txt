@@ -62,7 +62,7 @@ public partial class TestClass1<T>
         return Task.CompletedTask;
     }
 
-    public event EventHandler RequestReceived;
+    public event EventHandler someOtherEventCamelCasedTriggered;
 
     private void SomePrivateMethod()
     {

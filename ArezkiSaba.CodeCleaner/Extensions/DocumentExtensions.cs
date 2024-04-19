@@ -248,6 +248,42 @@ public static class DocumentExtensions
         return newSolution;
     }
 
+    public static async Task<Solution> StartEventFieldRenamerAsync(
+        this Document document,
+        Solution solution)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var newSolution = solution;
+
+        var declarations = root.DescendantNodes().OfType<EventFieldDeclarationSyntax>().ToList();
+        foreach (var declaration in declarations)
+        {
+            var name = declaration.GetName();
+            if (name[0] >= 65 && name[0] <= 90)
+            {
+                continue;
+            }
+
+            foreach (var variable in declaration.Declaration.Variables)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(variable);
+                var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
+                foreach (var reference in references)
+                {
+                    newSolution = await Renamer.RenameSymbolAsync(
+                        newSolution,
+                        symbol,
+                        new SymbolRenameOptions(),
+                        string.Concat(name[0].ToString().ToUpper(), name.AsSpan(1))
+                    );
+                }
+            }
+        }
+
+        return newSolution;
+    }
+
     public static async Task<Solution> StartFieldRenamerAsync(
         this Document document,
         Solution solution)
@@ -296,7 +332,7 @@ public static class DocumentExtensions
         foreach (var declaration in declarations)
         {
             var name = declaration.GetName();
-            if (name.StartsWith("_"))
+            if (name[0] >= 65 && name[0] <= 90)
             {
                 continue;
             }

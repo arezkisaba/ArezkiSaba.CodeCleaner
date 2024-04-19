@@ -5,8 +5,8 @@ namespace ArezkiSaba.CodeCleaner.Tests;
 
 public partial class TestClass1<T>
 {
-    public event EventHandler RequestReceived;
     public event EventHandler SomeEventTriggered;
+    public event EventHandler SomeOtherEventCamelCasedTriggered;
 
     private static string _someStaticField;
     private readonly string _readonlyStringField1;
