@@ -1,65 +1,90 @@
-﻿using System;
+﻿using ArezkiSaba.CodeCleaner.Tests;
 using System;
-using ArezkiSaba.CodeCleaner.Tests;
-using ArezkiSaba.CodeCleaner.Tests;
-
 
 namespace ArezkiSaba.CodeCleaner.Tests;
 
-
-
 public partial class TestClass1<T>
 {
+    private static string _someStaticField;
+    private readonly string _readonlyStringField1;
+    private readonly string _readonlyStringField2;
+    private int _canDoSomething;
+    private bool _nonReadonlyBooleanField;
 
+    public event EventHandler SomeEventTriggered;
+    public event EventHandler SomeOtherEventCamelCasedTriggered;
 
+    public bool CanDoSomeOtherThing { get; set; }
+
+    public int CanDoSomething
+    {
+        get { return _canDoSomething; }
+        set { _canDoSomething = value; }
+    }
 
     public TestClass1()
     {
-
-
         _readonlyStringField1 = "some useless value";
         _readonlyStringField2 = "some useless value";
-        nonReadonlyBooleanField = false;
-
+        _nonReadonlyBooleanField = false;
     }
 
-    
-    private string _readonlyStringField2;
-
-    public TestClass1(string arg1)
+    public TestClass1(
+        string arg1)
     {
-
         _readonlyStringField1 = arg1;
         _readonlyStringField2 = arg1;
-        nonReadonlyBooleanField = false;
-
-    }
-
-    private string _readonlyStringField1;
-
-
-
-    public void OnSomeEventCallback(
-                    object sender,
-            EventArgs e)
-    {
-
-
-        string variable1 = "1";
-        string variable2 = "2";
-        string variable3 = "3";
-        string variable4 = "4";
-
-        _handleOnSomeEventCallback(
-                                        variable1,
-            variable2, variable3, variable4
-        );
-
-
+        _nonReadonlyBooleanField = false;
     }
 
     private TestClass1()
     {
+    }
+
+    public static TestClass1 SomePublicFactoryMethod()
+    {
+        return new TestClass1();
+    }
+
+    public async Task HandleOnSomeEventCallbackAsync(
+        string variable1,
+        string variable2,
+        string variable3,
+        string variable4)
+    {
+        var someVariableWithBadNamingConvention = "Hi";
+        var someOtherVariableWithBadNamingConvention = "there";
+
+        Console.WriteLine($"{someVariableWithBadNamingConvention} {someOtherVariableWithBadNamingConvention} !");
+
+        _nonReadonlyBooleanField = true;
+
+        if (_nonReadonlyBooleanField)
+        {
+            Console.WriteLine($"{someVariableWithBadNamingConvention} {someOtherVariableWithBadNamingConvention} again !");
+        }
+    }
+
+    public void OnSomeEventCallback(
+        object _,
+        EventArgs __)
+    {
+        var variable1 = "1";
+        var variable2 = "2";
+        var variable3 = "3";
+        var variable4 = "4";
+
+        HandleOnSomeEventCallbackAsync(
+            variable1,
+            variable2,
+            variable3,
+            variable4
+        );
+    }
+
+    public Task SomeAsyncMethodAsync()
+    {
+        return Task.CompletedTask;
     }
 
     public Task SomeAsyncMethodWithSuffixAsync()
@@ -67,86 +92,15 @@ public partial class TestClass1<T>
         return Task.CompletedTask;
     }
 
-    public event EventHandler someOtherEventCamelCasedTriggered;
+    #region "Private use"
 
     private void SomePrivateMethod()
     {
     }
 
-    public int CanDoSomething
-    {
-        get { return _canDoSomething; }
-        set { _canDoSomething = value; }
-    }
-    
-    public Task SomeAsyncMethod()
-    {
-
-
-        return Task.CompletedTask;
-
-    }
-
     private static void SomePrivateStaticMethod()
     {
-
-
     }
 
-    public async Task _handleOnSomeEventCallback(string variable1, 
-                string variable2, 
-        string variable3, string variable4)
-    {
-
-
-        var _someVariableWithBadNamingConvention = "Hi";
-        var SomeOtherVariableWithBadNamingConvention = "there";
-
-        Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention} !");
-
-
-
-        nonReadonlyBooleanField = true;
-
-
-        if (nonReadonlyBooleanField)
-        {
-
-
-            Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention} again !");
-
-
-
-        }
-
-
-
-
-    }
-
-    public bool CanDoSomeOtherThing { get; set; }
-
-    private static string _someStaticField;
-
-    public event EventHandler SomeEventTriggered;
-
-
-
-
-    private bool nonReadonlyBooleanField;
-
-    public static TestClass1 SomePublicFactoryMethod()
-    {
-
-
-        return new TestClass1();
-
-
-    }
-
-
-
-    private int _canDoSomething;
-
-
+    #endregion
 }

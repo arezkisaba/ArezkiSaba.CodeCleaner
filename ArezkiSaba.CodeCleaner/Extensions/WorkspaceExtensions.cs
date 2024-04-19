@@ -103,29 +103,10 @@ public static class WorkspaceExtensions
         this Workspace workspace,
         Solution newSolution)
     {
-        string sender;
-        if (string.IsNullOrWhiteSpace(newSolution.FilePath))
+        if (!ReferenceEquals(newSolution, workspace.CurrentSolution))
         {
-            sender = "InMemory solution";
+            workspace.TryApplyChanges(newSolution);
         }
-        else
-        {
-            sender = new FileInfo(newSolution.FilePath).Name;
-        }
-
-        if (!ReferenceEquals(newSolution, workspace.CurrentSolution) &&
-            workspace.TryApplyChanges(newSolution))
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"{sender} => Changes applied");
-        }
-        else
-        {
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"{sender} => No changes applied");
-        }
-
-        Console.ResetColor();
     }
 
     #endregion
