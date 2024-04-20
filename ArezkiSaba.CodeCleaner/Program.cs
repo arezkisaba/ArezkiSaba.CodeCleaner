@@ -5,22 +5,22 @@ public static class Program
     private static async Task Main(
         string[] args)
     {
-        string sourceCodeLocation;
+        string targetLocation;
         if (args.Any())
         {
-            sourceCodeLocation = args[0];
+            targetLocation = args[0];
         }
         else
         {
 #if DEBUG
-            sourceCodeLocation = @"C:\git2";
+            targetLocation = @"C:\git\ArezkiSaba.CodeCleaner\ArezkiSaba.CodeCleaner.SampleProject.sln";
 #else
             Console.Write("Please enter target folder : ");
             sourceCodeLocation = Console.ReadLine();
 #endif
         }
 
-        var codeCleaner = new CodeCleanerService(sourceCodeLocation);
+        var codeCleaner = new CodeCleanerService(targetLocation);
         await codeCleaner.StartAsync();
 
         Console.WriteLine("Press enter to continue");

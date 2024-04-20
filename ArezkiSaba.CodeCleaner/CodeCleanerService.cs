@@ -1,17 +1,18 @@
 ﻿using ArezkiSaba.CodeCleaner.Extensions;
 using Microsoft.Build.Locator;
+using Microsoft.Build.Tasks;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace ArezkiSaba.CodeCleaner;
 
 public sealed class CodeCleanerService
 {
-    private readonly string _sourceCodeLocation;
+    private readonly string _targetLocation;
 
     public CodeCleanerService(
-        string sourceCodeLocation)
+        string targetLocation)
     {
-        _sourceCodeLocation = sourceCodeLocation;
+        _targetLocation = targetLocation;
 
         Console.ForegroundColor = ConsoleColor.White;
         MSBuildLocator.RegisterDefaults();
@@ -32,24 +33,42 @@ public sealed class CodeCleanerService
         };
         Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace initialization done.");
 
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution scan...");
-        var files = Directory.GetDirectories(_sourceCodeLocation);
-        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution scan done.");
-
-        foreach (var file in files)
+        if (_targetLocation.EndsWith(".sln"))
         {
-            var slnFiles = Directory.GetFiles(file, "*.sln");
-            foreach (var slnFile in slnFiles)
-            {
-                Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution opening ({new FileInfo(slnFile).Name})...");
-                var solution = await workspace.OpenSolutionAsync(slnFile);
-                Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution opening done.");
+            await HandleSolutionFileAsync(workspace, _targetLocation);
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace scan...");
+            var files = Directory.GetDirectories(_targetLocation);
+            Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace scan done.");
 
-                Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution formatting...");
-                await workspace.CleanAndRefactorAsync();
-                Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution formatting done.");
+            foreach (var file in files)
+            {
+                var slnFiles = Directory.GetFiles(file, "*.sln");
+                foreach (var slnFile in slnFiles)
+                {
+                    await HandleSolutionFileAsync(workspace, slnFile);
+                }
             }
         }
     }
+
+    #region Private use
+
+    private static async Task HandleSolutionFileAsync(
+        MSBuildWorkspace workspace,
+        string slnFile)
+    {
+        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution opening ({new FileInfo(slnFile).Name})...");
+        var solution = await workspace.OpenSolutionAsync(slnFile);
+        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution opening done.");
+
+        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution formatting...");
+        await workspace.CleanAndRefactorAsync();
+        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution formatting done.");
+    }
+
+    #endregion
 }
