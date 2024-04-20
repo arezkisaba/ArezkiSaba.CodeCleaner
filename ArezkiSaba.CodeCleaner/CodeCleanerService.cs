@@ -14,22 +14,18 @@ public sealed class CodeCleanerService
     {
         _targetLocation = targetLocation;
 
-        Console.ForegroundColor = ConsoleColor.White;
         MSBuildLocator.RegisterDefaults();
     }
 
     public async Task StartAsync()
     {
-        Console.ForegroundColor = ConsoleColor.White;
         Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace initialization...");
 
         using var workspace = MSBuildWorkspace.Create();
         workspace.LoadMetadataForReferencedProjects = true;
         workspace.WorkspaceFailed += (_, e) =>
         {
-            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"[{nameof(MSBuildWorkspace)}] {e.Diagnostic.Message}");
-            Console.ResetColor();
         };
         Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace initialization done.");
 
@@ -39,7 +35,6 @@ public sealed class CodeCleanerService
         }
         else
         {
-            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace scan...");
             var files = Directory.GetDirectories(_targetLocation);
             Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace scan done.");

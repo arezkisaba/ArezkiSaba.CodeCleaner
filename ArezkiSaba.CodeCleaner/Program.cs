@@ -22,8 +22,5 @@ public static class Program
 
         var codeCleaner = new CodeCleanerService(targetLocation);
         await codeCleaner.StartAsync();
-
-        Console.WriteLine("Press enter to continue");
-        Console.ReadLine();
     }
 }
