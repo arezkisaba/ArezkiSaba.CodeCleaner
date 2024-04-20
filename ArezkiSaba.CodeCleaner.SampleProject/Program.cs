@@ -1,9 +1,10 @@
-﻿
-var dog1 = Dog.Create("Rex");
-dog1.LunchFinished += (sender, e) => Console.WriteLine($"{e.DogName} has finished eating.");
+﻿using System;
 
-var dog2 = Dog.Create("Fido");
-dog2.LunchFinished += (sender, e) => Console.WriteLine($"{e.DogName} has finished eating.");
+var dog1 = Dog.create("Rex");
+dog1.lunchFinished += (sender, e) => Console.WriteLine($"{e.DogName} has finished eating.");
+
+var dog2 = Dog.create("Fido");
+dog2.lunchFinished += (sender, e) => Console.WriteLine($"{e.DogName} has finished eating.");
 
 var dogs = new AnimalList<Dog>();
 dogs.AddAnimal(dog1);

@@ -2,6 +2,7 @@
 
 	<PropertyGroup Label="AppPropertyGroup">
 		<OutputType>Exe</OutputType>
+		<ImplicitUsings>disable</ImplicitUsings>
 	</PropertyGroup>
 
 </Project>

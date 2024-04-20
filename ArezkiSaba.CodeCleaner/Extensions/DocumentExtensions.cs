@@ -148,7 +148,6 @@ public static class DocumentExtensions
     {
         var documentEditor = await DocumentEditor.CreateAsync(document);
         var memberDeclarationsWithClassName = documentEditor.RemoveAndExtractMemberDeclarationsFromClass();
-        documentEditor = await DocumentEditor.CreateAsync(documentEditor.GetChangedDocument());
         documentEditor.InsertOrderedMemberDeclarationsIntoClass(memberDeclarationsWithClassName);
         documentEditor = await DocumentEditor.CreateAsync(documentEditor.GetChangedDocument());
         documentEditor.AddLeadingTriviaToMemberDeclarations();
@@ -473,7 +472,7 @@ public static class DocumentExtensions
         return newSolution;
     }
 
-    private static List<(string className, List<MemberDeclarationSyntax> memberDeclarations)> RemoveAndExtractMemberDeclarationsFromClass(
+    private static List<(ClassDeclarationSyntax classDeclaration, List<MemberDeclarationSyntax> memberDeclarations)> RemoveAndExtractMemberDeclarationsFromClass(
         this DocumentEditor documentEditor)
     {
         var declarationsToExtract = new List<SyntaxKind>()
@@ -484,8 +483,9 @@ public static class DocumentExtensions
             SyntaxKind.ConstructorDeclaration,
             SyntaxKind.MethodDeclaration
         };
-        var classDeclarationsToAdd = new List<(string className, List<MemberDeclarationSyntax> memberDeclarations)>();
-        foreach (var classDeclaration in documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>())
+        var classDeclarationsToAdd = new List<(ClassDeclarationSyntax classDeclaration, List<MemberDeclarationSyntax> memberDeclarations)>();
+        var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
+        foreach (var classDeclaration in classDeclarations)
         {
             var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
             foreach (var node in classDeclaration.DescendantNodes())
@@ -499,7 +499,7 @@ public static class DocumentExtensions
                 memberDeclarationsToAdd.Add(node as MemberDeclarationSyntax);
             }
 
-            classDeclarationsToAdd.Add((classDeclaration.Identifier.ValueText, memberDeclarationsToAdd));
+            classDeclarationsToAdd.Add((classDeclaration, memberDeclarationsToAdd));
         }
 
         return classDeclarationsToAdd;
@@ -507,23 +507,19 @@ public static class DocumentExtensions
 
     public static void InsertOrderedMemberDeclarationsIntoClass(
         this DocumentEditor documentEditor,
-        List<(string className, List<MemberDeclarationSyntax> memberDeclarations)> memberDeclarationsWithClassName)
+        List<(ClassDeclarationSyntax classDeclaration, List<MemberDeclarationSyntax> memberDeclarations)> memberDeclarationsWithClassName)
     {
         var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
-        foreach (var (className, memberDeclarations) in memberDeclarationsWithClassName)
+        foreach (var (classDeclaration, memberDeclarations) in memberDeclarationsWithClassName)
         {
-            var classDeclaration = classDeclarations.FirstOrDefault(classDeclaration => className == classDeclaration.Identifier.Text);
-            if (classDeclaration != null)
-            {
-                var indentationTrivia = classDeclaration.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-                var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.FieldDeclaration, indentationTrivia));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration, indentationTrivia));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.PropertyDeclaration, indentationTrivia));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.ConstructorDeclaration, indentationTrivia));
-                orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.MethodDeclaration, indentationTrivia));
-                documentEditor.InsertMembers(classDeclaration, 0, orderedMemberDeclarations);
-            }
+            var indentationTrivia = classDeclaration.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+            var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
+            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.FieldDeclaration, indentationTrivia));
+            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration, indentationTrivia));
+            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.PropertyDeclaration, indentationTrivia));
+            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.ConstructorDeclaration, indentationTrivia));
+            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.MethodDeclaration, indentationTrivia));
+            documentEditor.InsertMembers(classDeclaration, 0, orderedMemberDeclarations);
         }
     }
 

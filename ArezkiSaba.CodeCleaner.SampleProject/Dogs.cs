@@ -1,13 +1,11 @@
-using System.Threading.Tasks;
-using System.Linq;
-using System.Linq;
-using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System;
 
 public interface IAnimal
 {
-    Task SpeakAsync();
-    Task EatAsync();
+    Task _eatAsync();
 }
 
 public class DogEventArgs : EventArgs
@@ -17,53 +15,70 @@ public class DogEventArgs : EventArgs
 
 public partial class Dog : IAnimal
 {
-    public string Name { get; private set; }
-    public event EventHandler<DogEventArgs> LunchFinished;
+    public event EventHandler<DogEventArgs> lunchFinished;
 
-    private Dog(string name)
+    public string _name { get; private set; }
+
+    private Dog(
+        string Name)
     {
-        Name = name;
+        _name = Name;
     }
 
-    public static Dog Create(string name)
+    public static Dog create(string Name)
     {
-        return new Dog(name);
+        return new Dog(Name);
     }
 }
 
 public partial class Dog
 {
-    public async Task SpeakAsync()
-    {
-        await Task.Run(() => Console.WriteLine($"{Name} says: Woof!"));
-    }
 
-    public async Task EatAsync()
+    public async Task _eatAsync()
     {
+
+
         var random = new Random();
-        var delay = random.Next(2000, 4000);
+        int delay = random.Next(2000, 4000);
 
-        Console.WriteLine($"{Name} starts eating...");
+        Console.WriteLine($"{_name} starts eating...");
         await Task.Delay(delay);
 
-        LunchFinished?.Invoke(null, new DogEventArgs { DogName = Name });
+        lunchFinished?.Invoke(null, new DogEventArgs { DogName = _name });
+
 
         await SpeakAsync();
+
+
     }
+
+
+    private async Task SpeakAsync()
+    {
+
+        await Task.Run(() => Console.WriteLine($"{_name} says: Woof!"));
+
+    }
+
 }
 
 public class AnimalList<T> where T : IAnimal
 {
-    private List<T> animals = new();
+    private readonly List<T> _animals = new();
 
-    public void AddAnimal(T animal)
+    public void AddAnimal(
+        T animal)
     {
-        animals.Add(animal);
+
+        _animals.Add(animal);
+
     }
 
     public async Task MakeAllAnimalsEatAsync()
     {
-        var eatTasks = animals.Select(animal => animal.EatAsync());
+
+        var eatTasks = _animals.Select(animal => animal._eatAsync());
         await Task.WhenAll(eatTasks);
+
     }
 }
