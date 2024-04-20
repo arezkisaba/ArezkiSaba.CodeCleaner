@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
+using System.Xml.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -276,7 +277,8 @@ public static class DocumentExtensions
         var declarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
         foreach (var declaration in declarations)
         {
-            var hasAsyncSuffix = declaration.Identifier.ValueText.EndsWith(asyncSuffix);
+            var name = declaration.Identifier.ValueText;
+            var hasAsyncSuffix = name.EndsWith(asyncSuffix);
             var hasAsyncKeyword = declaration.ChildTokens().Any(obj => obj.IsKind(SyntaxKind.AsyncKeyword));
             var hasTaskReturnTypeKeyword = declaration.ChildNodes().Any(node =>
             {
@@ -288,11 +290,12 @@ public static class DocumentExtensions
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(declaration);
-            newSolution = await Renamer.RenameSymbolAsync(
+            var newName = $"{declaration.Identifier.ValueText}{asyncSuffix}";
+            newSolution = await RenameSymbolAsync(
                 newSolution,
                 symbol,
-                new SymbolRenameOptions(),
-                $"{declaration.Identifier.ValueText}{asyncSuffix}"
+                name,
+                newName
             );
         }
 
@@ -319,11 +322,12 @@ public static class DocumentExtensions
             foreach (var variable in declaration.Declaration.Variables)
             {
                 var symbol = semanticModel.GetDeclaredSymbol(variable);
-                newSolution = await Renamer.RenameSymbolAsync(
+                var newName = $"_{name}";
+                newSolution = await RenameSymbolAsync(
                     newSolution,
                     symbol,
-                    new SymbolRenameOptions(),
-                    $"_{name}"
+                    name,
+                    newName
                 );
             }
         }
@@ -352,13 +356,43 @@ public static class DocumentExtensions
             {
                 var symbol = semanticModel.GetDeclaredSymbol(variable);
                 var newName = symbol.Name.ToPascalCase();
-                newSolution = await Renamer.RenameSymbolAsync(
+                newSolution = await RenameSymbolAsync(
                     newSolution,
                     symbol,
-                    new SymbolRenameOptions(),
+                    name,
                     newName
                 );
             }
+        }
+
+        return newSolution;
+    }
+
+    public static async Task<Solution> StartPropertyRenamerAsync(
+        this Document document,
+        Solution solution)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var newSolution = solution;
+
+        var declarations = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().ToList();
+        foreach (var declaration in declarations)
+        {
+            var name = declaration.GetName();
+            if (char.IsUpper(name[0]))
+            {
+                continue;
+            }
+
+            var symbol = semanticModel.GetDeclaredSymbol(declaration);
+            var newName = symbol.Name.ToPascalCase();
+            newSolution = await RenameSymbolAsync(
+                newSolution,
+                symbol,
+                name,
+                newName
+            );
         }
 
         return newSolution;
@@ -383,20 +417,12 @@ public static class DocumentExtensions
 
             var symbol = semanticModel.GetDeclaredSymbol(declaration);
             var newName = symbol.Name.ToPascalCase();
-
-            try
-            {
-                newSolution = await Renamer.RenameSymbolAsync(
-                    newSolution,
-                    symbol,
-                    new SymbolRenameOptions(),
-                    newName
-                );
-            }
-            catch (Exception)
-            {
-                Console.WriteLine($"Failed to rename '{name}' to '{newName}'", ConsoleColor.Red);
-            }
+            newSolution = await RenameSymbolAsync(
+                newSolution,
+                symbol,
+                name,
+                newName
+            );
         }
 
         return newSolution;
@@ -429,6 +455,35 @@ public static class DocumentExtensions
                     newName
                 );
             }
+        }
+
+        return newSolution;
+    }
+
+    public static async Task<Solution> StartParameterRenamerAsync(
+        this Document document,
+        Solution solution)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var newSolution = solution;
+
+        var declarations = root.DescendantNodes().OfType<ParameterSyntax>().ToList();
+        foreach (var declaration in declarations)
+        {
+            var symbol = semanticModel.GetDeclaredSymbol(declaration);
+            if (char.IsLower(symbol.Name[0]))
+            {
+                continue;
+            }
+
+            var newName = symbol.Name.ToCamelCase();
+            newSolution = await Renamer.RenameSymbolAsync(
+                newSolution,
+                symbol,
+                new SymbolRenameOptions(),
+                newName
+            );
         }
 
         return newSolution;
@@ -680,6 +735,29 @@ public static class DocumentExtensions
         }
 
         return canAddLeadingTrivia;
+    }
+
+    private static async Task<Solution> RenameSymbolAsync(
+        Solution newSolution,
+        ISymbol symbol,
+        string name,
+        string newName)
+    {
+        try
+        {
+            newSolution = await Renamer.RenameSymbolAsync(
+                newSolution,
+                symbol,
+                new SymbolRenameOptions(),
+                newName
+            );
+            return newSolution;
+        }
+        catch (Exception)
+        {
+            Console.WriteLine($"Failed to rename '{name}' to '{newName}'", ConsoleColor.Red);
+            return newSolution;
+        }
     }
 
     #endregion
