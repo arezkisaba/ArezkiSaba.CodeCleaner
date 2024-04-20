@@ -17,9 +17,9 @@ public partial class Dog : IAnimal
 {
     public event EventHandler<DogEventArgs> lunchFinished;
 
-    public static Dog create(string _name)
+    public static Dog create(string NAME)
     {
-        return new Dog(_name);
+        return new Dog(NAME);
     }
 
     public string _name { get; private set; }
