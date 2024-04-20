@@ -10,14 +10,21 @@ public interface IAnimal
 
 public class DogEventArgs : EventArgs
 {
-    public string DogName { get; set; }
+    public string _dogName { get; set; }
 }
 
 public partial class Dog : IAnimal
 {
     public event EventHandler<DogEventArgs> lunchFinished;
 
+    public static Dog create(string Name)
+    {
+        return new Dog(Name);
+    }
+
     public string _name { get; private set; }
+
+
 
     private Dog(
         string Name)
@@ -25,14 +32,19 @@ public partial class Dog : IAnimal
         _name = Name;
     }
 
-    public static Dog create(string Name)
-    {
-        return new Dog(Name);
-    }
 }
 
 public partial class Dog
 {
+
+
+    private async Task SpeakAsync()
+    {
+
+        await Task.Run(() => Console.WriteLine($"{_name} says: Woof!"));
+
+    }
+
 
     public async Task _eatAsync()
     {
@@ -44,7 +56,7 @@ public partial class Dog
         Console.WriteLine($"{_name} starts eating...");
         await Task.Delay(delay);
 
-        lunchFinished?.Invoke(null, new DogEventArgs { DogName = _name });
+        lunchFinished?.Invoke(null, new DogEventArgs { _dogName = _name });
 
 
         await SpeakAsync();
@@ -52,19 +64,20 @@ public partial class Dog
 
     }
 
-
-    private async Task SpeakAsync()
-    {
-
-        await Task.Run(() => Console.WriteLine($"{_name} says: Woof!"));
-
-    }
-
 }
 
 public class AnimalList<T> where T : IAnimal
 {
-    private readonly List<T> _animals = new();
+
+
+    public async Task MakeAllAnimalsEatAsync()
+    {
+
+        var eatTasks = _animals.Select(animal => animal._eatAsync());
+        await Task.WhenAll(eatTasks);
+
+    }
+    private List<T> _animals = new();
 
     public void AddAnimal(
         T animal)
@@ -74,11 +87,5 @@ public class AnimalList<T> where T : IAnimal
 
     }
 
-    public async Task MakeAllAnimalsEatAsync()
-    {
 
-        var eatTasks = _animals.Select(animal => animal._eatAsync());
-        await Task.WhenAll(eatTasks);
-
-    }
 }

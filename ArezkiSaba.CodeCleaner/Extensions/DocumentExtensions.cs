@@ -383,12 +383,20 @@ public static class DocumentExtensions
 
             var symbol = semanticModel.GetDeclaredSymbol(declaration);
             var newName = symbol.Name.ToPascalCase();
-            newSolution = await Renamer.RenameSymbolAsync(
-                newSolution,
-                symbol,
-                new SymbolRenameOptions(),
-                newName
-            );
+
+            try
+            {
+                newSolution = await Renamer.RenameSymbolAsync(
+                    newSolution,
+                    symbol,
+                    new SymbolRenameOptions(),
+                    newName
+                );
+            }
+            catch (Exception)
+            {
+                Console.WriteLine($"Failed to rename '{name}' to '{newName}'", ConsoleColor.Red);
+            }
         }
 
         return newSolution;
