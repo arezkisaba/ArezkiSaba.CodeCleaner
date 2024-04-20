@@ -372,7 +372,7 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        if (document.Name.EndsWith("ViewModel"))
+        if (document.Name.Contains("ViewModel"))
         {
             return solution;
         }
