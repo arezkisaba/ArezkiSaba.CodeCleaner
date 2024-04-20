@@ -372,6 +372,11 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
+        if (document.Name.EndsWith("ViewModel"))
+        {
+            return solution;
+        }
+
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
