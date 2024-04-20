@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
-using System.Reflection;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 

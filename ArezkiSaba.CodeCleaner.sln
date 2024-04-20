@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34511.98
@@ -14,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArezkiSaba.CodeCleaner", "A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArezkiSaba.CodeCleaner.Tests", "ArezkiSaba.CodeCleaner.Tests\ArezkiSaba.CodeCleaner.Tests.csproj", "{7774E070-6C86-430A-B1F7-E633C4E7732D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArezkiSaba.CodeCleaner.SampleProject", "ArezkiSaba.CodeCleaner.SampleProject\ArezkiSaba.CodeCleaner.SampleProject.csproj", "{D858B363-7656-4C48-B73E-A125C7FE050D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +29,10 @@ Global
 		{7774E070-6C86-430A-B1F7-E633C4E7732D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7774E070-6C86-430A-B1F7-E633C4E7732D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7774E070-6C86-430A-B1F7-E633C4E7732D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D858B363-7656-4C48-B73E-A125C7FE050D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D858B363-7656-4C48-B73E-A125C7FE050D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D858B363-7656-4C48-B73E-A125C7FE050D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D858B363-7656-4C48-B73E-A125C7FE050D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
