@@ -13,6 +13,11 @@ public static class StringExtensions
         }
 
         var newName = Regex.Replace(input, @"[^0-9a-zA-Z]", string.Empty);
+        if (newName.All(char.IsUpper))
+        {
+            return newName.ToLowerInvariant();
+        }
+
         newName = char.ToLowerInvariant(newName[0]) + newName[1..];
         return Regex.Replace(newName, @"(\s\w)", m => m.Value.ToUpper());
     }
