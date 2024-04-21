@@ -20,7 +20,7 @@ public static class WorkspaceExtensions
     {
         var cleaningFuncs = new List<Func<Document, Task<Document>>>();
         cleaningFuncs.Add((document) => document.StartTypeInferenceRewriterAsync());
-        ////cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
+        cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
         cleaningFuncs.Add((document) => document.StartUsingDirectiveSorterAsync());
         cleaningFuncs.Add((document) => document.StartDuplicatedUsingDirectiveRemoverAsync());
         cleaningFuncs.Add((document) => document.ReorderClassMembersAsync());
@@ -64,7 +64,7 @@ public static class WorkspaceExtensions
     private static async Task RefactorAsync(
         this Workspace workspace)
     {
-        var refactoringFuncs = new List<Func<Document, Solution, Task<Solution>>>();
+        var refactoringFuncs = new List<Func<Document, Solution, Task<(Document document, Solution solution)>>>();
         refactoringFuncs.Add((document, solution) => document.StartFieldRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartEventFieldRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartPropertyRenamerAsync(solution));
@@ -93,9 +93,9 @@ public static class WorkspaceExtensions
                         continue;
                     }
 
-                    newSolution = await refactoringFunc(updatedDocument, newSolution);
-                    updatedDocument = await Formatter.FormatAsync(updatedDocument);
-                    newSolution = updatedDocument.Project.Solution;
+                    var (document, solution) = await refactoringFunc(updatedDocument, newSolution);
+                    newSolution = solution;
+                    updatedDocument = await Formatter.FormatAsync(document);
                 }
             }
 

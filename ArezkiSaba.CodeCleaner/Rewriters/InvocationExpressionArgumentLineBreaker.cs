@@ -17,7 +17,7 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
     {
         if (token.Parent?.Parent is not InvocationExpressionSyntax invocationExpression ||
             !invocationExpression.ArgumentList.Arguments.Any() ||
-            invocationExpression.GetInvocationExpressionLength() < 100 ||
+            invocationExpression.GetInvocationExpressionLength() < 70 ||
             token.Parent.Ancestors().OfType<LocalFunctionStatementSyntax>().Any() ||
             token.Parent.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any())
         {

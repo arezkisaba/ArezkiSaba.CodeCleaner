@@ -238,13 +238,14 @@ public static class DocumentExtensions
         return document.WithSyntaxRoot(new InvocationExpressionArgumentLineBreaker().Visit(root));
     }
 
-    public static async Task<Solution> StartUnusedMethodParameterRenamerAsync(
+    public static async Task<(Document, Solution)> StartUnusedMethodParameterRenamerAsync(
         this Document document,
         Solution solution)
     {
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
+        var newDocument = document;
 
         var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
         foreach (var methodDeclaration in methodDeclarations)
@@ -273,18 +274,20 @@ public static class DocumentExtensions
             newSolution = await RenameParameterNameIfUnreferencedAsync(newSolution, semanticModel, senderParameter, "_");
             var argsParameter = parameters[1];
             newSolution = await RenameParameterNameIfUnreferencedAsync(newSolution, semanticModel, argsParameter, "__");
+            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return newSolution;
+        return (newDocument, newSolution);
     }
 
-    public static async Task<Solution> StartAsyncMethodRenamerAsync(
+    public static async Task<(Document, Solution)> StartAsyncMethodRenamerAsync(
         this Document document,
         Solution solution)
     {
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
+        var newDocument = document;
 
         var asyncSuffix = "Async";
         var declarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
@@ -310,18 +313,20 @@ public static class DocumentExtensions
                 name,
                 newName
             );
+            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return newSolution;
+        return (newDocument, newSolution);
     }
 
-    public static async Task<Solution> StartFieldRenamerAsync(
+    public static async Task<(Document, Solution)> StartFieldRenamerAsync(
         this Document document,
         Solution solution)
     {
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
+        var newDocument = document;
 
         var declarations = root.DescendantNodes().OfType<FieldDeclarationSyntax>()
             .ToList();
@@ -345,6 +350,7 @@ public static class DocumentExtensions
                         name,
                         newName
                     );
+                    newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
                 }
             }
             else
@@ -365,20 +371,22 @@ public static class DocumentExtensions
                         name,
                         newName
                     );
+                    newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
                 }
             }
         }
 
-        return newSolution;
+        return (newDocument, newSolution);
     }
 
-    public static async Task<Solution> StartEventFieldRenamerAsync(
+    public static async Task<(Document, Solution)> StartEventFieldRenamerAsync(
         this Document document,
         Solution solution)
     {
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
+        var newDocument = document;
 
         var declarations = root.DescendantNodes().OfType<EventFieldDeclarationSyntax>().ToList();
         foreach (var declaration in declarations)
@@ -399,24 +407,26 @@ public static class DocumentExtensions
                     name,
                     newName
                 );
+                newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
             }
         }
 
-        return newSolution;
+        return (newDocument, newSolution);
     }
 
-    public static async Task<Solution> StartPropertyRenamerAsync(
+    public static async Task<(Document, Solution)> StartPropertyRenamerAsync(
         this Document document,
         Solution solution)
     {
         if (document.Name.Contains("ViewModel"))
         {
-            return solution;
+            return (document, solution);
         }
 
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
+        var newDocument = document;
 
         var declarations = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().ToList();
         foreach (var declaration in declarations)
@@ -435,18 +445,20 @@ public static class DocumentExtensions
                 name,
                 newName
             );
+            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return newSolution;
+        return (newDocument, newSolution);
     }
 
-    public static async Task<Solution> StartMethodRenamerAsync(
+    public static async Task<(Document, Solution)> StartMethodRenamerAsync(
         this Document document,
         Solution solution)
     {
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
+        var newDocument = document;
 
         var declarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
         foreach (var declaration in declarations)
@@ -465,18 +477,20 @@ public static class DocumentExtensions
                 name,
                 newName
             );
+            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return newSolution;
+        return (newDocument, newSolution);
     }
 
-    public static async Task<Solution> StartLocalVariableRenamerAsync(
+    public static async Task<(Document, Solution)> StartLocalVariableRenamerAsync(
         this Document document,
         Solution solution)
     {
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
+        var newDocument = document;
 
         var declarations = root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToList();
         foreach (var localDeclaration in declarations)
@@ -496,19 +510,21 @@ public static class DocumentExtensions
                     symbol.Name,
                     newName
                 );
+                newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
             }
         }
 
-        return newSolution;
+        return (newDocument, newSolution);
     }
 
-    public static async Task<Solution> StartParameterRenamerAsync(
+    public static async Task<(Document, Solution)> StartParameterRenamerAsync(
         this Document document,
         Solution solution)
     {
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
+        var newDocument = document;
 
         var declarations = root.DescendantNodes().OfType<ParameterSyntax>()
             .Where(obj => !obj.Ancestors().Any(obj => obj.IsKind(SyntaxKind.RecordDeclaration)))
@@ -528,9 +544,10 @@ public static class DocumentExtensions
                 symbol.Name,
                 newName
             );
+            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return newSolution;
+        return (newDocument, newSolution);
     }
 
     public static bool IsAutoGenerated(
