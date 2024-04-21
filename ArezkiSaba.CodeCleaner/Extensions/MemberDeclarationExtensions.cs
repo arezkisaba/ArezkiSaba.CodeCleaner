@@ -26,7 +26,7 @@ public static class MemberDeclarationExtensions
         }
     }
 
-    public static MemberDeclarationSyntax RemoveAllTrivias(
+    public static MemberDeclarationSyntax RemoveAllTriviasFromParametersAndArguments(
         this MemberDeclarationSyntax declaration)
     {
         var parameterList = declaration.DescendantNodes().OfType<ParameterListSyntax>().FirstOrDefault();

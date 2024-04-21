@@ -645,7 +645,7 @@ public static class DocumentExtensions
             .Select((obj, i) =>
             {
                 return obj
-                    .RemoveAllTrivias()
+                    .RemoveAllTriviasFromParametersAndArguments()
                     .WithLeadingTrivia(
                         SyntaxFactory.TriviaList(
                             indentationTrivia,
