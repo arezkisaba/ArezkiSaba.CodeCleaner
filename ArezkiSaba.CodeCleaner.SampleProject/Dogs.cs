@@ -8,6 +8,15 @@ public interface IAnimal
     Task _eatAsync();
 }
 
+public static class Constants
+{
+    public struct DogNames
+    {
+        public const string Fido = "Fido";
+        public const string Rex = "Rex";
+    }
+}
+
 public class DogEventArgs : EventArgs
 {
     public string _dogName { get; set; }
