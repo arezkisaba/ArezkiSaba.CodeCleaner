@@ -695,13 +695,20 @@ public static class DocumentExtensions
             .ThenBy(obj => obj.GetName())
             .Select((obj, i) =>
             {
+                var leadingTrivias = new List<SyntaxTrivia>();
+                if (i == 0 || (syntaxKind != SyntaxKind.FieldDeclaration && syntaxKind != SyntaxKind.EventFieldDeclaration))
+                {
+                    leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                }
+
+                leadingTrivias.Add(indentationTrivia);
+                leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+
                 return obj
                     .RemoveAllTriviasFromParametersAndArguments()
                     .WithLeadingTrivia(
-                        SyntaxFactory.TriviaList(
-                            indentationTrivia,
-                            SyntaxTriviaHelper.GetTab()
-                        ))
+                        SyntaxFactory.TriviaList(leadingTrivias)
+                    )
                     .WithTrailingTrivia(
                         SyntaxFactory.TriviaList(
                             SyntaxTriviaHelper.GetEndOfLine()

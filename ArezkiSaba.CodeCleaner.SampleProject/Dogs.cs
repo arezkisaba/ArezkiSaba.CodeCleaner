@@ -27,6 +27,8 @@ public partial class Dog : IAnimal
         return new Dog(_name);
     }
 
+    private string _someUselessField;
+
     public string _name { get; private set; }
 
 
