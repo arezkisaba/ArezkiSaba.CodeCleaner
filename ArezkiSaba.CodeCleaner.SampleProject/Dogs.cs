@@ -10,11 +10,6 @@ public interface IAnimal
 
 public static class Constants
 {
-    public struct DogNames
-    {
-        public const string Fido = "Fido";
-        public static string Rex = "Rex";
-    }
 }
 
 public class DogEventArgs : EventArgs
@@ -41,6 +36,11 @@ public partial class Dog : IAnimal
         _name = NAME;
     }
 
+    public struct DogNames
+    {
+        public const string Fido = "Fido";
+        public static string Rex = "Rex";
+    }
 }
 
 public partial class Dog
