@@ -13,7 +13,7 @@ public static class Constants
     public struct DogNames
     {
         public const string Fido = "Fido";
-        public const string Rex = "Rex";
+        public static string Rex = "Rex";
     }
 }
 

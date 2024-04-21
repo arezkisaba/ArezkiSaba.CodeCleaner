@@ -552,11 +552,11 @@ public static class DocumentExtensions
             SyntaxKind.MethodDeclaration
         };
         var classDeclarationsToAdd = new List<(ClassDeclarationSyntax classDeclaration, List<MemberDeclarationSyntax> memberDeclarations)>();
-        var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
+        var classDeclarations = documentEditor.OriginalRoot.ChildNodes().OfType<ClassDeclarationSyntax>().ToList();
         foreach (var classDeclaration in classDeclarations)
         {
             var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
-            foreach (var node in classDeclaration.DescendantNodes())
+            foreach (var node in classDeclaration.ChildNodes())
             {
                 if (!declarationsToExtract.Any(node.IsKind))
                 {
