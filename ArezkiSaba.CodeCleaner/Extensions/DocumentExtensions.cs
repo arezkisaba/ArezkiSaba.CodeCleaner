@@ -143,104 +143,28 @@ public static class DocumentExtensions
         return document.WithSyntaxRoot(new DuplicatedEmptyLinesRemover().Visit(root));
     }
 
-    ////public static async Task<Document> ReorderClassMembersAsync(
-    ////    this Document document)
-    ////{
-    ////    var root = await document.GetSyntaxRootAsync();
-    ////    var editor = await DocumentEditor.CreateAsync(document);
-
-    ////    var classDeclarations = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
-
-    ////    foreach (var classDeclaration in classDeclarations)
-    ////    {
-    ////        SortMembersInClass(editor, classDeclaration);
-    ////    }
-
-    ////    return editor.GetChangedDocument();
-    ////}
-
-    ////private static void SortMembersInClass(DocumentEditor editor, ClassDeclarationSyntax classDeclaration)
-    ////{
-    ////    var sortedMembers = classDeclaration.Members
-    ////        .OrderBy(GetOrder)
-    ////        .ThenBy(member => GetMemberName(member))
-    ////        .ToArray();
-
-    ////    foreach (var member in classDeclaration.Members)
-    ////    {
-    ////        editor.RemoveNode(member);
-    ////    }
-
-    ////    foreach (var member in sortedMembers)
-    ////    {
-    ////        editor.InsertMembers(classDeclaration, 0, new[] { member });
-
-    ////        ////if (member is ClassDeclarationSyntax nestedClass)
-    ////        ////{
-    ////        ////    SortMembersInClass(editor, nestedClass);
-    ////        ////}
-    ////    }
-    ////}
-
-    ////private static int GetOrder(MemberDeclarationSyntax member)
-    ////{
-    ////    return member switch
-    ////    {
-    ////        FieldDeclarationSyntax _ => 1,
-    ////        EventFieldDeclarationSyntax _ => 2,
-    ////        PropertyDeclarationSyntax _ => 3,
-    ////        ConstructorDeclarationSyntax _ => 4,
-    ////        MethodDeclarationSyntax _ => 5,
-    ////        StructDeclarationSyntax _ => 6,
-    ////        ClassDeclarationSyntax _ => 7,
-    ////        InterfaceDeclarationSyntax _ => 8,
-    ////        _ => 9,
-    ////    };
-    ////}
-
-    ////private static string GetMemberName(MemberDeclarationSyntax member)
-    ////{
-    ////    return member switch
-    ////    {
-    ////        FieldDeclarationSyntax field => field.Declaration.Variables.First().Identifier.Text,
-    ////        EventFieldDeclarationSyntax eventField => eventField.Declaration.Variables.First().Identifier.Text,
-    ////        PropertyDeclarationSyntax property => property.Identifier.Text,
-    ////        ConstructorDeclarationSyntax constructor => constructor.Identifier.Text,
-    ////        MethodDeclarationSyntax method => method.Identifier.Text,
-    ////        StructDeclarationSyntax @struct => @struct.Identifier.Text,
-    ////        ClassDeclarationSyntax @class => @class.Identifier.Text,
-    ////        InterfaceDeclarationSyntax @interface => @interface.Identifier.Text,
-    ////        _ => string.Empty,
-    ////    };
-    ////}
-
     public static async Task<Document> ReorderClassMembersAsync(
         this Document document)
     {
         var documentEditor = await DocumentEditor.CreateAsync(document);
 
         // Take interfaces, classes, structs
-        var classDeclarations = documentEditor.OriginalRoot.ChildNodes().OfType<TypeDeclarationSyntax>()
+        var typeDeclarations = documentEditor.OriginalRoot.ChildNodes().OfType<TypeDeclarationSyntax>()
             .Reverse()
             .ToList();
-        foreach (var classDeclaration in classDeclarations)
+        foreach (var typeDeclaration in typeDeclarations)
         {
-            await ArangeClassDeclarationAsync(documentEditor, classDeclaration);
+            var newTypeDeclaration = await GetSortedTypeDelcaration(documentEditor, typeDeclaration);
+            documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
         }
 
-        ////var classDeclarationWithMemberDeclarations = documentEditor.RemoveAndExtractMemberDeclarationsFromClass();
-        ////documentEditor.InsertOrderedMemberDeclarationsIntoClass(classDeclarationWithMemberDeclarations);
-        ////documentEditor = await DocumentEditor.CreateAsync(documentEditor.GetChangedDocument());
-        ////documentEditor.AddLeadingTriviaToMemberDeclarations();
         return documentEditor.GetChangedDocument();
     }
 
-    private static async Task ArangeClassDeclarationAsync(
+    private static async Task<TypeDeclarationSyntax> GetSortedTypeDelcaration(
         DocumentEditor documentEditor,
-        TypeDeclarationSyntax root)
+        TypeDeclarationSyntax typeDeclarationRoot)
     {
-        Console.WriteLine($"== TypeDeclarationSyntax => {root.Identifier.ValueText}");
-
         var declarationsToExtract = new List<SyntaxKind>()
         {
             SyntaxKind.FieldDeclaration,
@@ -252,30 +176,29 @@ public static class DocumentExtensions
             SyntaxKind.ClassDeclaration,
             SyntaxKind.InterfaceDeclaration,
         };
-        var indentationTrivia = root.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-        var memberDeclarationsReversed = root.ChildNodes().OfType<MemberDeclarationSyntax>().Reverse().ToList();
+        var indentationTrivia = typeDeclarationRoot.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+        var memberDeclarationsReversed = typeDeclarationRoot.ChildNodes().OfType<MemberDeclarationSyntax>().Reverse().ToList();
 
-        ////var newRoot = root;
-        var typeDeclarationsToAdd = new List<(TypeDeclarationSyntax typeDeclaration, List<MemberDeclarationSyntax> memberDeclarations)>();
         var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
         foreach (var memberDeclaration in memberDeclarationsReversed)
         {
-            if (!declarationsToExtract.Any(memberDeclaration.IsKind))
+            var newMemberDeclaration = memberDeclaration;
+
+            if (!declarationsToExtract.Any(newMemberDeclaration.IsKind))
             {
                 continue;
             }
 
-            if (memberDeclaration is TypeDeclarationSyntax typeDeclaration)
+            if (newMemberDeclaration is TypeDeclarationSyntax typeDeclaration)
             {
-                await ArangeClassDeclarationAsync(documentEditor, typeDeclaration);
-            }
-            else
-            {
-                Console.WriteLine($"==== MemberDeclarationSyntax => {memberDeclaration.GetName()}");
+                var newTypeDeclaration = await GetSortedTypeDelcaration(documentEditor, typeDeclaration);
+                ////newMembers = documentEditor.AddTriviasToTypeDeclaration(newTypeDeclaration);
+                ////newTypeDeclaration = newTypeDeclaration.WithMembers(new SyntaxList<MemberDeclarationSyntax>(newMembers));
+                documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
+                newMemberDeclaration = newTypeDeclaration;
             }
 
-            documentEditor.RemoveNode(memberDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
-            memberDeclarationsToAdd.Add(memberDeclaration);
+            memberDeclarationsToAdd.Add(newMemberDeclaration);
         }
 
         var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
@@ -284,7 +207,7 @@ public static class DocumentExtensions
             orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, indentationTrivia));
         }
 
-        documentEditor.InsertMembers(root, 0, orderedMemberDeclarations);
+        return typeDeclarationRoot.WithMembers(new SyntaxList<MemberDeclarationSyntax>(orderedMemberDeclarations));
     }
 
     public static async Task<Document> StartRegionInserterAsync(
@@ -696,101 +619,61 @@ public static class DocumentExtensions
         return newSolution;
     }
 
-    private static List<(ClassDeclarationSyntax classDeclaration, List<MemberDeclarationSyntax> memberDeclarations)> RemoveAndExtractMemberDeclarationsFromClass(
-        this DocumentEditor documentEditor)
+    private static TypeDeclarationSyntax GetTypeDeclarationWithTrivias(
+        TypeDeclarationSyntax typeDeclaration)
     {
-        var declarationsToExtract = new List<SyntaxKind>()
+        var memberDeclarations = typeDeclaration.ChildNodes().OfType<MemberDeclarationSyntax>().ToList();
+        var memberDeclarationsReversed = memberDeclarations.ToList();
+        memberDeclarationsReversed.Reverse();
+
+        var i = 0;
+        var canAddLeadingTrivia = false;
+        var newTypeDeclaration = typeDeclaration;
+        var declarationTrivia = newTypeDeclaration.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+
+        var finalMemberDeclarations = new List<MemberDeclarationSyntax>();
+
+        foreach (var memberDeclaration in memberDeclarationsReversed)
         {
-            SyntaxKind.InterfaceDeclaration,
-            SyntaxKind.ClassDeclaration,
-            SyntaxKind.StructDeclaration,
-            SyntaxKind.FieldDeclaration,
-            SyntaxKind.EventFieldDeclaration,
-            SyntaxKind.PropertyDeclaration,
-            SyntaxKind.ConstructorDeclaration,
-            SyntaxKind.MethodDeclaration
-        };
-        var classDeclarations = documentEditor.OriginalRoot.ChildNodes().OfType<ClassDeclarationSyntax>().ToList();
-        var classDeclarationsToAdd = new List<(ClassDeclarationSyntax classDeclaration, List<MemberDeclarationSyntax> memberDeclarations)>();
-        foreach (var classDeclaration in classDeclarations)
-        {
-            var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
-            foreach (var node in classDeclaration.ChildNodes())
+            if (i != memberDeclarations.Count - 1)
             {
-                if (!declarationsToExtract.Any(node.IsKind))
+                canAddLeadingTrivia = memberDeclaration.CanAddLeadingTrivia(memberDeclarations);
+                if (canAddLeadingTrivia)
                 {
-                    continue;
-                }
+                    var originalLeadingToken = memberDeclaration.GetFirstToken();
+                    var leadingToken = originalLeadingToken.WithLeadingTrivia(
+                        SyntaxFactory.TriviaList(
+                            SyntaxTriviaHelper.GetEndOfLine(),
+                            declarationTrivia,
+                            SyntaxTriviaHelper.GetTab()
+                        )
+                    );
 
-                documentEditor.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
-                memberDeclarationsToAdd.Add(node as MemberDeclarationSyntax);
-            }
-
-            classDeclarationsToAdd.Add((classDeclaration, memberDeclarationsToAdd));
-        }
-
-        return classDeclarationsToAdd;
-    }
-
-    public static void InsertOrderedMemberDeclarationsIntoClass(
-        this DocumentEditor documentEditor,
-        List<(ClassDeclarationSyntax classDeclaration, List<MemberDeclarationSyntax> memberDeclarations)> memberDeclarationsWithClassName)
-    {
-        var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
-        foreach (var (classDeclaration, memberDeclarations) in memberDeclarationsWithClassName)
-        {
-            var indentationTrivia = classDeclaration.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-            var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
-            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.StructDeclaration, indentationTrivia));
-            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.FieldDeclaration, indentationTrivia));
-            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration, indentationTrivia));
-            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.PropertyDeclaration, indentationTrivia));
-            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.ConstructorDeclaration, indentationTrivia));
-            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.MethodDeclaration, indentationTrivia));
-            documentEditor.InsertMembers(classDeclaration, 0, orderedMemberDeclarations);
-        }
-    }
-
-    private static void AddLeadingTriviaToMemberDeclarations(
-        this DocumentEditor documentEditor)
-    {
-        var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
-        foreach (var classDeclaration in classDeclarations)
-        {
-            var memberDeclarations = classDeclaration.DescendantNodes().OfType<MemberDeclarationSyntax>().ToList();
-            var memberDeclarationsReversed = memberDeclarations.ToList();
-            memberDeclarationsReversed.Reverse();
-
-            var i = 0;
-            var canAddLeadingTrivia = false;
-            var declarationTrivia = classDeclaration.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-            foreach (var memberDeclaration in memberDeclarationsReversed)
-            {
-                if (i != memberDeclarations.Count - 1)
-                {
-                    canAddLeadingTrivia = memberDeclaration.CanAddLeadingTrivia(memberDeclarations);
-                    if (canAddLeadingTrivia)
+                    var memberDeclarationWithTrivia = memberDeclaration.ReplaceToken(originalLeadingToken, leadingToken);
+                    if (!memberDeclarationWithTrivia.IsEquivalentTo(memberDeclaration))
                     {
-                        var originalLeadingToken = memberDeclaration.GetFirstToken();
-                        var leadingToken = originalLeadingToken.WithLeadingTrivia(
-                            SyntaxFactory.TriviaList(
-                                SyntaxTriviaHelper.GetEndOfLine(),
-                                declarationTrivia,
-                                SyntaxTriviaHelper.GetTab()
-                            )
-                        );
-
-                        var memberDeclarationWithTrivia = memberDeclaration.ReplaceToken(originalLeadingToken, leadingToken);
-                        if (!memberDeclarationWithTrivia.IsEquivalentTo(memberDeclaration))
-                        {
-                            documentEditor.ReplaceNode(memberDeclaration, memberDeclarationWithTrivia);
-                        }
+                        finalMemberDeclarations.Add(memberDeclarationWithTrivia);
+                        ////documentEditor.ReplaceNode(memberDeclaration, memberDeclarationWithTrivia);
+                    }
+                    else
+                    {
+                        finalMemberDeclarations.Add(memberDeclaration);
                     }
                 }
-
-                i++;
+                else
+                {
+                    finalMemberDeclarations.Add(memberDeclaration);
+                }
             }
+            else
+            {
+                finalMemberDeclarations.Add(memberDeclaration);
+            }
+
+            i++;
         }
+
+        return typeDeclaration.WithMembers(new SyntaxList<MemberDeclarationSyntax>(finalMemberDeclarations));
     }
 
     private static List<MemberDeclarationSyntax> GetMemberDeclarations(

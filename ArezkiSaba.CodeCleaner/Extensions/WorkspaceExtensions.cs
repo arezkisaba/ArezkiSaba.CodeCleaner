@@ -19,16 +19,16 @@ public static class WorkspaceExtensions
         this Workspace workspace)
     {
         var cleaningFuncs = new List<Func<Document, Task<Document>>>();
-        ////cleaningFuncs.Add((document) => document.StartTypeInferenceRewriterAsync());
-        ////cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
-        ////cleaningFuncs.Add((document) => document.StartUsingDirectiveSorterAsync());
-        ////cleaningFuncs.Add((document) => document.StartDuplicatedUsingDirectiveRemoverAsync());
-        ////cleaningFuncs.Add((document) => document.StartEmptyLinesBracesRemoverAsync());
-        ////cleaningFuncs.Add((document) => document.StartDuplicatedEmptyLinesRemoverAsync());
+        cleaningFuncs.Add((document) => document.StartTypeInferenceRewriterAsync());
+        cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
+        cleaningFuncs.Add((document) => document.StartUsingDirectiveSorterAsync());
+        cleaningFuncs.Add((document) => document.StartDuplicatedUsingDirectiveRemoverAsync());
+        cleaningFuncs.Add((document) => document.StartEmptyLinesBracesRemoverAsync());
+        cleaningFuncs.Add((document) => document.StartDuplicatedEmptyLinesRemoverAsync());
         cleaningFuncs.Add((document) => document.ReorderClassMembersAsync());
-        ////cleaningFuncs.Add((document) => document.StartRegionInserterAsync());
-        ////cleaningFuncs.Add((document) => document.StartMethodDeclarationParameterLineBreakerAsync());
-        ////cleaningFuncs.Add((document) => document.StartInvocationExpressionArgumentLineBreakerAsync());
+        cleaningFuncs.Add((document) => document.StartRegionInserterAsync());
+        cleaningFuncs.Add((document) => document.StartMethodDeclarationParameterLineBreakerAsync());
+        cleaningFuncs.Add((document) => document.StartInvocationExpressionArgumentLineBreakerAsync());
 
         var newSolution = workspace.CurrentSolution;
         var projectIds = workspace.CurrentSolution.ProjectIds;
@@ -65,14 +65,14 @@ public static class WorkspaceExtensions
         this Workspace workspace)
     {
         var refactoringFuncs = new List<Func<Document, Solution, Task<Solution>>>();
-        ////refactoringFuncs.Add((document, solution) => document.StartFieldRenamerAsync(solution));
-        ////refactoringFuncs.Add((document, solution) => document.StartEventFieldRenamerAsync(solution));
-        ////refactoringFuncs.Add((document, solution) => document.StartPropertyRenamerAsync(solution));
-        ////refactoringFuncs.Add((document, solution) => document.StartMethodRenamerAsync(solution));
-        ////refactoringFuncs.Add((document, solution) => document.StartLocalVariableRenamerAsync(solution));
-        ////refactoringFuncs.Add((document, solution) => document.StartParameterRenamerAsync(solution));
-        ////refactoringFuncs.Add((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution));
-        ////refactoringFuncs.Add((document, solution) => document.StartAsyncMethodRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartFieldRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartEventFieldRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartPropertyRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartMethodRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartLocalVariableRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartParameterRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.StartAsyncMethodRenamerAsync(solution));
 
         foreach (var refactoringFunc in refactoringFuncs)
         {
