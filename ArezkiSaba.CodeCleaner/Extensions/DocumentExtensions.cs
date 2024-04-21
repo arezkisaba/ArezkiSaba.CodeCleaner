@@ -255,7 +255,7 @@ public static class DocumentExtensions
         var indentationTrivia = root.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
         var memberDeclarationsReversed = root.ChildNodes().OfType<MemberDeclarationSyntax>().Reverse().ToList();
 
-        var newRoot = root;
+        ////var newRoot = root;
         var typeDeclarationsToAdd = new List<(TypeDeclarationSyntax typeDeclaration, List<MemberDeclarationSyntax> memberDeclarations)>();
         var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
         foreach (var memberDeclaration in memberDeclarationsReversed)
@@ -274,8 +274,7 @@ public static class DocumentExtensions
                 Console.WriteLine($"==== MemberDeclarationSyntax => {memberDeclaration.GetName()}");
             }
 
-            newRoot = root.RemoveNode(memberDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
-            documentEditor.ReplaceNode(root, newRoot);
+            documentEditor.RemoveNode(memberDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
             memberDeclarationsToAdd.Add(memberDeclaration);
         }
 
@@ -285,7 +284,7 @@ public static class DocumentExtensions
             orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, indentationTrivia));
         }
 
-        documentEditor.InsertMembers(newRoot, 0, orderedMemberDeclarations);
+        documentEditor.InsertMembers(root, 0, orderedMemberDeclarations);
     }
 
     public static async Task<Document> StartRegionInserterAsync(
