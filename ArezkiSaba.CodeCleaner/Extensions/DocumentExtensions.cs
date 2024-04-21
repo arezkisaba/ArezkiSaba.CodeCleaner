@@ -154,14 +154,21 @@ public static class DocumentExtensions
             .ToList();
         foreach (var typeDeclaration in typeDeclarations)
         {
-            var newTypeDeclaration = await GetSortedTypeDelcaration(documentEditor, typeDeclaration);
+            var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
             documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
+
+            ////documentEditor = await DocumentEditor.CreateAsync(documentEditor.GetChangedDocument());
+
+            ////var items1 = documentEditor.GetChangedRoot().DescendantNodes().Where(obj => ReferenceEquals(obj, newTypeDeclaration)).ToList();
+
+            ////var newNewTypeDeclaration = documentEditor.GetTypeDeclarationWithTrivias(newTypeDeclaration);
+            ////documentEditor.ReplaceNode(newTypeDeclaration, newNewTypeDeclaration);
         }
 
         return documentEditor.GetChangedDocument();
     }
 
-    private static async Task<TypeDeclarationSyntax> GetSortedTypeDelcaration(
+    private static async Task<TypeDeclarationSyntax> GetSortedTypeDeclaration(
         DocumentEditor documentEditor,
         TypeDeclarationSyntax typeDeclarationRoot)
     {
@@ -191,9 +198,7 @@ public static class DocumentExtensions
 
             if (newMemberDeclaration is TypeDeclarationSyntax typeDeclaration)
             {
-                var newTypeDeclaration = await GetSortedTypeDelcaration(documentEditor, typeDeclaration);
-                ////newMembers = documentEditor.AddTriviasToTypeDeclaration(newTypeDeclaration);
-                ////newTypeDeclaration = newTypeDeclaration.WithMembers(new SyntaxList<MemberDeclarationSyntax>(newMembers));
+                var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
                 documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
                 newMemberDeclaration = newTypeDeclaration;
             }
@@ -207,7 +212,9 @@ public static class DocumentExtensions
             orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, indentationTrivia));
         }
 
-        return typeDeclarationRoot.WithMembers(new SyntaxList<MemberDeclarationSyntax>(orderedMemberDeclarations));
+        var newTypeDeclarationRoot = typeDeclarationRoot.WithMembers(new SyntaxList<MemberDeclarationSyntax>(orderedMemberDeclarations));
+        ////newTypeDeclarationRoot = documentEditor.GetTypeDeclarationWithTrivias(newTypeDeclarationRoot);
+        return newTypeDeclarationRoot;
     }
 
     public static async Task<Document> StartRegionInserterAsync(
@@ -620,6 +627,7 @@ public static class DocumentExtensions
     }
 
     private static TypeDeclarationSyntax GetTypeDeclarationWithTrivias(
+        this DocumentEditor documentEditor,
         TypeDeclarationSyntax typeDeclaration)
     {
         var memberDeclarations = typeDeclaration.ChildNodes().OfType<MemberDeclarationSyntax>().ToList();
