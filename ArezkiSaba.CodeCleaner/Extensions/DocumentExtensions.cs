@@ -148,73 +148,22 @@ public static class DocumentExtensions
     {
         var documentEditor = await DocumentEditor.CreateAsync(document);
 
+        var root = documentEditor.OriginalRoot.ChildNodes().FirstOrDefault(
+            obj => obj.IsKind(SyntaxKind.NamespaceDeclaration) || obj.IsKind(SyntaxKind.FileScopedNamespaceDeclaration)
+        );
+        root ??= documentEditor.OriginalRoot;
+
         // Take interfaces, classes, structs
-        var typeDeclarations = documentEditor.OriginalRoot.ChildNodes().OfType<TypeDeclarationSyntax>()
+        var typeDeclarations = root.ChildNodes().OfType<TypeDeclarationSyntax>()
             .Reverse()
             .ToList();
         foreach (var typeDeclaration in typeDeclarations)
         {
             var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
             documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
-
-            ////documentEditor = await DocumentEditor.CreateAsync(documentEditor.GetChangedDocument());
-
-            ////var items1 = documentEditor.GetChangedRoot().DescendantNodes().Where(obj => ReferenceEquals(obj, newTypeDeclaration)).ToList();
-
-            ////var newNewTypeDeclaration = documentEditor.GetTypeDeclarationWithTrivias(newTypeDeclaration);
-            ////documentEditor.ReplaceNode(newTypeDeclaration, newNewTypeDeclaration);
         }
 
         return documentEditor.GetChangedDocument();
-    }
-
-    private static async Task<TypeDeclarationSyntax> GetSortedTypeDeclaration(
-        DocumentEditor documentEditor,
-        TypeDeclarationSyntax typeDeclarationRoot)
-    {
-        var declarationsToExtract = new List<SyntaxKind>()
-        {
-            SyntaxKind.FieldDeclaration,
-            SyntaxKind.EventFieldDeclaration,
-            SyntaxKind.PropertyDeclaration,
-            SyntaxKind.ConstructorDeclaration,
-            SyntaxKind.MethodDeclaration,
-            SyntaxKind.StructDeclaration,
-            SyntaxKind.ClassDeclaration,
-            SyntaxKind.InterfaceDeclaration,
-        };
-        var indentationTrivia = typeDeclarationRoot.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-        var memberDeclarationsReversed = typeDeclarationRoot.ChildNodes().OfType<MemberDeclarationSyntax>().Reverse().ToList();
-
-        var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
-        foreach (var memberDeclaration in memberDeclarationsReversed)
-        {
-            var newMemberDeclaration = memberDeclaration;
-
-            if (!declarationsToExtract.Any(newMemberDeclaration.IsKind))
-            {
-                continue;
-            }
-
-            if (newMemberDeclaration is TypeDeclarationSyntax typeDeclaration)
-            {
-                var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
-                documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
-                newMemberDeclaration = newTypeDeclaration;
-            }
-
-            memberDeclarationsToAdd.Add(newMemberDeclaration);
-        }
-
-        var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
-        foreach (var declarationToExtract in declarationsToExtract)
-        {
-            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, indentationTrivia));
-        }
-
-        var newTypeDeclarationRoot = typeDeclarationRoot.WithMembers(new SyntaxList<MemberDeclarationSyntax>(orderedMemberDeclarations));
-        ////newTypeDeclarationRoot = documentEditor.GetTypeDeclarationWithTrivias(newTypeDeclarationRoot);
-        return newTypeDeclarationRoot;
     }
 
     public static async Task<Document> StartRegionInserterAsync(
@@ -379,7 +328,7 @@ public static class DocumentExtensions
             if (declaration.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword) || m.IsKind(SyntaxKind.StaticKeyword)))
             {
                 var name = declaration.GetName();
-                if (char.IsUpper(name[0]))
+                if (string.IsNullOrWhiteSpace(name) || char.IsUpper(name[0]))
                 {
                     continue;
                 }
@@ -399,7 +348,7 @@ public static class DocumentExtensions
             else
             {
                 var name = declaration.GetName();
-                if (name.StartsWith('_'))
+                if (string.IsNullOrWhiteSpace(name) || name.StartsWith('_'))
                 {
                     continue;
                 }
@@ -433,7 +382,7 @@ public static class DocumentExtensions
         foreach (var declaration in declarations)
         {
             var name = declaration.GetName();
-            if (char.IsUpper(name[0]))
+            if (string.IsNullOrWhiteSpace(name) || char.IsUpper(name[0]))
             {
                 continue;
             }
@@ -471,7 +420,7 @@ public static class DocumentExtensions
         foreach (var declaration in declarations)
         {
             var name = declaration.GetName();
-            if (char.IsUpper(name[0]))
+            if (string.IsNullOrWhiteSpace(name) || char.IsUpper(name[0]))
             {
                 continue;
             }
@@ -501,7 +450,7 @@ public static class DocumentExtensions
         foreach (var declaration in declarations)
         {
             var name = declaration.GetName();
-            if (char.IsUpper(name[0]))
+            if (string.IsNullOrWhiteSpace(name) || char.IsUpper(name[0]))
             {
                 continue;
             }
@@ -626,6 +575,87 @@ public static class DocumentExtensions
         return newSolution;
     }
 
+    private static async Task<TypeDeclarationSyntax> GetSortedTypeDeclaration(
+        DocumentEditor documentEditor,
+        TypeDeclarationSyntax typeDeclarationRoot)
+    {
+        var declarationsToExtract = new List<SyntaxKind>()
+        {
+            SyntaxKind.FieldDeclaration,
+            SyntaxKind.EventFieldDeclaration,
+            SyntaxKind.PropertyDeclaration,
+            SyntaxKind.ConstructorDeclaration,
+            SyntaxKind.MethodDeclaration,
+            SyntaxKind.StructDeclaration,
+            SyntaxKind.ClassDeclaration,
+            SyntaxKind.InterfaceDeclaration,
+        };
+        var indentationTrivia = typeDeclarationRoot.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+        var memberDeclarationsReversed = typeDeclarationRoot.ChildNodes().OfType<MemberDeclarationSyntax>().Reverse().ToList();
+
+        var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
+        foreach (var memberDeclaration in memberDeclarationsReversed)
+        {
+            var newMemberDeclaration = memberDeclaration;
+
+            if (!declarationsToExtract.Any(newMemberDeclaration.IsKind))
+            {
+                continue;
+            }
+
+            if (newMemberDeclaration is TypeDeclarationSyntax typeDeclaration)
+            {
+                var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
+                documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
+                newMemberDeclaration = newTypeDeclaration;
+            }
+
+            memberDeclarationsToAdd.Add(newMemberDeclaration);
+        }
+
+        var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
+        foreach (var declarationToExtract in declarationsToExtract)
+        {
+            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, indentationTrivia));
+        }
+
+        return typeDeclarationRoot.WithMembers(new SyntaxList<MemberDeclarationSyntax>(orderedMemberDeclarations));
+    }
+
+    private static List<MemberDeclarationSyntax> GetMemberDeclarations(
+        List<MemberDeclarationSyntax> memberDeclarations,
+        SyntaxKind syntaxKind,
+        SyntaxTrivia indentationTrivia)
+    {
+        var sortedemberDeclarations = memberDeclarations
+            .Where(obj => obj.IsKind(syntaxKind))
+            .OrderBy(obj => GetMemberDeclarationModifierRank(obj, syntaxKind))
+            .ThenBy(obj => obj.GetName())
+            .Select((obj, i) =>
+            {
+                var leadingTrivias = new List<SyntaxTrivia>();
+                if (i == 0 || (syntaxKind != SyntaxKind.FieldDeclaration && syntaxKind != SyntaxKind.EventFieldDeclaration))
+                {
+                    leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                }
+
+                leadingTrivias.Add(indentationTrivia);
+                leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+
+                return obj
+                    .RemoveAllTriviasFromParametersAndArguments()
+                    .WithLeadingTrivia(
+                        SyntaxFactory.TriviaList(leadingTrivias)
+                    )
+                    .WithTrailingTrivia(
+                        SyntaxFactory.TriviaList(
+                            SyntaxTriviaHelper.GetEndOfLine()
+                        )
+                    );
+            });
+        return sortedemberDeclarations.ToList();
+    }
+
     private static TypeDeclarationSyntax GetTypeDeclarationWithTrivias(
         this DocumentEditor documentEditor,
         TypeDeclarationSyntax typeDeclaration)
@@ -684,40 +714,6 @@ public static class DocumentExtensions
         return typeDeclaration.WithMembers(new SyntaxList<MemberDeclarationSyntax>(finalMemberDeclarations));
     }
 
-    private static List<MemberDeclarationSyntax> GetMemberDeclarations(
-        List<MemberDeclarationSyntax> memberDeclarations,
-        SyntaxKind syntaxKind,
-        SyntaxTrivia indentationTrivia)
-    {
-        var sortedemberDeclarations = memberDeclarations
-            .Where(obj => obj.IsKind(syntaxKind))
-            .OrderBy(obj => GetMemberDeclarationModifierRank(obj, syntaxKind))
-            .ThenBy(obj => obj.GetName())
-            .Select((obj, i) =>
-            {
-                var leadingTrivias = new List<SyntaxTrivia>();
-                if (i == 0 || (syntaxKind != SyntaxKind.FieldDeclaration && syntaxKind != SyntaxKind.EventFieldDeclaration))
-                {
-                    leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
-                }
-
-                leadingTrivias.Add(indentationTrivia);
-                leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
-
-                return obj
-                    .RemoveAllTriviasFromParametersAndArguments()
-                    .WithLeadingTrivia(
-                        SyntaxFactory.TriviaList(leadingTrivias)
-                    )
-                    .WithTrailingTrivia(
-                        SyntaxFactory.TriviaList(
-                            SyntaxTriviaHelper.GetEndOfLine()
-                        )
-                    );
-            });
-        return sortedemberDeclarations.ToList();
-    }
-
     private static int GetMemberDeclarationModifierRank(
         MemberDeclarationSyntax memberDeclaration,
         SyntaxKind syntaxKind)
@@ -726,18 +722,28 @@ public static class DocumentExtensions
 
         if (syntaxKind == SyntaxKind.FieldDeclaration)
         {
-            if (modifiers.Any(SyntaxKind.StaticKeyword))
+            if (modifiers.Any(SyntaxKind.ConstKeyword))
             {
                 return 1;
             }
-            else if (modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+            else if (modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 return 2;
             }
-            else
+            else if (modifiers.Any(SyntaxKind.ReadOnlyKeyword))
             {
                 return 3;
             }
+            else
+            {
+                return 4;
+            }
+        }
+
+        if (syntaxKind == SyntaxKind.ConstructorDeclaration)
+        {
+            var constructorDeclaration = (ConstructorDeclarationSyntax)memberDeclaration;
+            return constructorDeclaration.ParameterList.Parameters.Count;
         }
 
         if (modifiers.Any(SyntaxKind.PublicKeyword) &&

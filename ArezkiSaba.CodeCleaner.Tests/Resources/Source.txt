@@ -13,25 +13,15 @@ public partial class TestClass1<T>
 
 
 
-    public TestClass1()
-    {
-
-
-        _readonlyStringField1 = "some useless value";
-        _readonlyStringField2 = "some useless value";
-        nonReadonlyBooleanField = false;
-
-    }
-
     
     private string _readonlyStringField2;
 
-    public TestClass1(string arg1)
+    public TestClass1(string arg1, string arg2)
     {
 
         _readonlyStringField1 = arg1;
-        _readonlyStringField2 = arg1;
-        nonReadonlyBooleanField = false;
+        _readonlyStringField2 = arg2;
+        nonReadonlyBooleanField = true;
 
     }
 
@@ -60,6 +50,9 @@ public partial class TestClass1<T>
 
     private TestClass1()
     {
+        _readonlyStringField1 = "some useless value";
+        _readonlyStringField2 = "some useless value";
+        nonReadonlyBooleanField = false;
     }
 
     public Task SomeAsyncMethodWithSuffixAsync()
@@ -143,6 +136,8 @@ public partial class TestClass1<T>
 
 
     }
+
+    private const string someConstField;
 
 
 

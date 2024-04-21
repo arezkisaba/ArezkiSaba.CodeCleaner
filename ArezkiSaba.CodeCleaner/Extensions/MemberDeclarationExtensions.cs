@@ -12,9 +12,9 @@ public static class MemberDeclarationExtensions
         switch (declaration)
         {
             case EventFieldDeclarationSyntax eventField:
-                return eventField.Declaration.Variables.First().Identifier.Text;
+                return eventField.Declaration.Variables.FirstOrDefault() != null ? eventField.Declaration.Variables.First().Identifier.Text : null;
             case FieldDeclarationSyntax field:
-                return field.Declaration.Variables.First().Identifier.Text;
+                return field.Declaration.Variables.FirstOrDefault() != null ? field.Declaration.Variables.First().Identifier.Text : null;
             case PropertyDeclarationSyntax property:
                 return property.Identifier.Text;
             case ConstructorDeclarationSyntax constructor:

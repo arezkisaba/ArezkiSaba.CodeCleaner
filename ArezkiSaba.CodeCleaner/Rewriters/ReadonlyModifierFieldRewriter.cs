@@ -23,8 +23,9 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
     {
         var hasPrivateKeyWordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.PrivateKeyword));
         var hasReadonlyKeywordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.ReadOnlyKeyword));
+        var hasConstKeywordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.ConstKeyword));
         var hasStaticKeywordToken = node.DescendantTokens().Any(obj => obj.IsKind(SyntaxKind.StaticKeyword));
-        if (!hasPrivateKeyWordToken || hasReadonlyKeywordToken || hasStaticKeywordToken)
+        if (!hasPrivateKeyWordToken || hasReadonlyKeywordToken || hasConstKeywordToken || hasStaticKeywordToken)
         {
             return node;
         }
@@ -38,13 +39,15 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
         var referenceLocations = variableDeclaratorReference.Locations.ToList();
         if (!referenceLocations.Any())
         {
-            return node;
-        }
-
-        var canAddReadonlyModifier = CanAddReadonlyModifier(referenceLocations);
-        if (canAddReadonlyModifier)
-        {
             node = node.AddModifiers(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword).WithTrailingTrivia());
+        }
+        else
+        {
+            var canAddReadonlyModifier = CanAddReadonlyModifier(referenceLocations);
+            if (canAddReadonlyModifier)
+            {
+                node = node.AddModifiers(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword).WithTrailingTrivia());
+            }
         }
 
         return base.VisitFieldDeclaration(node);

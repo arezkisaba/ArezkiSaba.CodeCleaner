@@ -5,7 +5,8 @@ namespace ArezkiSaba.CodeCleaner.Tests;
 
 public partial class TestClass1<T>
 {
-    private static string _someStaticField;
+    private const string SomeConstField;
+    private static string SomeStaticField;
     private readonly string _readonlyStringField1;
     private readonly string _readonlyStringField2;
     private int _canDoSomething;
@@ -22,7 +23,7 @@ public partial class TestClass1<T>
         set { _canDoSomething = value; }
     }
 
-    public TestClass1()
+    private TestClass1()
     {
         _readonlyStringField1 = "some useless value";
         _readonlyStringField2 = "some useless value";
@@ -30,15 +31,12 @@ public partial class TestClass1<T>
     }
 
     public TestClass1(
-        string arg1)
+        string arg1,
+        string arg2)
     {
         _readonlyStringField1 = arg1;
-        _readonlyStringField2 = arg1;
-        _nonReadonlyBooleanField = false;
-    }
-
-    private TestClass1()
-    {
+        _readonlyStringField2 = arg2;
+        _nonReadonlyBooleanField = true;
     }
 
     public static TestClass1 SomePublicFactoryMethod()
