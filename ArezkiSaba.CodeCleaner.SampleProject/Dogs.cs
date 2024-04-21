@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using System.Drawing;
 
 public interface IAnimal
 {
@@ -40,6 +41,20 @@ public partial class Dog : IAnimal
     {
         public const string Fido = "Fido";
         public static string Rex = "Rex";
+    }
+
+    public class AnotherClass1
+    {
+        public void SomeMethod()
+        {
+
+        }
+
+        public AnotherClass1()
+        {
+        }
+
+        private int _someField1;
     }
 }
 
