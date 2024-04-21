@@ -52,7 +52,7 @@ public static class WorkspaceExtensions
                     updatedDocument = await cleaningFunc(updatedDocument);
                     updatedDocument = await Formatter.FormatAsync(updatedDocument);
                 }
-                
+
                 project = updatedDocument.Project;
                 newSolution = project.Solution;
             }
