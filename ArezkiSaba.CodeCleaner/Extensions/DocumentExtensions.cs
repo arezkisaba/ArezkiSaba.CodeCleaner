@@ -310,25 +310,49 @@ public static class DocumentExtensions
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
 
-        var declarations = root.DescendantNodes().OfType<FieldDeclarationSyntax>().ToList();
+        var declarations = root.DescendantNodes().OfType<FieldDeclarationSyntax>()
+            .ToList();
         foreach (var declaration in declarations)
         {
-            var name = declaration.GetName();
-            if (name.StartsWith('_'))
+            if (declaration.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword) || m.IsKind(SyntaxKind.StaticKeyword)))
             {
-                continue;
-            }
+                var name = declaration.GetName();
+                if (char.IsUpper(name[0]))
+                {
+                    continue;
+                }
 
-            foreach (var variable in declaration.Declaration.Variables)
+                foreach (var variable in declaration.Declaration.Variables)
+                {
+                    var symbol = semanticModel.GetDeclaredSymbol(variable);
+                    var newName = symbol.Name.ToPascalCase();
+                    newSolution = await RenameSymbolAsync(
+                        newSolution,
+                        symbol,
+                        name,
+                        newName
+                    );
+                }
+            }
+            else
             {
-                var symbol = semanticModel.GetDeclaredSymbol(variable);
-                var newName = $"_{name}";
-                newSolution = await RenameSymbolAsync(
-                    newSolution,
-                    symbol,
-                    name,
-                    newName
-                );
+                var name = declaration.GetName();
+                if (name.StartsWith('_'))
+                {
+                    continue;
+                }
+
+                foreach (var variable in declaration.Declaration.Variables)
+                {
+                    var symbol = semanticModel.GetDeclaredSymbol(variable);
+                    var newName = $"_{name}";
+                    newSolution = await RenameSymbolAsync(
+                        newSolution,
+                        symbol,
+                        name,
+                        newName
+                    );
+                }
             }
         }
 

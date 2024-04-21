@@ -82,17 +82,17 @@ public class AnimalList<T> where T : IAnimal
     public async Task MakeAllAnimalsEatAsync()
     {
 
-        var eatTasks = _animals.Select(animal => animal._eatAsync());
+        var eatTasks = animals.Select(animal => animal._eatAsync());
         await Task.WhenAll(eatTasks);
 
     }
-    private List<T> _animals = new();
+    private List<T> animals = new();
 
     public void AddAnimal(
         T animal)
     {
 
-        _animals.Add(animal);
+        animals.Add(animal);
 
     }
 
