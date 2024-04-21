@@ -55,13 +55,17 @@ public partial class TestClass1<T>
         var someVariableWithBadNamingConvention = "Hi";
         var someOtherVariableWithBadNamingConvention = "there";
 
-        Console.WriteLine($"{someVariableWithBadNamingConvention} {someOtherVariableWithBadNamingConvention} !");
+        Console.WriteLine(
+            $"{someVariableWithBadNamingConvention} {someOtherVariableWithBadNamingConvention} !"
+        );
 
         _nonReadonlyBooleanField = true;
 
         if (_nonReadonlyBooleanField)
         {
-            Console.WriteLine($"{someVariableWithBadNamingConvention} {someOtherVariableWithBadNamingConvention} again !");
+            Console.WriteLine(
+                $"{someVariableWithBadNamingConvention} {someOtherVariableWithBadNamingConvention} again !"
+            );
         }
     }
 

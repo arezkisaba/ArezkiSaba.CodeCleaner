@@ -15,10 +15,11 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
     public override SyntaxToken VisitToken(
         SyntaxToken token)
     {
+        var invocationExpression = token.Parent?.Parent as InvocationExpressionSyntax;
         if (token.Parent is not ArgumentListSyntax argumentList ||
             token.Parent.Ancestors().OfType<LocalFunctionStatementSyntax>().Any() ||
             token.Parent.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any() ||
-            argumentList.Arguments.Count < 3)
+            invocationExpression.GetInvocationExpressionLength() < 70)
         {
             return token;
         }
