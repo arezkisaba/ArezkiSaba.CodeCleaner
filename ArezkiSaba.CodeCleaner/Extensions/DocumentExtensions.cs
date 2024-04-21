@@ -15,7 +15,8 @@ public static class DocumentExtensions
         this Document document)
     {
         var root = await document.GetSyntaxRootAsync();
-        return document.WithSyntaxRoot(new TypeInferenceRewriter().Visit(root));
+        var semanticModel = await document.GetSemanticModelAsync();
+        return document.WithSyntaxRoot(new TypeInferenceRewriter(semanticModel).Visit(root));
     }
 
     public static async Task<Document> StartReadonlyModifierFieldRewriterAsync(
