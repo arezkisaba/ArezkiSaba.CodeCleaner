@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
-public static class DeclarationExtensions
+public static class MemberDeclarationExtensions
 {
     public static string GetName(
         this MemberDeclarationSyntax declaration)
