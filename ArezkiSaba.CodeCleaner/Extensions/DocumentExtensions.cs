@@ -569,14 +569,15 @@ public static class DocumentExtensions
     {
         var declarationsToExtract = new List<SyntaxKind>()
         {
+            SyntaxKind.StructDeclaration,
             SyntaxKind.FieldDeclaration,
             SyntaxKind.EventFieldDeclaration,
             SyntaxKind.PropertyDeclaration,
             SyntaxKind.ConstructorDeclaration,
             SyntaxKind.MethodDeclaration
         };
-        var classDeclarationsToAdd = new List<(ClassDeclarationSyntax classDeclaration, List<MemberDeclarationSyntax> memberDeclarations)>();
         var classDeclarations = documentEditor.OriginalRoot.ChildNodes().OfType<ClassDeclarationSyntax>().ToList();
+        var classDeclarationsToAdd = new List<(ClassDeclarationSyntax classDeclaration, List<MemberDeclarationSyntax> memberDeclarations)>();
         foreach (var classDeclaration in classDeclarations)
         {
             var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
@@ -606,6 +607,7 @@ public static class DocumentExtensions
         {
             var indentationTrivia = classDeclaration.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
             var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
+            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.StructDeclaration, indentationTrivia));
             orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.FieldDeclaration, indentationTrivia));
             orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.EventFieldDeclaration, indentationTrivia));
             orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarations, SyntaxKind.PropertyDeclaration, indentationTrivia));

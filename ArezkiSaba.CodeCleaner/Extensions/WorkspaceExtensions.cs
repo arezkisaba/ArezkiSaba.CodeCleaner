@@ -19,16 +19,16 @@ public static class WorkspaceExtensions
         this Workspace workspace)
     {
         var cleaningFuncs = new List<Func<Document, Task<Document>>>();
-        cleaningFuncs.Add((document) => document.StartTypeInferenceRewriterAsync());
-        cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
-        cleaningFuncs.Add((document) => document.StartUsingDirectiveSorterAsync());
-        cleaningFuncs.Add((document) => document.StartDuplicatedUsingDirectiveRemoverAsync());
-        cleaningFuncs.Add((document) => document.StartEmptyLinesBracesRemoverAsync());
-        cleaningFuncs.Add((document) => document.StartDuplicatedEmptyLinesRemoverAsync());
+        ////cleaningFuncs.Add((document) => document.StartTypeInferenceRewriterAsync());
+        ////cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
+        ////cleaningFuncs.Add((document) => document.StartUsingDirectiveSorterAsync());
+        ////cleaningFuncs.Add((document) => document.StartDuplicatedUsingDirectiveRemoverAsync());
+        ////cleaningFuncs.Add((document) => document.StartEmptyLinesBracesRemoverAsync());
+        ////cleaningFuncs.Add((document) => document.StartDuplicatedEmptyLinesRemoverAsync());
         cleaningFuncs.Add((document) => document.ReorderClassMembersAsync());
-        cleaningFuncs.Add((document) => document.StartRegionInserterAsync());
-        cleaningFuncs.Add((document) => document.StartMethodDeclarationParameterLineBreakerAsync());
-        cleaningFuncs.Add((document) => document.StartInvocationExpressionArgumentLineBreakerAsync());
+        ////cleaningFuncs.Add((document) => document.StartRegionInserterAsync());
+        ////cleaningFuncs.Add((document) => document.StartMethodDeclarationParameterLineBreakerAsync());
+        ////cleaningFuncs.Add((document) => document.StartInvocationExpressionArgumentLineBreakerAsync());
 
         var newSolution = workspace.CurrentSolution;
         var projectIds = workspace.CurrentSolution.ProjectIds;
