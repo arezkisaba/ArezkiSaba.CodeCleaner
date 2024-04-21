@@ -13,7 +13,7 @@ public static class Program
         else
         {
 #if DEBUG
-            targetLocation = @"C:\git\ArezkiSaba.CodeCleaner\ArezkiSaba.CodeCleaner.SampleProject.sln";
+            targetLocation = @"C:\git\Prevoir.SolutionCapitalObseques\Prevoir.SolutionCapitalObseques.sln";
 #else
             Console.Write("Please enter target folder : ");
             sourceCodeLocation = Console.ReadLine();

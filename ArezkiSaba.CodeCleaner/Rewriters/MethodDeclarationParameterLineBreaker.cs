@@ -15,10 +15,11 @@ public sealed class MethodDeclarationParameterLineBreaker : CSharpSyntaxRewriter
     public override SyntaxToken VisitToken(
         SyntaxToken token)
     {
-        if (token.Parent is not ParameterListSyntax parameterList ||
+        if (token.Parent?.Parent is not BaseMethodDeclarationSyntax baseMethodDeclarationSyntax ||
+            !baseMethodDeclarationSyntax.ParameterList.Parameters.Any() ||
+            ////invocationExpression.GetInvocationExpressionLength() < 100 ||
             token.Parent.Ancestors().OfType<LocalFunctionStatementSyntax>().Any() ||
-            token.Parent.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any() ||
-            !parameterList.Parameters.Any())
+            token.Parent.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any())
         {
             return token;
         }
@@ -33,7 +34,7 @@ public sealed class MethodDeclarationParameterLineBreaker : CSharpSyntaxRewriter
             !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
 
         var declaration = token.Parent.Ancestors().FirstOrDefault(
-            obj => obj.IsKind(SyntaxKind.ConstructorDeclaration) || obj.IsKind(SyntaxKind.MethodDeclaration)
+            obj => obj.IsKind(SyntaxKind.ConstructorDeclaration) || obj.IsKind(SyntaxKind.OperatorDeclaration) || obj.IsKind(SyntaxKind.MethodDeclaration)
         );
         if (declaration == null)
         {

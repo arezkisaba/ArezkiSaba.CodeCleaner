@@ -19,8 +19,8 @@ public static class WorkspaceExtensions
         this Workspace workspace)
     {
         var cleaningFuncs = new List<Func<Document, Task<Document>>>();
-        cleaningFuncs.Add((document) => document.StartTypeInferenceRewriterAsync());
-        cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
+        ////cleaningFuncs.Add((document) => document.StartTypeInferenceRewriterAsync());
+        ////cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
         cleaningFuncs.Add((document) => document.StartUsingDirectiveSorterAsync());
         cleaningFuncs.Add((document) => document.StartDuplicatedUsingDirectiveRemoverAsync());
         cleaningFuncs.Add((document) => document.ReorderClassMembersAsync());

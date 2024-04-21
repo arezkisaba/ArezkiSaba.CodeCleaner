@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
+using System.Xml.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -488,10 +489,10 @@ public static class DocumentExtensions
                 }
 
                 var newName = symbol.Name.ToCamelCase();
-                newSolution = await Renamer.RenameSymbolAsync(
+                newSolution = await RenameSymbolAsync(
                     newSolution,
                     symbol,
-                    new SymbolRenameOptions(),
+                    symbol.Name,
                     newName
                 );
             }
@@ -508,7 +509,9 @@ public static class DocumentExtensions
         var semanticModel = await document.GetSemanticModelAsync();
         var newSolution = solution;
 
-        var declarations = root.DescendantNodes().OfType<ParameterSyntax>().ToList();
+        var declarations = root.DescendantNodes().OfType<ParameterSyntax>()
+            .Where(obj => !obj.Ancestors().Any(obj => obj.IsKind(SyntaxKind.RecordDeclaration)))
+            .ToList();
         foreach (var declaration in declarations)
         {
             var symbol = semanticModel.GetDeclaredSymbol(declaration);
@@ -518,10 +521,10 @@ public static class DocumentExtensions
             }
 
             var newName = symbol.Name.ToCamelCase();
-            newSolution = await Renamer.RenameSymbolAsync(
+            newSolution = await RenameSymbolAsync(
                 newSolution,
                 symbol,
-                new SymbolRenameOptions(),
+                symbol.Name,
                 newName
             );
         }
@@ -564,10 +567,10 @@ public static class DocumentExtensions
                 continue;
             }
 
-            newSolution = await Renamer.RenameSymbolAsync(
+            newSolution = await RenameSymbolAsync(
                 newSolution,
                 symbol,
-                new SymbolRenameOptions(),
+                symbol.Name,
                 discard
             );
         }
@@ -585,6 +588,7 @@ public static class DocumentExtensions
             SyntaxKind.EventFieldDeclaration,
             SyntaxKind.PropertyDeclaration,
             SyntaxKind.ConstructorDeclaration,
+            SyntaxKind.OperatorDeclaration,
             SyntaxKind.MethodDeclaration,
             SyntaxKind.StructDeclaration,
             SyntaxKind.ClassDeclaration,
