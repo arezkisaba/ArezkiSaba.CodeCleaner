@@ -45,16 +45,16 @@ public partial class Dog : IAnimal
 
     public class AnotherClass1
     {
-        public void SomeMethod()
-        {
+        ////public void SomeMethod()
+        ////{
 
-        }
+        ////}
 
-        public AnotherClass1()
-        {
-        }
+        ////public AnotherClass1()
+        ////{
+        ////}
 
-        private int _someField1;
+        ////private int _someField1;
     }
 }
 
