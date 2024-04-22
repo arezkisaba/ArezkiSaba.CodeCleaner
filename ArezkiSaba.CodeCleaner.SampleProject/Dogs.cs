@@ -52,6 +52,13 @@ public partial class Dog : IAnimal
 
         }
 
+        private string _someProperty;
+        public string SomeProperty
+        {
+            get { return _someProperty; }
+            set => _someProperty = value;
+        }
+
         public AnotherClass1()
         {
         }
