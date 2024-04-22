@@ -69,8 +69,10 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
                 .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SimpleAssignmentExpression));
             var constructorDeclaration = referencedNode.Ancestors()
                 .FirstOrDefault(obj => obj.IsKind(SyntaxKind.ConstructorDeclaration));
+            var accessorList = referencedNode.Ancestors()
+                .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SetAccessorDeclaration));
 
-            if (simpleAssignmentExpression != null && constructorDeclaration == null)
+            if (simpleAssignmentExpression != null || accessorList != null)
             {
                 canAddReadonlyModifier = false;
                 break;

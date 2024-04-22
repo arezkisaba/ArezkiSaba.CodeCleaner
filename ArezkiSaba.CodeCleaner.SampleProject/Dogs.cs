@@ -52,15 +52,21 @@ public partial class Dog : IAnimal
 
         }
 
-        private string _someProperty;
-        public string SomeProperty
+        private string _someProperty1;
+        public string SomeProperty1
         {
-            get { return _someProperty; }
-            set => _someProperty = value;
+            get { return _someProperty1; }
+            set => _someProperty1 = value;
         }
 
         public AnotherClass1()
         {
+        }
+
+        private string _someProperty2;
+        public string SomeProperty2
+        {
+            get { return _someProperty2; }
         }
 
         private int _someField1;
