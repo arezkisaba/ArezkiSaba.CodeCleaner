@@ -13,25 +13,15 @@ public partial class TestClass1<T>
 
 
 
-    public TestClass1()
-    {
 
-
-        _readonlyStringField1 = "some useless value";
-        _readonlyStringField2 = "some useless value";
-        nonReadonlyBooleanField = false;
-
-    }
-
-    
     private string _readonlyStringField2;
 
-    public TestClass1(string arg1)
+    public TestClass1(string arg1, string arg2)
     {
 
         _readonlyStringField1 = arg1;
-        _readonlyStringField2 = arg1;
-        nonReadonlyBooleanField = false;
+        _readonlyStringField2 = arg2;
+        nonReadonlyBooleanField = true;
 
     }
 
@@ -51,15 +41,25 @@ public partial class TestClass1<T>
         string variable4 = "4";
 
         _handleOnSomeEventCallback(
-                                        variable1,
-            variable2, variable3, variable4
-        );
+                                        variable1: variable1,
+            variable2: variable2,
+            variable3: variable3, variable4: variable4);
 
 
+        MapControllerRoute(
+            a: "1",
+            b: "2");
+    }
+
+    private void MapControllerRoute(string a, string b)
+    {
     }
 
     private TestClass1()
     {
+        _readonlyStringField1 = "some useless value";
+        _readonlyStringField2 = "some useless value";
+        nonReadonlyBooleanField = false;
     }
 
     public Task SomeAsyncMethodWithSuffixAsync()
@@ -78,7 +78,7 @@ public partial class TestClass1<T>
         get { return _canDoSomething; }
         set { _canDoSomething = value; }
     }
-    
+
     public Task SomeAsyncMethod()
     {
 
@@ -93,8 +93,8 @@ public partial class TestClass1<T>
 
     }
 
-    public async Task _handleOnSomeEventCallback(string variable1, 
-                string variable2, 
+    public async Task _handleOnSomeEventCallback(string variable1,
+                string variable2,
         string variable3, string variable4)
     {
 
@@ -143,6 +143,8 @@ public partial class TestClass1<T>
 
 
     }
+
+    private const string someConstField;
 
 
 

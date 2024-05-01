@@ -29,24 +29,26 @@ public static class MemberDeclarationExtensions
     public static MemberDeclarationSyntax RemoveAllTriviasFromParametersAndArguments(
         this MemberDeclarationSyntax declaration)
     {
-        var parameterList = declaration.DescendantNodes().OfType<ParameterListSyntax>().FirstOrDefault();
-        if (parameterList != null)
-        {
-            var newParameters = parameterList.Parameters.Select(p => p.WithoutTrivia());
-            var newParameterList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
-            newParameterList = newParameterList.WithOpenParenToken(newParameterList.OpenParenToken.WithoutTrivia());
-            declaration = declaration.ReplaceNode(parameterList, newParameterList);
-        }
+        var newDeclaration = declaration;
 
-        var argumentList = declaration.DescendantNodes().OfType<ArgumentListSyntax>().FirstOrDefault();
-        if (argumentList != null)
+        var parameterLists = newDeclaration.DescendantNodes().OfType<ParameterListSyntax>().ToList();
+        newDeclaration = newDeclaration.ReplaceNodes(parameterLists, (parameterList, __) =>
         {
-            var newParameters = argumentList.Arguments.Select(p => p.WithoutTrivia());
-            var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newParameters));
+            var newParameters = parameterList.Parameters.Select(p => p.WithoutTrivia()).ToList();
+            var newParametersList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
+            newParametersList = newParametersList.WithOpenParenToken(newParametersList.OpenParenToken.WithoutTrivia());
+            return newParametersList;
+        });
+
+        var argumentLists = newDeclaration.DescendantNodes().OfType<ArgumentListSyntax>().ToList();
+        newDeclaration = newDeclaration.ReplaceNodes(argumentLists, (argumentList, __) =>
+        {
+            var newArguments = argumentList.Arguments.Select(p => p.WithoutTrivia()).ToList();
+            var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
             newArgumentList = newArgumentList.WithOpenParenToken(newArgumentList.OpenParenToken.WithoutTrivia());
-            declaration = declaration.ReplaceNode(argumentList, newArgumentList);
-        }
+            return newArgumentList;
+        });
 
-        return declaration;
+        return newDeclaration;
     }
 }

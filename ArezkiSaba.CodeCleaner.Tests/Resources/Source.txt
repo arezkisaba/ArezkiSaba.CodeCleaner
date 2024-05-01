@@ -41,11 +41,18 @@ public partial class TestClass1<T>
         string variable4 = "4";
 
         _handleOnSomeEventCallback(
-                                        variable1,
-            variable2, variable3, variable4
-        );
+                                        variable1: variable1,
+            variable2: variable2,
+            variable3: variable3, variable4: variable4);
 
 
+            MapControllerRoute(
+                a: "1",
+                b: "2");
+    }
+
+    private void MapControllerRoute(string a, string b)
+    {
     }
 
     private TestClass1()

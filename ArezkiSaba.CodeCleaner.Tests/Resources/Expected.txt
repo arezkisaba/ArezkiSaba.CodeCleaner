@@ -77,11 +77,13 @@ public partial class TestClass1<T>
         var variable4 = "4";
 
         HandleOnSomeEventCallbackAsync(
-            variable1,
-            variable2,
-            variable3,
-            variable4
+            variable1: variable1,
+            variable2: variable2,
+            variable3: variable3,
+            variable4: variable4
         );
+
+        MapControllerRoute(a: "1", b: "2");
     }
 
     public Task SomeAsyncMethodAsync()
@@ -95,6 +97,12 @@ public partial class TestClass1<T>
     }
 
     #region "Private use"
+
+    private void MapControllerRoute(
+        string a,
+        string b)
+    {
+    }
 
     private void SomePrivateMethod()
     {
