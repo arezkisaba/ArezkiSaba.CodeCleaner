@@ -63,13 +63,16 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
                 .GetAwaiter()
                 .GetResult()
                 .FindNode(referenceLocation.Location.SourceSpan);
-            var simpleAssignmentExpression = referencedNode.Ancestors()
-                .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SimpleAssignmentExpression));
+            var assignmentExpression = referencedNode.Ancestors()
+                .OfType<AssignmentExpressionSyntax>()
+                .FirstOrDefault();
             var methodDeclaration = referencedNode.Ancestors()
-                .FirstOrDefault(obj => obj.IsKind(SyntaxKind.MethodDeclaration));
+                .OfType<MethodDeclarationSyntax>()
+                .FirstOrDefault();
             var accessorList = referencedNode.Ancestors()
-                .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SetAccessorDeclaration));
-            var isAssignedFromMethod = simpleAssignmentExpression != null && methodDeclaration != null;
+                .OfType<AccessorDeclarationSyntax>()
+                .FirstOrDefault();
+            var isAssignedFromMethod = assignmentExpression != null && methodDeclaration != null;
             var isReferencedFromPropertySetter = accessorList != null;
 
             if (isAssignedFromMethod || isReferencedFromPropertySetter)
