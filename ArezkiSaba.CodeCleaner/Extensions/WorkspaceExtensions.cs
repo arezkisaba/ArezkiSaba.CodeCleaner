@@ -24,6 +24,7 @@ public static class WorkspaceExtensions
         cleaningFuncs.Add((document) => document.StartUsingDirectiveSorterAsync());
         cleaningFuncs.Add((document) => document.StartDuplicatedUsingDirectiveRemoverAsync());
         cleaningFuncs.Add((document) => document.ReorderClassMembersAsync());
+        ////cleaningFuncs.Add((document) => document.ReorderFieldsWithPropertiesWhenPossibleAsync());
         cleaningFuncs.Add((document) => document.StartEmptyLinesBracesRemoverAsync());
         cleaningFuncs.Add((document) => document.StartDuplicatedEmptyLinesRemoverAsync());
         cleaningFuncs.Add((document) => document.StartRegionInserterAsync());

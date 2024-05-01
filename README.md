@@ -28,3 +28,4 @@ If you want to learn more about creating good readme files then refer the follow
 - FieldDeclaration => Propfull issue
 - Add private modifiers
 - Replace est->is
+- Replace Obtenir -> Get

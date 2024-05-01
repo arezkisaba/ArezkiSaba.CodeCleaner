@@ -37,17 +37,10 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
             .GetResult()
             .FirstOrDefault();
         var referenceLocations = variableDeclaratorReference.Locations.ToList();
-        if (!referenceLocations.Any())
+        var canAddReadonlyModifier = CanAddReadonlyModifier(referenceLocations);
+        if (canAddReadonlyModifier)
         {
             node = node.AddModifiers(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword).WithTrailingTrivia());
-        }
-        else
-        {
-            var canAddReadonlyModifier = CanAddReadonlyModifier(referenceLocations);
-            if (canAddReadonlyModifier)
-            {
-                node = node.AddModifiers(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword).WithTrailingTrivia());
-            }
         }
 
         return base.VisitFieldDeclaration(node);
@@ -58,6 +51,11 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
     private bool CanAddReadonlyModifier(
         List<ReferenceLocation> referenceLocations)
     {
+        if (!referenceLocations.Any())
+        {
+           return true;
+        }
+
         var canAddReadonlyModifier = true;
         foreach (var referenceLocation in referenceLocations)
         {
@@ -67,12 +65,14 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
                 .FindNode(referenceLocation.Location.SourceSpan);
             var simpleAssignmentExpression = referencedNode.Ancestors()
                 .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SimpleAssignmentExpression));
-            var constructorDeclaration = referencedNode.Ancestors()
-                .FirstOrDefault(obj => obj.IsKind(SyntaxKind.ConstructorDeclaration));
+            var methodDeclaration = referencedNode.Ancestors()
+                .FirstOrDefault(obj => obj.IsKind(SyntaxKind.MethodDeclaration));
             var accessorList = referencedNode.Ancestors()
                 .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SetAccessorDeclaration));
+            var isAssignedFromMethod = simpleAssignmentExpression != null && methodDeclaration != null;
+            var isReferencedFromPropertySetter = accessorList != null;
 
-            if (simpleAssignmentExpression != null || accessorList != null)
+            if (isAssignedFromMethod || isReferencedFromPropertySetter)
             {
                 canAddReadonlyModifier = false;
                 break;

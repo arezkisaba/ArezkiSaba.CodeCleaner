@@ -149,11 +149,26 @@ public static class DocumentExtensions
         this Document document)
     {
         var documentEditor = await DocumentEditor.CreateAsync(document);
+        var root = documentEditor.GetDocumentEditorRoot();
 
-        var root = documentEditor.OriginalRoot.ChildNodes().FirstOrDefault(
-            obj => obj.IsKind(SyntaxKind.NamespaceDeclaration) || obj.IsKind(SyntaxKind.FileScopedNamespaceDeclaration)
-        );
-        root ??= documentEditor.OriginalRoot;
+        // Take interfaces, classes, structs
+        var typeDeclarations = root.ChildNodes().OfType<TypeDeclarationSyntax>()
+            .Reverse()
+            .ToList();
+        foreach (var typeDeclaration in typeDeclarations)
+        {
+            var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
+            documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
+        }
+
+        return documentEditor.GetChangedDocument();
+    }
+
+    public static async Task<Document> ReorderFieldsWithPropertiesWhenPossibleAsync(
+        this Document document)
+    {
+        var documentEditor = await DocumentEditor.CreateAsync(document);
+        var root = documentEditor.GetDocumentEditorRoot();
 
         // Take interfaces, classes, structs
         var typeDeclarations = root.ChildNodes().OfType<TypeDeclarationSyntax>()
@@ -568,6 +583,16 @@ public static class DocumentExtensions
     }
 
     #region Private use
+
+    private static SyntaxNode GetDocumentEditorRoot(
+        this DocumentEditor documentEditor)
+    {
+        var root = documentEditor.OriginalRoot.ChildNodes().FirstOrDefault(
+            obj => obj.IsKind(SyntaxKind.NamespaceDeclaration) || obj.IsKind(SyntaxKind.FileScopedNamespaceDeclaration)
+        );
+        root ??= documentEditor.OriginalRoot;
+        return root;
+    }
 
     private static async Task<Solution> RenameParameterNameIfUnreferencedAsync(
         Solution solution,
