@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
 using System.Xml.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -146,25 +147,6 @@ public static class DocumentExtensions
     }
 
     public static async Task<Document> ReorderClassMembersAsync(
-        this Document document)
-    {
-        var documentEditor = await DocumentEditor.CreateAsync(document);
-        var root = documentEditor.GetDocumentEditorRoot();
-
-        // Take interfaces, classes, structs
-        var typeDeclarations = root.ChildNodes().OfType<TypeDeclarationSyntax>()
-            .Reverse()
-            .ToList();
-        foreach (var typeDeclaration in typeDeclarations)
-        {
-            var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
-            documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
-        }
-
-        return documentEditor.GetChangedDocument();
-    }
-
-    public static async Task<Document> ReorderFieldsWithPropertiesWhenPossibleAsync(
         this Document document)
     {
         var documentEditor = await DocumentEditor.CreateAsync(document);
@@ -571,6 +553,71 @@ public static class DocumentExtensions
             );
             newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
+
+        return (newDocument, newSolution);
+    }
+
+    public static async Task<(Document, Solution)> ReorderFieldsWithPropertiesWhenPossibleAsync(
+        this Document document,
+        Solution solution)
+    {
+        var documentEditor = await DocumentEditor.CreateAsync(document);
+        var root = documentEditor.GetDocumentEditorRoot();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var newSolution = solution;
+        var newDocument = document;
+
+        var typeDeclarations = root.DescendantNodes().OfType<TypeDeclarationSyntax>()
+            .Reverse()
+            .ToList();
+        foreach (var typeDeclaration in typeDeclarations)
+        {
+            var fieldDeclarations = root.DescendantNodes().OfType<FieldDeclarationSyntax>()
+                .Reverse()
+                .ToList();
+            foreach (var fieldDeclaration in fieldDeclarations)
+            {
+                var variableDeclarator = fieldDeclaration.DescendantNodes().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+                var symbol = semanticModel.GetDeclaredSymbol(variableDeclarator);
+                var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
+                var locations = references.SelectMany(obj => obj.Locations).ToList();
+                foreach (var location in locations)
+                {
+                    var referencedNode = location.Document.GetSyntaxRootAsync()
+                        .GetAwaiter()
+                        .GetResult()
+                        .FindNode(location.Location.SourceSpan);
+                    var accessorDeclaration = referencedNode.Ancestors()
+                        .OfType<AccessorDeclarationSyntax>()
+                        .FirstOrDefault();
+                    var propertyDeclaration = referencedNode.Ancestors()
+                        .OfType<PropertyDeclarationSyntax>()
+                        .FirstOrDefault();
+                    var isReferencedFromProperty = accessorDeclaration != null;
+                    if (isReferencedFromProperty)
+                    {
+                        var indentationTrivias = propertyDeclaration.GetLeadingTrivia()
+                            .Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia))
+                            .ToList();
+                        documentEditor.InsertBefore(
+                            propertyDeclaration,
+                            fieldDeclaration
+                                .WithLeadingTrivia(
+                                    SyntaxFactory.TriviaList()
+                                        .Add(SyntaxTriviaHelper.GetEndOfLine())
+                                        .AddRange(indentationTrivias)
+                                )
+                                .WithoutTrailingTrivia()
+                        );
+                        documentEditor.RemoveNode(fieldDeclaration);
+                        break;
+                    }
+                }
+            }
+        }
+
+        newDocument = documentEditor.GetChangedDocument();
+        newSolution = newDocument.Project.Solution;
 
         return (newDocument, newSolution);
     }

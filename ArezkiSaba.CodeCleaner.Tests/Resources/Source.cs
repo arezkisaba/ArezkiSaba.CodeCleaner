@@ -67,13 +67,19 @@ public partial class TestClass1<T>
         return Task.CompletedTask;
     }
 
+    public bool CanDoSomethingElse
+    {
+        get { return _canDoSomethingElse; }
+        set { _canDoSomethingElse = value; }
+    }
+
     public event EventHandler someOtherEventCamelCasedTriggered;
 
     private void SomePrivateMethod()
     {
     }
 
-    public int CanDoSomething
+    public bool CanDoSomething
     {
         get { return _canDoSomething; }
         set { _canDoSomething = value; }
@@ -93,6 +99,7 @@ public partial class TestClass1<T>
 
     }
 
+    private bool _canDoSomethingElse;
     public async Task _handleOnSomeEventCallback(string variable1,
                 string variable2,
         string variable3, string variable4)
@@ -148,7 +155,7 @@ public partial class TestClass1<T>
 
 
 
-    private int _canDoSomething;
+    private bool _canDoSomething;
 
 
 }

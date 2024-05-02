@@ -69,11 +69,11 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
             var methodDeclaration = referencedNode.Ancestors()
                 .OfType<MethodDeclarationSyntax>()
                 .FirstOrDefault();
-            var accessorList = referencedNode.Ancestors()
+            var accessorDeclaration = referencedNode.Ancestors()
                 .OfType<AccessorDeclarationSyntax>()
-                .FirstOrDefault();
+                .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SetAccessorDeclaration));
             var isAssignedFromMethod = assignmentExpression != null && methodDeclaration != null;
-            var isReferencedFromPropertySetter = accessorList != null;
+            var isReferencedFromPropertySetter = accessorDeclaration != null;
 
             if (isAssignedFromMethod || isReferencedFromPropertySetter)
             {
