@@ -1,9 +1,25 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class StringExtensions
 {
+    public static string GetAlphaNumerics(
+        this string input)
+    {
+        var cleanedString = new StringBuilder();
+        foreach (var c in input)
+        {
+            if (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c))
+            {
+                cleanedString.Append(c);
+            }
+        }
+
+        return cleanedString.ToString();
+    }
+
     public static string ToCamelCase(
         this string input)
     {

@@ -1,14 +1,20 @@
-﻿using System;
+﻿using ArezkiSaba.CodeCleaner.Tests;
+using System.Drawing;
 using System;
+using static System.Math;
+using Windows.Storage;
 using ArezkiSaba.CodeCleaner.Tests;
-using ArezkiSaba.CodeCleaner.Tests;
+using NativeHttpClient = System.Net.Http.HttpClient;
+using ArezkiSaba.CodeCleaner;
+using System;
+using Windows;
 
 
 namespace ArezkiSaba.CodeCleaner.Tests;
 
 
 
-public partial class TestClass1<T>
+public class TestClass1<T>
 {
 
 
@@ -158,4 +164,8 @@ public partial class TestClass1<T>
     private bool _canDoSomething;
 
 
+}
+
+public class TestClass2 : TestClass1<int>
+{
 }

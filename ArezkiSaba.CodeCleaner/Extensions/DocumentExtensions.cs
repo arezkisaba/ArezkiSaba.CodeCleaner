@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
-using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -25,7 +23,27 @@ public static class DocumentExtensions
     {
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
-        return document.WithSyntaxRoot(new ReadonlyModifierFieldRewriter(document.Project.Solution, semanticModel).Visit(root));
+        return document.WithSyntaxRoot(
+            new ReadonlyModifierFieldRewriter(
+                document.Project.Solution,
+                semanticModel
+            ).Visit(root)
+        );
+    }
+
+    public static async Task<Document> StartSealedModifierClassRewriterAsync(
+        this Document document)
+    {
+        var allTypeDeclarations = await GetAllTypeDeclarations(document);
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        return document.WithSyntaxRoot(
+            new SealedModifierClassRewriter(
+                document.Project.Solution,
+                semanticModel,
+                allTypeDeclarations
+            ).Visit(root)
+        );
     }
 
     public static async Task<Document> StartUsingDirectiveSorterAsync(
@@ -34,14 +52,40 @@ public static class DocumentExtensions
         var root = await document.GetSyntaxRootAsync();
         var compilationUnit = root as CompilationUnitSyntax;
         var sortedUsingDirectives = SyntaxFactory.List(compilationUnit.Usings
-            .OrderBy(x => x.StaticKeyword.IsKind(SyntaxKind.StaticKeyword) ? 1 : x.Alias == null ? 0 : 2)
-            .ThenBy(x => x.Alias?.ToString())
-            .ThenByDescending(x => x.Name.ToString().StartsWith(nameof(System) + "."))
-            .ThenBy(x => x.Name.ToString())
+            .OrderBy(x => GetUsingDirectiveRank(x))
+            .ThenBy(x => x.Name.ToString().GetAlphaNumerics())
         );
         compilationUnit = compilationUnit.WithUsings(sortedUsingDirectives);
         document = document.WithSyntaxRoot(compilationUnit);
         return document;
+    }
+
+    private static int GetUsingDirectiveRank(
+        UsingDirectiveSyntax usingDirective)
+    {
+        if (usingDirective.Alias == null)
+        {
+            if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
+            {
+                return 4;
+            }
+            else if (usingDirective.Name.ToString().StartsWith("System"))
+            {
+                return 1;
+            }
+            else if (usingDirective.Name.ToString().StartsWith("Windows"))
+            {
+                return 2;
+            }
+            else
+            {
+                return 3;
+            }
+        }
+        else
+        {
+            return 5;
+        }
     }
 
     public static async Task<Document> StartDuplicatedUsingDirectiveRemoverAsync(
@@ -572,7 +616,7 @@ public static class DocumentExtensions
             .ToList();
         foreach (var typeDeclaration in typeDeclarations)
         {
-            var fieldDeclarations = root.DescendantNodes().OfType<FieldDeclarationSyntax>()
+            var fieldDeclarations = typeDeclaration.ChildNodes().OfType<FieldDeclarationSyntax>()
                 .Reverse()
                 .ToList();
             foreach (var fieldDeclaration in fieldDeclarations)
@@ -682,6 +726,28 @@ public static class DocumentExtensions
         }
 
         return newSolution;
+    }
+
+    private static async Task<IList<TypeDeclarationSyntax>> GetAllTypeDeclarations(
+        Document document)
+    {
+        var typeDeclarations = new List<TypeDeclarationSyntax>();
+
+        foreach (var project in document.Project.Solution.Projects)
+        {
+            foreach (var currentDocument in project.Documents)
+            {
+                var syntaxTree = await currentDocument.GetSyntaxTreeAsync();
+                if (syntaxTree != null && syntaxTree.Options.Kind == SourceCodeKind.Regular)
+                {
+                    var currentRoot = await syntaxTree.GetRootAsync();
+                    var typeDeclarationsInDocument = currentRoot.DescendantNodes().OfType<TypeDeclarationSyntax>();
+                    typeDeclarations.AddRange(typeDeclarationsInDocument);
+                }
+            }
+        }
+
+        return typeDeclarations;
     }
 
     private static async Task<TypeDeclarationSyntax> GetSortedTypeDeclaration(

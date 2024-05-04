@@ -18,17 +18,18 @@ public static class WorkspaceExtensions
     private static async Task CleanAsync(
         this Workspace workspace)
     {
-        var cleaningFuncs = new List<Func<Document, Task<Document>>>();
-        cleaningFuncs.Add((document) => document.StartTypeInferenceRewriterAsync());
-        cleaningFuncs.Add((document) => document.StartReadonlyModifierFieldRewriterAsync());
-        cleaningFuncs.Add((document) => document.StartUsingDirectiveSorterAsync());
-        cleaningFuncs.Add((document) => document.StartDuplicatedUsingDirectiveRemoverAsync());
-        cleaningFuncs.Add((document) => document.ReorderClassMembersAsync());
-        cleaningFuncs.Add((document) => document.StartEmptyLinesBracesRemoverAsync());
-        cleaningFuncs.Add((document) => document.StartDuplicatedEmptyLinesRemoverAsync());
-        cleaningFuncs.Add((document) => document.StartRegionInserterAsync());
-        cleaningFuncs.Add((document) => document.StartMethodDeclarationParameterLineBreakerAsync());
-        cleaningFuncs.Add((document) => document.StartInvocationExpressionArgumentLineBreakerAsync());
+        var cleaningFuncs = new List<(Func<Document, Task<Document>> func, Func<Project, Task<bool>> predicate)>();
+        cleaningFuncs.Add(((document) => document.StartTypeInferenceRewriterAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartReadonlyModifierFieldRewriterAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartSealedModifierClassRewriterAsync(), async (project) => await project.IsNonNugetProjectAsync()));
+        cleaningFuncs.Add(((document) => document.StartUsingDirectiveSorterAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartDuplicatedUsingDirectiveRemoverAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.ReorderClassMembersAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartEmptyLinesBracesRemoverAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartDuplicatedEmptyLinesRemoverAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartRegionInserterAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartMethodDeclarationParameterLineBreakerAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartInvocationExpressionArgumentLineBreakerAsync(), (project) => Task.FromResult(true)));
 
         var newSolution = workspace.CurrentSolution;
         var projectIds = workspace.CurrentSolution.ProjectIds;
@@ -47,9 +48,15 @@ public static class WorkspaceExtensions
                 }
 
                 var updatedDocument = originalDocument;
-                foreach (var cleaningFunc in cleaningFuncs)
+                foreach (var (func, predicate) in cleaningFuncs)
                 {
-                    updatedDocument = await cleaningFunc(updatedDocument);
+                    var canExecuteFunc = await predicate(project);
+                    if (!canExecuteFunc)
+                    {
+                        continue;
+                    }
+
+                    updatedDocument = await func(updatedDocument);
                     updatedDocument = await Formatter.FormatAsync(updatedDocument);
                 }
 

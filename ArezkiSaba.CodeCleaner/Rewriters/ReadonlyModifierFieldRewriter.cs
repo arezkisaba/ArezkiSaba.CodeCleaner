@@ -31,12 +31,12 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
         }
 
         var variableDeclarator = node.DescendantNodes().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
-        var variableDeclaratorSymbol = _semanticModel.GetDeclaredSymbol(variableDeclarator);
-        var variableDeclaratorReference = SymbolFinder.FindReferencesAsync(variableDeclaratorSymbol, _solution)
+        var symbol = _semanticModel.GetDeclaredSymbol(variableDeclarator);
+        var reference = SymbolFinder.FindReferencesAsync(symbol, _solution)
             .GetAwaiter()
             .GetResult()
             .FirstOrDefault();
-        var referenceLocations = variableDeclaratorReference.Locations.ToList();
+        var referenceLocations = reference.Locations.ToList();
         var canAddReadonlyModifier = CanAddReadonlyModifier(referenceLocations);
         if (canAddReadonlyModifier)
         {

@@ -1,9 +1,15 @@
-﻿using ArezkiSaba.CodeCleaner.Tests;
-using System;
+﻿using System;
+using System.Drawing;
+using Windows;
+using Windows.Storage;
+using ArezkiSaba.CodeCleaner;
+using ArezkiSaba.CodeCleaner.Tests;
+using static System.Math;
+using NativeHttpClient = System.Net.Http.HttpClient;
 
 namespace ArezkiSaba.CodeCleaner.Tests;
 
-public partial class TestClass1<T>
+public class TestClass1<T>
 {
     private const string SomeConstField;
     private static string SomeStaticField;
@@ -120,4 +126,8 @@ public partial class TestClass1<T>
     }
 
     #endregion
+}
+
+public sealed class TestClass2 : TestClass1<int>
+{
 }

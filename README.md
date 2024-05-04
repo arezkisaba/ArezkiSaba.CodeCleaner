@@ -25,6 +25,7 @@ If you want to learn more about creating good readme files then refer the follow
 - ignore Controllers
 - source generators generation
 - viewmodel property locator
-- Add private modifiers
+- Add private modifiers instead public
 - Replace est->is
 - Replace Obtenir -> Get
+- Handle override cases
