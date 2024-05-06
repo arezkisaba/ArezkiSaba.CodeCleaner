@@ -67,24 +67,36 @@ public static class DocumentExtensions
         {
             if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
             {
-                return 4;
+                return 7;
             }
             else if (usingDirective.Name.ToString().StartsWith("System"))
             {
                 return 1;
             }
-            else if (usingDirective.Name.ToString().StartsWith("Windows"))
+            else if (usingDirective.Name.ToString().StartsWith("Microsoft"))
             {
                 return 2;
             }
-            else
+            else if (usingDirective.Name.ToString().StartsWith("Windows"))
             {
                 return 3;
+            }
+            else if (usingDirective.Name.ToString().StartsWith("Prevoir.Toolkit"))
+            {
+                return 5;
+            }
+            else if (usingDirective.Name.ToString().StartsWith("Prevoir."))
+            {
+                return 6;
+            }
+            else
+            {
+                return 4;
             }
         }
         else
         {
-            return 5;
+            return 8;
         }
     }
 
@@ -601,7 +613,7 @@ public static class DocumentExtensions
         return (newDocument, newSolution);
     }
 
-    public static async Task<(Document, Solution)> ReorderFieldsWithPropertiesWhenPossibleAsync(
+    public static async Task<(Document, Solution)> ReorderFieldsWithPropfullPropertiesAsync(
         this Document document,
         Solution solution)
     {
@@ -627,19 +639,17 @@ public static class DocumentExtensions
                 var locations = references.SelectMany(obj => obj.Locations).ToList();
                 foreach (var location in locations)
                 {
-                    var referencedNode = location.Document.GetSyntaxRootAsync()
-                        .GetAwaiter()
-                        .GetResult()
-                        .FindNode(location.Location.SourceSpan);
+                    var documentRoot = await location.Document.GetSyntaxRootAsync();
+                    var referencedNode = documentRoot.FindNode(location.Location.SourceSpan);
                     var accessorDeclaration = referencedNode.Ancestors()
                         .OfType<AccessorDeclarationSyntax>()
-                        .FirstOrDefault();
-                    var propertyDeclaration = referencedNode.Ancestors()
-                        .OfType<PropertyDeclarationSyntax>()
                         .FirstOrDefault();
                     var isReferencedFromProperty = accessorDeclaration != null;
                     if (isReferencedFromProperty)
                     {
+                        var propertyDeclaration = referencedNode.Ancestors()
+                            .OfType<PropertyDeclarationSyntax>()
+                            .FirstOrDefault();
                         var indentationTrivias = propertyDeclaration.GetLeadingTrivia()
                             .Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia))
                             .ToList();

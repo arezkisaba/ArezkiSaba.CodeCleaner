@@ -20,10 +20,24 @@ public static class StringExtensions
         return cleanedString.ToString();
     }
 
+    public static bool IsAlphaNumerics(
+        this string input)
+    {
+        foreach (var c in input)
+        {
+            if (!char.IsLetterOrDigit(c))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public static string ToCamelCase(
         this string input)
     {
-        if (string.IsNullOrWhiteSpace(input))
+        if (string.IsNullOrWhiteSpace(input) || !input.IsAlphaNumerics())
         {
             return input;
         }
@@ -41,7 +55,7 @@ public static class StringExtensions
     public static string ToPascalCase(
         this string input)
     {
-        if (string.IsNullOrWhiteSpace(input))
+        if (string.IsNullOrWhiteSpace(input) || !input.IsAlphaNumerics())
         {
             return input;
         }

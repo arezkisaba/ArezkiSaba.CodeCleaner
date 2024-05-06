@@ -80,7 +80,7 @@ public static class WorkspaceExtensions
         refactoringFuncs.Add((document, solution) => document.StartParameterRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution));
         refactoringFuncs.Add((document, solution) => document.StartAsyncMethodRenamerAsync(solution));
-        refactoringFuncs.Add((document, solution) => document.ReorderFieldsWithPropertiesWhenPossibleAsync(solution));
+        refactoringFuncs.Add((document, solution) => document.ReorderFieldsWithPropfullPropertiesAsync(solution));
 
         foreach (var refactoringFunc in refactoringFuncs)
         {
