@@ -60,46 +60,6 @@ public static class DocumentExtensions
         return document;
     }
 
-    private static int GetUsingDirectiveRank(
-        UsingDirectiveSyntax usingDirective)
-    {
-        if (usingDirective.Alias == null)
-        {
-            if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
-            {
-                return 7;
-            }
-            else if (usingDirective.Name.ToString().StartsWith("System"))
-            {
-                return 1;
-            }
-            else if (usingDirective.Name.ToString().StartsWith("Microsoft"))
-            {
-                return 2;
-            }
-            else if (usingDirective.Name.ToString().StartsWith("Windows"))
-            {
-                return 3;
-            }
-            else if (usingDirective.Name.ToString().StartsWith("Prevoir.Toolkit"))
-            {
-                return 5;
-            }
-            else if (usingDirective.Name.ToString().StartsWith("Prevoir."))
-            {
-                return 6;
-            }
-            else
-            {
-                return 4;
-            }
-        }
-        else
-        {
-            return 8;
-        }
-    }
-
     public static async Task<Document> StartDuplicatedUsingDirectiveRemoverAsync(
         this Document document)
     {
@@ -296,386 +256,6 @@ public static class DocumentExtensions
         return document.WithSyntaxRoot(new InvocationExpressionArgumentLineBreaker().Visit(root));
     }
 
-    public static async Task<(Document, Solution)> StartUnusedMethodParameterRenamerAsync(
-        this Document document,
-        Solution solution)
-    {
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-        var newDocument = document;
-
-        var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
-        foreach (var methodDeclaration in methodDeclarations)
-        {
-            var parameters = methodDeclaration.DescendantNodes().OfType<ParameterSyntax>().ToList();
-            if (parameters.Count != 2)
-            {
-                continue;
-            }
-
-            var senderParameterToken = parameters[0].DescendantTokens().OfType<SyntaxToken>()
-                .LastOrDefault(obj => obj.ValueText == "sender");
-            var argsParameterToken = parameters[1].DescendantTokens().OfType<SyntaxToken>()
-                .FirstOrDefault(obj => obj.ValueText.EndsWith("Args"));
-
-            var isCallbackMethod =
-                !string.IsNullOrWhiteSpace(senderParameterToken.ValueText) &&
-                !string.IsNullOrWhiteSpace(argsParameterToken.ValueText);
-
-            if (!isCallbackMethod)
-            {
-                continue;
-            }
-
-            var senderParameter = parameters[0];
-            newSolution = await RenameParameterNameIfUnreferencedAsync(newSolution, semanticModel, senderParameter, "_");
-            var argsParameter = parameters[1];
-            newSolution = await RenameParameterNameIfUnreferencedAsync(newSolution, semanticModel, argsParameter, "__");
-            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
-        }
-
-        return (newDocument, newSolution);
-    }
-
-    public static async Task<(Document, Solution)> StartAsyncMethodRenamerAsync(
-        this Document document,
-        Solution solution)
-    {
-        if (document.SkipProgramEntryPoint())
-        {
-            return (document, solution);
-        }
-
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-        var newDocument = document;
-
-        var asyncSuffix = "Async";
-        var declarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
-        foreach (var declaration in declarations)
-        {
-            var name = declaration.Identifier.ValueText;
-            var hasAsyncSuffix = name.EndsWith(asyncSuffix);
-            var hasAsyncKeyword = declaration.ChildTokens().Any(obj => obj.IsKind(SyntaxKind.AsyncKeyword));
-            var hasTaskReturnTypeKeyword = declaration.ChildNodes().Any(node =>
-            {
-                return node.ChildTokens().Any(token => token.ValueText == "Task");
-            });
-            if (hasAsyncSuffix || (!hasAsyncKeyword && !hasTaskReturnTypeKeyword))
-            {
-                continue;
-            }
-
-            var symbol = semanticModel.GetDeclaredSymbol(declaration);
-            var newName = $"{declaration.Identifier.ValueText}{asyncSuffix}";
-            newSolution = await RenameSymbolAsync(
-                newSolution,
-                symbol,
-                name,
-                newName
-            );
-            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
-        }
-
-        return (newDocument, newSolution);
-    }
-
-    public static async Task<(Document, Solution)> StartFieldRenamerAsync(
-        this Document document,
-        Solution solution)
-    {
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-        var newDocument = document;
-
-        var declarations = root.DescendantNodes().OfType<FieldDeclarationSyntax>()
-            .ToList();
-        foreach (var declaration in declarations)
-        {
-            if (declaration.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword) || m.IsKind(SyntaxKind.StaticKeyword)))
-            {
-                var name = declaration.GetName();
-                if (string.IsNullOrWhiteSpace(name) || char.IsUpper(name[0]))
-                {
-                    continue;
-                }
-
-                foreach (var variable in declaration.Declaration.Variables)
-                {
-                    var symbol = semanticModel.GetDeclaredSymbol(variable);
-                    var newName = symbol.Name.ToPascalCase();
-                    newSolution = await RenameSymbolAsync(
-                        newSolution,
-                        symbol,
-                        name,
-                        newName
-                    );
-                    newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
-                }
-            }
-            else
-            {
-                var name = declaration.GetName();
-                if (string.IsNullOrWhiteSpace(name) || name.StartsWith('_'))
-                {
-                    continue;
-                }
-
-                foreach (var variable in declaration.Declaration.Variables)
-                {
-                    var symbol = semanticModel.GetDeclaredSymbol(variable);
-                    var newName = $"_{name}";
-                    newSolution = await RenameSymbolAsync(
-                        newSolution,
-                        symbol,
-                        name,
-                        newName
-                    );
-                    newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
-                }
-            }
-        }
-
-        return (newDocument, newSolution);
-    }
-
-    public static async Task<(Document, Solution)> StartEventFieldRenamerAsync(
-        this Document document,
-        Solution solution)
-    {
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-        var newDocument = document;
-
-        var declarations = root.DescendantNodes().OfType<EventFieldDeclarationSyntax>().ToList();
-        foreach (var declaration in declarations)
-        {
-            var name = declaration.GetName();
-            if (string.IsNullOrWhiteSpace(name) || char.IsUpper(name[0]))
-            {
-                continue;
-            }
-
-            foreach (var variable in declaration.Declaration.Variables)
-            {
-                var symbol = semanticModel.GetDeclaredSymbol(variable);
-                var newName = symbol.Name.ToPascalCase();
-                newSolution = await RenameSymbolAsync(
-                    newSolution,
-                    symbol,
-                    name,
-                    newName
-                );
-                newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
-            }
-        }
-
-        return (newDocument, newSolution);
-    }
-
-    public static async Task<(Document, Solution)> StartPropertyRenamerAsync(
-        this Document document,
-        Solution solution)
-    {
-        if (document.Name.Contains("ViewModel"))
-        {
-            return (document, solution);
-        }
-
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-        var newDocument = document;
-
-        var declarations = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().ToList();
-        foreach (var declaration in declarations)
-        {
-            var name = declaration.GetName();
-            if (string.IsNullOrWhiteSpace(name) || char.IsUpper(name[0]))
-            {
-                continue;
-            }
-
-            var symbol = semanticModel.GetDeclaredSymbol(declaration);
-            var newName = symbol.Name.ToPascalCase();
-            newSolution = await RenameSymbolAsync(
-                newSolution,
-                symbol,
-                name,
-                newName
-            );
-            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
-        }
-
-        return (newDocument, newSolution);
-    }
-
-    public static async Task<(Document, Solution)> StartMethodRenamerAsync(
-        this Document document,
-        Solution solution)
-    {
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-        var newDocument = document;
-
-        var declarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
-        foreach (var declaration in declarations)
-        {
-            var name = declaration.GetName();
-            if (string.IsNullOrWhiteSpace(name) || char.IsUpper(name[0]))
-            {
-                continue;
-            }
-
-            var symbol = semanticModel.GetDeclaredSymbol(declaration);
-            var newName = symbol.Name.ToPascalCase();
-            newSolution = await RenameSymbolAsync(
-                newSolution,
-                symbol,
-                name,
-                newName
-            );
-            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
-        }
-
-        return (newDocument, newSolution);
-    }
-
-    public static async Task<(Document, Solution)> StartLocalVariableRenamerAsync(
-        this Document document,
-        Solution solution)
-    {
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-        var newDocument = document;
-
-        var declarations = root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToList();
-        foreach (var localDeclaration in declarations)
-        {
-            foreach (var declaration in localDeclaration.Declaration.Variables)
-            {
-                var symbol = semanticModel.GetDeclaredSymbol(declaration);
-                if (char.IsLower(symbol.Name[0]))
-                {
-                    continue;
-                }
-
-                var newName = symbol.Name.ToCamelCase();
-                newSolution = await RenameSymbolAsync(
-                    newSolution,
-                    symbol,
-                    symbol.Name,
-                    newName
-                );
-                newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
-            }
-        }
-
-        return (newDocument, newSolution);
-    }
-
-    public static async Task<(Document, Solution)> StartParameterRenamerAsync(
-        this Document document,
-        Solution solution)
-    {
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-        var newDocument = document;
-
-        var declarations = root.DescendantNodes().OfType<ParameterSyntax>()
-            .Where(obj => !obj.Ancestors().Any(obj => obj.IsKind(SyntaxKind.RecordDeclaration)))
-            .ToList();
-        foreach (var declaration in declarations)
-        {
-            var symbol = semanticModel.GetDeclaredSymbol(declaration);
-            if (char.IsLower(symbol.Name[0]))
-            {
-                continue;
-            }
-
-            var newName = symbol.Name.ToCamelCase();
-            newSolution = await RenameSymbolAsync(
-                newSolution,
-                symbol,
-                symbol.Name,
-                newName
-            );
-            newDocument = newSolution.GetProject(document.Project.Id).GetDocument(document.Id);
-        }
-
-        return (newDocument, newSolution);
-    }
-
-    public static async Task<(Document, Solution)> ReorderFieldsWithPropfullPropertiesAsync(
-        this Document document,
-        Solution solution)
-    {
-        var documentEditor = await DocumentEditor.CreateAsync(document);
-        var root = documentEditor.GetDocumentEditorRoot();
-        var semanticModel = await document.GetSemanticModelAsync();
-        var newSolution = solution;
-        var newDocument = document;
-
-        var typeDeclarations = root.DescendantNodes().OfType<TypeDeclarationSyntax>()
-            .Reverse()
-            .ToList();
-        foreach (var typeDeclaration in typeDeclarations)
-        {
-            var fieldDeclarations = typeDeclaration.ChildNodes().OfType<FieldDeclarationSyntax>()
-                .Reverse()
-                .ToList();
-            foreach (var fieldDeclaration in fieldDeclarations)
-            {
-                var variableDeclarator = fieldDeclaration.DescendantNodes().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
-                var symbol = semanticModel.GetDeclaredSymbol(variableDeclarator);
-                var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
-                var locations = references.SelectMany(obj => obj.Locations).ToList();
-                foreach (var location in locations)
-                {
-                    var documentRoot = await location.Document.GetSyntaxRootAsync();
-                    var referencedNode = documentRoot.FindNode(location.Location.SourceSpan);
-                    var accessorDeclaration = referencedNode.Ancestors()
-                        .OfType<AccessorDeclarationSyntax>()
-                        .FirstOrDefault();
-                    var isReferencedFromProperty = accessorDeclaration != null;
-                    if (isReferencedFromProperty)
-                    {
-                        var propertyDeclaration = referencedNode.Ancestors()
-                            .OfType<PropertyDeclarationSyntax>()
-                            .FirstOrDefault();
-                        var indentationTrivias = propertyDeclaration.GetLeadingTrivia()
-                            .Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia))
-                            .ToList();
-                        documentEditor.InsertBefore(
-                            propertyDeclaration,
-                            fieldDeclaration
-                                .WithLeadingTrivia(
-                                    SyntaxFactory.TriviaList()
-                                        .Add(SyntaxTriviaHelper.GetEndOfLine())
-                                        .AddRange(indentationTrivias)
-                                )
-                                .WithoutTrailingTrivia()
-                        );
-                        documentEditor.RemoveNode(fieldDeclaration);
-                        break;
-                    }
-                }
-            }
-        }
-
-        newDocument = documentEditor.GetChangedDocument();
-        newSolution = newDocument.Project.Solution;
-
-        return (newDocument, newSolution);
-    }
-
     public static bool IsAutoGenerated(
         this Document document)
     {
@@ -699,9 +279,7 @@ public static class DocumentExtensions
         return document.Name == "Program.cs";
     }
 
-    #region Private use
-
-    private static SyntaxNode GetDocumentEditorRoot(
+    public static SyntaxNode GetDocumentEditorRoot(
         this DocumentEditor documentEditor)
     {
         var root = documentEditor.OriginalRoot.ChildNodes().FirstOrDefault(
@@ -711,31 +289,46 @@ public static class DocumentExtensions
         return root;
     }
 
-    private static async Task<Solution> RenameParameterNameIfUnreferencedAsync(
-        Solution solution,
-        SemanticModel semanticModel,
-        ParameterSyntax senderParameter,
-        string discard)
+    #region Private use
+
+    private static int GetUsingDirectiveRank(
+        UsingDirectiveSyntax usingDirective)
     {
-        var newSolution = solution;
-        var symbol = semanticModel.GetDeclaredSymbol(senderParameter);
-        var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
-        foreach (var reference in references)
+        if (usingDirective.Alias == null)
         {
-            if (reference.Locations.Any())
+            if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
             {
-                continue;
+                return 7;
             }
-
-            newSolution = await RenameSymbolAsync(
-                newSolution,
-                symbol,
-                symbol.Name,
-                discard
-            );
+            else if (usingDirective.Name.ToString().StartsWith("System"))
+            {
+                return 1;
+            }
+            else if (usingDirective.Name.ToString().StartsWith("Microsoft"))
+            {
+                return 2;
+            }
+            else if (usingDirective.Name.ToString().StartsWith("Windows"))
+            {
+                return 3;
+            }
+            else if (usingDirective.Name.ToString().StartsWith("Prevoir.Toolkit"))
+            {
+                return 5;
+            }
+            else if (usingDirective.Name.ToString().StartsWith("Prevoir."))
+            {
+                return 6;
+            }
+            else
+            {
+                return 4;
+            }
         }
-
-        return newSolution;
+        else
+        {
+            return 8;
+        }
     }
 
     private static async Task<IList<TypeDeclarationSyntax>> GetAllTypeDeclarations(
@@ -842,64 +435,6 @@ public static class DocumentExtensions
         return sortedemberDeclarations.ToList();
     }
 
-    private static TypeDeclarationSyntax GetTypeDeclarationWithTrivias(
-        this DocumentEditor documentEditor,
-        TypeDeclarationSyntax typeDeclaration)
-    {
-        var memberDeclarations = typeDeclaration.ChildNodes().OfType<MemberDeclarationSyntax>().ToList();
-        var memberDeclarationsReversed = memberDeclarations.ToList();
-        memberDeclarationsReversed.Reverse();
-
-        var i = 0;
-        var canAddLeadingTrivia = false;
-        var newTypeDeclaration = typeDeclaration;
-        var declarationTrivia = newTypeDeclaration.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-
-        var finalMemberDeclarations = new List<MemberDeclarationSyntax>();
-
-        foreach (var memberDeclaration in memberDeclarationsReversed)
-        {
-            if (i != memberDeclarations.Count - 1)
-            {
-                canAddLeadingTrivia = memberDeclaration.CanAddLeadingTrivia(memberDeclarations);
-                if (canAddLeadingTrivia)
-                {
-                    var originalLeadingToken = memberDeclaration.GetFirstToken();
-                    var leadingToken = originalLeadingToken.WithLeadingTrivia(
-                        SyntaxFactory.TriviaList(
-                            SyntaxTriviaHelper.GetEndOfLine(),
-                            declarationTrivia,
-                            SyntaxTriviaHelper.GetTab()
-                        )
-                    );
-
-                    var memberDeclarationWithTrivia = memberDeclaration.ReplaceToken(originalLeadingToken, leadingToken);
-                    if (!memberDeclarationWithTrivia.IsEquivalentTo(memberDeclaration))
-                    {
-                        finalMemberDeclarations.Add(memberDeclarationWithTrivia);
-                        ////documentEditor.ReplaceNode(memberDeclaration, memberDeclarationWithTrivia);
-                    }
-                    else
-                    {
-                        finalMemberDeclarations.Add(memberDeclaration);
-                    }
-                }
-                else
-                {
-                    finalMemberDeclarations.Add(memberDeclaration);
-                }
-            }
-            else
-            {
-                finalMemberDeclarations.Add(memberDeclaration);
-            }
-
-            i++;
-        }
-
-        return typeDeclaration.WithMembers(new SyntaxList<MemberDeclarationSyntax>(finalMemberDeclarations));
-    }
-
     private static int GetMemberDeclarationModifierRank(
         MemberDeclarationSyntax memberDeclaration,
         SyntaxKind syntaxKind)
@@ -959,60 +494,6 @@ public static class DocumentExtensions
         }
 
         return 7;
-    }
-
-    private static bool CanAddLeadingTrivia(
-        this MemberDeclarationSyntax memberDeclaration,
-        List<MemberDeclarationSyntax> memberDeclarations)
-    {
-        var canAddLeadingTrivia = false;
-        if (memberDeclaration is EventFieldDeclarationSyntax eventFieldDeclaration)
-        {
-            var firstMemberDeclaration = memberDeclarations.First(obj => obj.IsKind(SyntaxKind.EventFieldDeclaration));
-            canAddLeadingTrivia = eventFieldDeclaration.IsEquivalentTo(firstMemberDeclaration);
-        }
-        else if (memberDeclaration is FieldDeclarationSyntax fieldDeclaration)
-        {
-            var firstMemberDeclaration = memberDeclarations.First(obj => obj.IsKind(SyntaxKind.FieldDeclaration));
-            canAddLeadingTrivia = fieldDeclaration.IsEquivalentTo(firstMemberDeclaration);
-        }
-        else if (memberDeclaration is PropertyDeclarationSyntax _)
-        {
-            canAddLeadingTrivia = true;
-        }
-        else if (memberDeclaration is ConstructorDeclarationSyntax _)
-        {
-            canAddLeadingTrivia = true;
-        }
-        else if (memberDeclaration is MethodDeclarationSyntax _)
-        {
-            canAddLeadingTrivia = true;
-        }
-
-        return canAddLeadingTrivia;
-    }
-
-    private static async Task<Solution> RenameSymbolAsync(
-        Solution newSolution,
-        ISymbol symbol,
-        string name,
-        string newName)
-    {
-        try
-        {
-            newSolution = await Renamer.RenameSymbolAsync(
-                newSolution,
-                symbol,
-                new SymbolRenameOptions(),
-                newName
-            );
-            return newSolution;
-        }
-        catch (Exception)
-        {
-            Console.WriteLine($"Failed to rename '{name}' to '{newName}'", ConsoleColor.Red);
-            return newSolution;
-        }
     }
 
     #endregion
