@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
+using Newtonsoft.Json.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -15,7 +16,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         document = document.WithSyntaxRoot(
@@ -35,7 +35,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var allTypeDeclarations = await GetAllTypeDeclarations(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
@@ -57,7 +56,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var documentEditor = await DocumentEditor.CreateAsync(document);
         var root = documentEditor.GetDocumentEditorRoot();
 
@@ -83,7 +81,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var documentEditor = await DocumentEditor.CreateAsync(document);
         var root = documentEditor.GetDocumentEditorRoot();
         var semanticModel = await document.GetSemanticModelAsync();
@@ -155,7 +152,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         document = document.WithSyntaxRoot(
@@ -174,7 +170,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var compilationUnit = root as CompilationUnitSyntax;
         var sortedUsingDirectives = SyntaxFactory.List(compilationUnit.Usings
@@ -194,7 +189,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var documentEditor = await DocumentEditor.CreateAsync(document);
         var usingDirectives = documentEditor.OriginalRoot.ChildNodes().OfType<UsingDirectiveSyntax>().ToList();
         var usingDirectivesToRemove = new List<UsingDirectiveSyntax>();
@@ -301,7 +295,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         document = document.WithSyntaxRoot(
             new DuplicatedEmptyLinesRemover(
@@ -327,7 +320,6 @@ public static class DocumentExtensions
             );
         }
 
-        ////document = await Formatter.FormatAsync(document);
         var documentEditor = await DocumentEditor.CreateAsync(document);
         var declarations = documentEditor.OriginalRoot.DescendantNodes().OfType<MethodDeclarationSyntax>()
             .Where(obj => obj.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
@@ -394,7 +386,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         document = document.WithSyntaxRoot(
             new MethodDeclarationParameterLineBreaker(
@@ -411,12 +402,104 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         document = document.WithSyntaxRoot(
             new InvocationExpressionArgumentLineBreaker(
             ).Visit(root)
         );
+
+        ////var excludedTypes = new List<Type>
+        ////{
+        ////    typeof(LocalFunctionStatementSyntax),
+        ////    typeof(SimpleLambdaExpressionSyntax),
+        ////    typeof(ParenthesizedLambdaExpressionSyntax)
+        ////};
+
+        ////var includedStatementTypes = new List<Type>
+        ////{
+        ////    typeof(ExpressionStatementSyntax),
+        ////    typeof(ReturnStatementSyntax)
+        ////};
+
+        ////var documentEditor = await DocumentEditor.CreateAsync(document);
+        ////var invocationExpressions = documentEditor.OriginalRoot.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+        ////foreach (var invocationExpression in invocationExpressions)
+        ////{
+        ////    var hasExcludedType = invocationExpression.DescendantNodes()
+        ////        .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
+        ////    if (hasExcludedType)
+        ////    {
+        ////        continue;
+        ////    }
+
+        ////    var hasIncludedType = invocationExpression.DescendantNodes()
+        ////        .Any(node => includedStatementTypes.Any(includedType => node.GetType() == includedType));
+        ////    if (!hasIncludedType)
+        ////    {
+        ////        continue;
+        ////    }
+
+        ////    var tokens = invocationExpression.DescendantTokens().ToList();
+        ////    foreach (var token in tokens)
+        ////    {
+        ////        var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
+        ////        var isOpeningParentheseForMethodParameters =
+        ////            token.IsKind(SyntaxKind.OpenParenToken) &&
+        ////            (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
+        ////            !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
+        ////        var isCommaSeparatorForMethodParameters =
+        ////            token.IsKind(SyntaxKind.CommaToken) &&
+        ////            (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
+        ////            !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
+        ////        var isClosingParentheseForMethodParameters =
+        ////            token.IsKind(SyntaxKind.CloseParenToken) &&
+        ////            (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
+        ////            !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
+
+        ////        var baseLeadingTrivia = invocationExpression.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+        ////        if (isOpeningParentheseForMethodParameters && needLineBreak)
+        ////        {
+        ////            token = token.WithTrailingTrivia(
+        ////                SyntaxFactory.TriviaList(
+        ////                    SyntaxTriviaHelper.GetEndOfLine(),
+        ////                    baseLeadingTrivia,
+        ////                    SyntaxTriviaHelper.GetTab()
+        ////                )
+        ////            );
+        ////        }
+        ////        else if (isCommaSeparatorForMethodParameters)
+        ////        {
+        ////            if (needLineBreak)
+        ////            {
+        ////                token = token.WithTrailingTrivia(
+        ////                    SyntaxFactory.TriviaList(
+        ////                        SyntaxTriviaHelper.GetEndOfLine(),
+        ////                        baseLeadingTrivia,
+        ////                        SyntaxTriviaHelper.GetTab()
+        ////                    )
+        ////                );
+        ////            }
+        ////            else
+        ////            {
+        ////                token = token.WithTrailingTrivia(
+        ////                    SyntaxFactory.TriviaList(
+        ////                        SyntaxTriviaHelper.GetWhitespace()
+        ////                    )
+        ////                );
+        ////            }
+        ////        }
+        ////        else if (isClosingParentheseForMethodParameters && needLineBreak)
+        ////        {
+        ////            token = token.WithLeadingTrivia(
+        ////                SyntaxFactory.TriviaList(
+        ////                    SyntaxTriviaHelper.GetEndOfLine(),
+        ////                    baseLeadingTrivia
+        ////                )
+        ////            );
+        ////        }
+        ////    }
+        ////}
+
         return new RefactorOperationResult(
             document,
             document.Project,
@@ -428,7 +511,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -489,7 +571,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -535,7 +616,6 @@ public static class DocumentExtensions
             );
         }
 
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -569,7 +649,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -603,7 +682,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -639,7 +717,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -674,7 +751,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -727,7 +803,6 @@ public static class DocumentExtensions
             );
         }
 
-        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 

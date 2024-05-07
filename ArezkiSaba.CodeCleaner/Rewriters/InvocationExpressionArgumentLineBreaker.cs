@@ -18,6 +18,7 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
         if (token.Parent?.Parent is not InvocationExpressionSyntax invocationExpression ||
             !invocationExpression.ArgumentList.Arguments.Any() ||
             token.Parent.Ancestors().OfType<LocalFunctionStatementSyntax>().Any() ||
+            token.Parent.Ancestors().OfType<SimpleLambdaExpressionSyntax>().Any() ||
             token.Parent.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any())
         {
             return token;

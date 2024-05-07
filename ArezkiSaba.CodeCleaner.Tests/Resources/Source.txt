@@ -1,179 +1,113 @@
-﻿using ArezkiSaba.CodeCleaner.Tests;
-using System.Drawing;
-using System;
-using static System.Math;
-using Windows.Storage;
-using ArezkiSaba.CodeCleaner.Tests;
-using NativeHttpClient = System.Net.Http.HttpClient;
-using ArezkiSaba.CodeCleaner;
-using System;
-using Windows;
+﻿using System.Reflection;
+using Microsoft.Extensions.Options;
+using Prevoir.Toolkit.Bristol.Extensions;
+using Prevoir.Toolkit.Bristol.Models.Options;
+using Prevoir.Toolkit.OAV.Bristol.Infrastructure.Database;
+using Prevoir.Toolkit.OAV.Bristol.Services.Contracts;
+using Prevoir.Toolkit.OAV.Bristol.Services.Documents.MandatSEPA.Services;
+using Prevoir.Toolkit.OAV.Bristol.Services.Documents.MandatSEPA.Services.Contracts;
+using Prevoir.Toolkit.Web.Security.Services;
+using Prevoir.Toolkit.Web.Security.Services.Contracts;
+using Prevoir.ServiceDirectory.ApiClient;
+using Prevoir.SolutionCapitalObseques.Bristol.DataAccess.Services;
+using Prevoir.SolutionCapitalObseques.Bristol.Domain.SaisieBulletinSouscription.Models;
+using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database;
+using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.Bareme;
+using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.Bareme.Contracts;
+using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.Etag;
+using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.Etag.Contracts;
+using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.ReferentielEsperanceVie;
+using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.ReferentielEsperanceVie.Contracts;
+using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.Simulation;
+using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.Simulation.Contracts;
+using Prevoir.SolutionCapitalObseques.Bristol.Models;
+using Prevoir.SolutionCapitalObseques.Bristol.Services;
+using Prevoir.SolutionCapitalObseques.Bristol.Services.Documents.BulletinDeSouscription.Services;
+using Prevoir.SolutionCapitalObseques.Bristol.Services.Documents.BulletinDeSouscription.Services.Contracts;
+using Prevoir.SolutionCapitalObseques.Bristol.Services.Documents.FluxAIA.Services;
+using Prevoir.SolutionCapitalObseques.Bristol.Services.Documents.FluxAIA.Services.Contracts;
+using Prevoir.SolutionCapitalObseques.Bristol.Services.Eligibilite;
+using Prevoir.SolutionCapitalObseques.Bristol.Services.Eligibilite.Contracts;
+using Prevoir.Web.Board.ApiClient;
+using Prevoir.Web.Board.ApiClient.Contracts;
 
+namespace Prevoir.SolutionCapitalObseques.Bristol;
 
-namespace ArezkiSaba.CodeCleaner.Tests;
-
-
-
-public class TestClass1<T>
+public static class ServiceCollectionExtensions
 {
-
-
-    public class InternalClass1
+    public static IServiceCollection AddApplicationServices(
+        this IServiceCollection serviceCollection,
+        IServiceDirectoryApiClient serviceDirectoryApiClient)
     {
+        serviceCollection.AddOctavApiClient(serviceDirectoryApiClient);
+        serviceCollection.AddOctavSolutionsApiClient(serviceDirectoryApiClient);
 
-        private string readonlyStringField;
-
-
-    }
-
-
-
-    private string readonlyStringField2;
-
-    public TestClass1(string arg1, string arg2)
-    {
-
-        _readonlyStringField1 = arg1;
-        readonlyStringField2 = arg2;
-        nonReadonlyBooleanField = true;
-
-    }
-
-    private string _readonlyStringField1;
-
-
-
-    public void OnSomeEventCallback(
-                    object sender,
-            EventArgs e)
-    {
-
-
-        string variable1 = "1";
-        string variable2 = "2";
-        string variable3 = "3";
-        string variable4 = "4";
-
-        _handleOnSomeEventCallback(
-                                        variable1: variable1,
-            variable2: variable2,
-            variable3: variable3, variable4: variable4);
-
-
-        MapControllerRoute(
-            a: "1",
-            b: "2");
-    }
-
-    private void MapControllerRoute(string a, string b)
-    {
-    }
-
-    private TestClass1()
-    {
-        _readonlyStringField1 = "some useless value";
-        readonlyStringField2 = "some useless value";
-        nonReadonlyBooleanField = false;
-    }
-
-    public Task SomeAsyncMethodWithSuffixAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    public bool CanDoSomethingElse
-    {
-        get { return canDoSomethingElse; }
-        set { canDoSomethingElse = value; }
-    }
-
-    public event EventHandler someOtherEventCamelCasedTriggered;
-
-    private void SomePrivateMethod()
-    {
-    }
-
-    public bool CanDoSomething
-    {
-        get { return _canDoSomething; }
-        set { _canDoSomething = value; }
-    }
-
-    public Task SomeAsyncMethod()
-    {
-
-
-        return Task.CompletedTask;
-
-    }
-
-    private static void SomePrivateStaticMethod()
-    {
-
-
-    }
-
-    private bool canDoSomethingElse;
-    public async Task _handleOnSomeEventCallback(string variable1,
-                string variable2,
-        string variable3, string variable4)
-    {
-
-
-        var _someVariableWithBadNamingConvention = "Hi";
-        var SomeOtherVariableWithBadNamingConvention = "there";
-
-        Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention} !");
-
-
-
-        nonReadonlyBooleanField = true;
-
-
-        if (nonReadonlyBooleanField)
+        // OAV Common
+        serviceCollection.AddScoped<IDatabaseService, DatabaseService>();
+        serviceCollection.AddScoped<IOavDatabaseServiceBase, DatabaseService>();
+        serviceCollection.AddScoped<ISimulationRepository, SimulationRepository>();
+        serviceCollection.AddScoped<IProduitsService, ProduitsService>();
+        ////serviceCollection.AddScoped<IAdherentService, AdherentService>();
+        serviceCollection.AddScoped<IEligibiliteService, EligibiliteService>();
+        serviceCollection.AddScoped<IBulletinDeSouscriptionService, BulletinDeSouscriptionService>();
+        serviceCollection.AddScoped<IMandatSEPAService, MandatSEPAService<SaisieBulletinSouscriptionModel>>();
+        ////serviceCollection.AddScoped<IDevisService, DevisService>();
+        serviceCollection.AddScoped<IFluxAIAService, FluxAIAService>();
+        serviceCollection.AddScoped<IPiecesJustificativesService, PiecesJustificativesService>();
+        serviceCollection.AddScoped<IBoardApiClient>(
+            serviceProvider =>
         {
-
-
-            Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention} again !");
-
-
-
+            var secretService = serviceProvider.GetService<ISecretService>();
+            var boardApiOptions = serviceProvider.GetService<IOptions<BoardApiOptions>>();
+            return new BoardApiClient(
+                boardApiOptions.Value.Url,
+                secretService.Decrypt(boardApiOptions.Value.ApiKey)
+            );
         }
+        );
 
+        // OAV Specific
+        serviceCollection.AddScoped<ISimulationRepository, SimulationRepository>();
+        serviceCollection.AddScoped<ISimulateurService, SimulateurService>();
 
+        // Domain
 
-
+        // Infra
+        serviceCollection.AddScoped<IReferentielEsperanceVieRepository, ReferentielEsperanceVieRepository>();
+        serviceCollection.AddScoped<IBaremeRepository, BaremeRepository>();
+        serviceCollection.AddScoped<IEtagRepository, EtagRepository>();
+        serviceCollection.AddScoped<ISimulationRepository, SimulationRepository>();
+        return serviceCollection;
     }
 
-    public bool CanDoSomeOtherThing { get; set; }
-
-    private static string _someStaticField;
-
-    public event EventHandler SomeEventTriggered;
-
-
-
-
-    private bool nonReadonlyBooleanField;
-
-    public static TestClass1 SomePublicFactoryMethod()
+    public static IServiceCollection AddDefaultApiFeatures(
+        this IServiceCollection serviceCollection)
     {
-
-
-        return new TestClass1();
-
-
+        return serviceCollection;
     }
 
-    private const string someConstField;
+    public static IServiceCollection AddDefaultAuthentication(
+        this IServiceCollection serviceCollection)
+    {
+        return serviceCollection;
+    }
 
+    public static IServiceCollection AddOptions(
+        this IServiceCollection serviceCollection,
+        IConfiguration configuration)
+    {
+        serviceCollection.Configure<BoardApiOptions>(configuration.GetSection("BoardApi"));
+        serviceCollection.Configure<AppSettings>(configuration.GetSection("AppSettings"));
+        return serviceCollection;
+    }
 
-
-    private bool _canDoSomething;
-
-
-}
-
-public class TestClass2 : TestClass1<int>
-{
+    public static IServiceCollection AddSecretService(
+        this IServiceCollection serviceCollection,
+        IWebHostEnvironment webHostEnvironment)
+    {
+        serviceCollection.AddSingleton<ISecretService>(
+            new RegistrySecretService(webHostEnvironment.EnvironmentName, Assembly.GetExecutingAssembly().GetName().Name)
+        );
+        return serviceCollection;
+    }
 }
