@@ -54,15 +54,11 @@ public static class ServiceCollectionExtensions
         ////serviceCollection.AddScoped<IDevisService, DevisService>();
         serviceCollection.AddScoped<IFluxAIAService, FluxAIAService>();
         serviceCollection.AddScoped<IPiecesJustificativesService, PiecesJustificativesService>();
-        serviceCollection.AddScoped<IBoardApiClient>(
-            serviceProvider =>
+        serviceCollection.AddScoped<IBoardApiClient>(serviceProvider =>
         {
             var secretService = serviceProvider.GetService<ISecretService>();
             var boardApiOptions = serviceProvider.GetService<IOptions<BoardApiOptions>>();
-            return new BoardApiClient(
-                boardApiOptions.Value.Url,
-                secretService.Decrypt(boardApiOptions.Value.ApiKey)
-            );
+            return new BoardApiClient(boardApiOptions.Value.Url, secretService.Decrypt(boardApiOptions.Value.ApiKey));
         }
         );
 
@@ -105,9 +101,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IWebHostEnvironment webHostEnvironment)
     {
-        serviceCollection.AddSingleton<ISecretService>(
-            new RegistrySecretService(webHostEnvironment.EnvironmentName, Assembly.GetExecutingAssembly().GetName().Name)
-        );
+        serviceCollection.AddSingleton<ISecretService>(new RegistrySecretService(webHostEnvironment.EnvironmentName, Assembly.GetExecutingAssembly().GetName().Name));
         return serviceCollection;
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
 using Newtonsoft.Json.Linq;
+using System.Xml.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -402,104 +403,111 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        var root = await document.GetSyntaxRootAsync();
-        document = document.WithSyntaxRoot(
-            new InvocationExpressionArgumentLineBreaker(
-            ).Visit(root)
-        );
+        ////var root = await document.GetSyntaxRootAsync();
+        ////document = document.WithSyntaxRoot(
+        ////    new InvocationExpressionArgumentLineBreaker(
+        ////    ).Visit(root)
+        ////);
 
-        ////var excludedTypes = new List<Type>
-        ////{
-        ////    typeof(LocalFunctionStatementSyntax),
-        ////    typeof(SimpleLambdaExpressionSyntax),
-        ////    typeof(ParenthesizedLambdaExpressionSyntax)
-        ////};
+        var excludedTypes = new List<Type>
+        {
+            typeof(LocalFunctionStatementSyntax),
+            typeof(SimpleLambdaExpressionSyntax),
+            typeof(ParenthesizedLambdaExpressionSyntax)
+        };
 
-        ////var includedStatementTypes = new List<Type>
-        ////{
-        ////    typeof(ExpressionStatementSyntax),
-        ////    typeof(ReturnStatementSyntax)
-        ////};
+        var includedStatementTypes = new List<Type>
+        {
+            typeof(ObjectCreationExpressionSyntax),
+            typeof(ExpressionStatementSyntax),
+            typeof(ReturnStatementSyntax)
+        };
 
-        ////var documentEditor = await DocumentEditor.CreateAsync(document);
-        ////var invocationExpressions = documentEditor.OriginalRoot.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
-        ////foreach (var invocationExpression in invocationExpressions)
-        ////{
-        ////    var hasExcludedType = invocationExpression.DescendantNodes()
-        ////        .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
-        ////    if (hasExcludedType)
-        ////    {
-        ////        continue;
-        ////    }
+        var documentEditor = await DocumentEditor.CreateAsync(document);
+        var invocationExpressions = documentEditor.OriginalRoot.DescendantNodes().OfType<InvocationExpressionSyntax>().Reverse().ToList();
+        foreach (var invocationExpression in invocationExpressions)
+        {
+            var hasExcludedType = invocationExpression.DescendantNodes()
+                .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
+            if (hasExcludedType)
+            {
+                continue;
+            }
 
-        ////    var hasIncludedType = invocationExpression.DescendantNodes()
-        ////        .Any(node => includedStatementTypes.Any(includedType => node.GetType() == includedType));
-        ////    if (!hasIncludedType)
-        ////    {
-        ////        continue;
-        ////    }
+            var hasIncludedType = invocationExpression.DescendantNodes()
+                .Any(node => includedStatementTypes.Any(includedType => node.GetType() == includedType));
+            if (!hasIncludedType)
+            {
+                continue;
+            }
 
-        ////    var tokens = invocationExpression.DescendantTokens().ToList();
-        ////    foreach (var token in tokens)
-        ////    {
-        ////        var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
-        ////        var isOpeningParentheseForMethodParameters =
-        ////            token.IsKind(SyntaxKind.OpenParenToken) &&
-        ////            (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
-        ////            !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
-        ////        var isCommaSeparatorForMethodParameters =
-        ////            token.IsKind(SyntaxKind.CommaToken) &&
-        ////            (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
-        ////            !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
-        ////        var isClosingParentheseForMethodParameters =
-        ////            token.IsKind(SyntaxKind.CloseParenToken) &&
-        ////            (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
-        ////            !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
+            var tokens = invocationExpression.DescendantTokens().ToList();
+            foreach (var token in tokens)
+            {
+                var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
+                var isOpeningParentheseForMethodParameters =
+                    token.IsKind(SyntaxKind.OpenParenToken) &&
+                    (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
+                    !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
+                var isCommaSeparatorForMethodParameters =
+                    token.IsKind(SyntaxKind.CommaToken) &&
+                    (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
+                    !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
+                var isClosingParentheseForMethodParameters =
+                    token.IsKind(SyntaxKind.CloseParenToken) &&
+                    (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
+                    !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
 
-        ////        var baseLeadingTrivia = invocationExpression.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-        ////        if (isOpeningParentheseForMethodParameters && needLineBreak)
-        ////        {
-        ////            token = token.WithTrailingTrivia(
-        ////                SyntaxFactory.TriviaList(
-        ////                    SyntaxTriviaHelper.GetEndOfLine(),
-        ////                    baseLeadingTrivia,
-        ////                    SyntaxTriviaHelper.GetTab()
-        ////                )
-        ////            );
-        ////        }
-        ////        else if (isCommaSeparatorForMethodParameters)
-        ////        {
-        ////            if (needLineBreak)
-        ////            {
-        ////                token = token.WithTrailingTrivia(
-        ////                    SyntaxFactory.TriviaList(
-        ////                        SyntaxTriviaHelper.GetEndOfLine(),
-        ////                        baseLeadingTrivia,
-        ////                        SyntaxTriviaHelper.GetTab()
-        ////                    )
-        ////                );
-        ////            }
-        ////            else
-        ////            {
-        ////                token = token.WithTrailingTrivia(
-        ////                    SyntaxFactory.TriviaList(
-        ////                        SyntaxTriviaHelper.GetWhitespace()
-        ////                    )
-        ////                );
-        ////            }
-        ////        }
-        ////        else if (isClosingParentheseForMethodParameters && needLineBreak)
-        ////        {
-        ////            token = token.WithLeadingTrivia(
-        ////                SyntaxFactory.TriviaList(
-        ////                    SyntaxTriviaHelper.GetEndOfLine(),
-        ////                    baseLeadingTrivia
-        ////                )
-        ////            );
-        ////        }
-        ////    }
-        ////}
+                var baseLeadingTrivia = invocationExpression.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+                if (isOpeningParentheseForMethodParameters && needLineBreak)
+                {
+                    var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithTrailingTrivia(
+                        SyntaxFactory.TriviaList(
+                            SyntaxTriviaHelper.GetEndOfLine(),
+                            baseLeadingTrivia,
+                            SyntaxTriviaHelper.GetTab()
+                        )
+                    ));
+                    documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
+                    ////document = documentEditor.GetChangedDocument();
+                }
+                else if (isCommaSeparatorForMethodParameters)
+                {
+                    if (needLineBreak)
+                    {
+                        var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithTrailingTrivia(
+                            SyntaxFactory.TriviaList(
+                                SyntaxTriviaHelper.GetEndOfLine(),
+                                baseLeadingTrivia,
+                                SyntaxTriviaHelper.GetTab()
+                            )
+                        ));
+                        documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
+                    }
+                    else
+                    {
+                        var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithTrailingTrivia(
+                            SyntaxFactory.TriviaList(
+                                SyntaxTriviaHelper.GetWhitespace()
+                            )
+                        ));
+                        documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
+                    }
+                }
+                else if (isClosingParentheseForMethodParameters && needLineBreak)
+                {
+                    var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithLeadingTrivia(
+                        SyntaxFactory.TriviaList(
+                            SyntaxTriviaHelper.GetEndOfLine(),
+                            baseLeadingTrivia
+                        )
+                    ));
+                    documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
+                }
+            }
+        }
 
+        document = documentEditor.GetChangedDocument();
         return new RefactorOperationResult(
             document,
             document.Project,
