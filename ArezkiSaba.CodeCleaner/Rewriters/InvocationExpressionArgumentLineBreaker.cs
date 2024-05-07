@@ -17,13 +17,13 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
     {
         if (token.Parent?.Parent is not InvocationExpressionSyntax invocationExpression ||
             !invocationExpression.ArgumentList.Arguments.Any() ||
-            invocationExpression.GetInvocationExpressionLength() < 70 ||
             token.Parent.Ancestors().OfType<LocalFunctionStatementSyntax>().Any() ||
             token.Parent.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>().Any())
         {
             return token;
         }
 
+        var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 70;
         var isOpeningParentheseForMethodParameters =
             token.IsKind(SyntaxKind.OpenParenToken) &&
             (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
@@ -46,7 +46,7 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
         }
 
         var declarationTrivia = statement.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-        if (isOpeningParentheseForMethodParameters)
+        if (isOpeningParentheseForMethodParameters && needLineBreak)
         {
             token = token.WithTrailingTrivia(
                 SyntaxFactory.TriviaList(
@@ -58,16 +58,26 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
         }
         else if (isCommaSeparatorForMethodParameters)
         {
-            token = token.WithTrailingTrivia(
-                SyntaxFactory.TriviaList(
-                    SyntaxTriviaHelper.GetEndOfLine(),
-                    declarationTrivia,
-                    SyntaxTriviaHelper.GetTab()
-                )
-            );
+            if (needLineBreak)
+            {
+                token = token.WithTrailingTrivia(
+                    SyntaxFactory.TriviaList(
+                        SyntaxTriviaHelper.GetEndOfLine(),
+                        declarationTrivia,
+                        SyntaxTriviaHelper.GetTab()
+                    )
+                );
+            }
+            else
+            {
+                token = token.WithTrailingTrivia(
+                    SyntaxFactory.TriviaList(
+                        SyntaxTriviaHelper.GetWhitespace()
+                    )
+                );
+            }
         }
-        else if (isClosingParentheseForMethodParameters &&
-            !token.LeadingTrivia.Any(obj => obj.IsKind(SyntaxKind.EndOfLineTrivia)))
+        else if (isClosingParentheseForMethodParameters && needLineBreak)
         {
             token = token.WithLeadingTrivia(
                 SyntaxFactory.TriviaList(

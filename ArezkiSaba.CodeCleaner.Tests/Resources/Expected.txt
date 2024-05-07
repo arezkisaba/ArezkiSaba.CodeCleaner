@@ -96,7 +96,7 @@ public class TestClass1<T>
             variable4: variable4
         );
 
-        MapControllerRoute(a: "1",b: "2");
+        MapControllerRoute(a: "1", b: "2");
     }
 
     public Task SomeAsyncMethodAsync()
