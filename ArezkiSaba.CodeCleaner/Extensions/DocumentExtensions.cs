@@ -9,7 +9,7 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class DocumentExtensions
 {
-    public static async Task<Document> ReorderClassMembersAsync(
+    public static async Task<(Document, Solution)> ReorderClassMembersAsync(
         this Document document)
     {
         ////document = await Formatter.FormatAsync(document);
@@ -26,49 +26,57 @@ public static class DocumentExtensions
             documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
         }
 
-        return documentEditor.GetChangedDocument();
+        document = documentEditor.GetChangedDocument();
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartTypeInferenceRewriterAsync(
+    public static async Task<(Document, Solution)> StartTypeInferenceRewriterAsync(
         this Document document)
     {
         ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
-        return document.WithSyntaxRoot(new TypeInferenceRewriter(semanticModel).Visit(root));
+        document = document.WithSyntaxRoot(
+            new TypeInferenceRewriter(
+                semanticModel
+            ).Visit(root)
+        );
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartReadonlyModifierFieldRewriterAsync(
+    public static async Task<(Document, Solution)> StartReadonlyModifierFieldRewriterAsync(
         this Document document)
     {
         ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
-        return document.WithSyntaxRoot(
+        document = document.WithSyntaxRoot(
             new ReadonlyModifierFieldRewriter(
                 document.Project.Solution,
                 semanticModel
             ).Visit(root)
         );
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartSealedModifierClassRewriterAsync(
+    public static async Task<(Document, Solution)> StartSealedModifierClassRewriterAsync(
         this Document document)
     {
         ////document = await Formatter.FormatAsync(document);
         var allTypeDeclarations = await GetAllTypeDeclarations(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
-        return document.WithSyntaxRoot(
+        document = document.WithSyntaxRoot(
             new SealedModifierClassRewriter(
                 document.Project.Solution,
                 semanticModel,
                 allTypeDeclarations
             ).Visit(root)
         );
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartUsingDirectiveSorterAsync(
+    public static async Task<(Document, Solution)> StartUsingDirectiveSorterAsync(
         this Document document)
     {
         ////document = await Formatter.FormatAsync(document);
@@ -80,10 +88,10 @@ public static class DocumentExtensions
         );
         compilationUnit = compilationUnit.WithUsings(sortedUsingDirectives);
         document = document.WithSyntaxRoot(compilationUnit);
-        return document;
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartDuplicatedUsingDirectiveRemoverAsync(
+    public static async Task<(Document, Solution)> StartDuplicatedUsingDirectiveRemoverAsync(
         this Document document)
     {
         ////document = await Formatter.FormatAsync(document);
@@ -105,16 +113,13 @@ public static class DocumentExtensions
             documentEditor.RemoveNode(usingDirectiveToRemove);
         }
 
-        return documentEditor.GetChangedDocument();
+        document = documentEditor.GetChangedDocument();
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartEmptyLinesBracesRemoverAsync(
+    public static async Task<(Document, Solution)> StartEmptyLinesBracesRemoverAsync(
         this Document document)
     {
-        ////////document = await Formatter.FormatAsync(document);
-        ////var root = await document.GetSyntaxRootAsync();
-        ////return document.WithSyntaxRoot(new BraceEmptyLinesRemover().Visit(root));
-
         bool isUpdated;
         DocumentEditor documentEditor;
         List<SyntaxToken> tokens = [];
@@ -179,23 +184,28 @@ public static class DocumentExtensions
             }
         } while (isUpdated);
 
-        return documentEditor.GetChangedDocument();
+        document = documentEditor.GetChangedDocument();
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartDuplicatedEmptyLinesRemoverAsync(
+    public static async Task<(Document, Solution)> StartDuplicatedEmptyLinesRemoverAsync(
         this Document document)
     {
         ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
-        return document.WithSyntaxRoot(new DuplicatedEmptyLinesRemover().Visit(root));
+        document = document.WithSyntaxRoot(
+            new DuplicatedEmptyLinesRemover(
+            ).Visit(root)
+        );
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartRegionInserterAsync(
+    public static async Task<(Document, Solution)> StartRegionInserterAsync(
         this Document document)
     {
         if (document.SkipProgramEntryPoint())
         {
-            return document;
+            return (document, document.Project.Solution);
         }
 
         ////document = await Formatter.FormatAsync(document);
@@ -206,7 +216,7 @@ public static class DocumentExtensions
 
         if (!declarations.Any())
         {
-            return document;
+            return (document, document.Project.Solution);
         }
 
         var firstDeclaration = declarations.First();
@@ -249,23 +259,32 @@ public static class DocumentExtensions
             );
         }
 
-        return documentEditor.GetChangedDocument();
+        document = documentEditor.GetChangedDocument();
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartMethodDeclarationParameterLineBreakerAsync(
+    public static async Task<(Document, Solution)> StartMethodDeclarationParameterLineBreakerAsync(
         this Document document)
     {
         ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
-        return document.WithSyntaxRoot(new MethodDeclarationParameterLineBreaker().Visit(root));
+        document = document.WithSyntaxRoot(
+            new MethodDeclarationParameterLineBreaker(
+            ).Visit(root)
+        );
+        return (document, document.Project.Solution);
     }
 
-    public static async Task<Document> StartInvocationExpressionArgumentLineBreakerAsync(
+    public static async Task<(Document, Solution)> StartInvocationExpressionArgumentLineBreakerAsync(
         this Document document)
     {
         ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
-        return document.WithSyntaxRoot(new InvocationExpressionArgumentLineBreaker().Visit(root));
+        document = document.WithSyntaxRoot(
+            new InvocationExpressionArgumentLineBreaker(
+            ).Visit(root)
+        );
+        return (document, document.Project.Solution);
     }
 
     public static bool IsAutoGenerated(

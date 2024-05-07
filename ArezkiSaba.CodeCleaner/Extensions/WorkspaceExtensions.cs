@@ -18,7 +18,7 @@ public static class WorkspaceExtensions
     private static async Task CleanAsync(
         this Workspace workspace)
     {
-        var cleaningFuncs = new List<(Func<Document, Task<Document>> func, Func<Project, Task<bool>> predicate)>();
+        var cleaningFuncs = new List<(Func<Document, Task<(Document, Solution)>> func, Func<Project, Task<bool>> predicate)>();
         cleaningFuncs.Add(((document) => document.StartReadonlyModifierFieldRewriterAsync(), (project) => Task.FromResult(true)));
         cleaningFuncs.Add(((document) => document.StartSealedModifierClassRewriterAsync(), async (project) => await project.IsNonNugetProjectAsync()));
         cleaningFuncs.Add(((document) => document.ReorderClassMembersAsync(), (project) => Task.FromResult(true)));
@@ -44,7 +44,7 @@ public static class WorkspaceExtensions
                     continue;
                 }
 
-                foreach (var (func, predicate) in cleaningFuncs)
+                foreach (var (cleaningFunc, predicate) in cleaningFuncs)
                 {
                     var canExecuteFunc = await predicate(project);
                     if (!canExecuteFunc)
@@ -52,10 +52,8 @@ public static class WorkspaceExtensions
                         continue;
                     }
 
-                    documentToUpdate = await func(documentToUpdate);
+                    (documentToUpdate, newSolution) = await cleaningFunc(documentToUpdate);
                 }
-
-                newSolution = documentToUpdate.Project.Solution;
             }
         }
 
