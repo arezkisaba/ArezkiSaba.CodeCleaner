@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Data.Common;
+using System.Reflection.Metadata;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -34,7 +36,15 @@ public static class MemberDeclarationExtensions
         var parameterLists = newDeclaration.DescendantNodes().OfType<ParameterListSyntax>().ToList();
         newDeclaration = newDeclaration.ReplaceNodes(parameterLists, (parameterList, __) =>
         {
-            var newParameters = parameterList.Parameters.Select(p => p.WithoutTrivia()).ToList();
+            var newParameters = parameterList.Parameters.Select((parameter, index) =>
+            {
+                if (index > 0)
+                {
+                    parameter = parameter.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace());
+                }
+
+                return parameter.WithoutTrailingTrivia();
+            }).ToList();
             var newParametersList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
             newParametersList = newParametersList.WithOpenParenToken(newParametersList.OpenParenToken.WithoutTrivia());
             return newParametersList;
@@ -43,7 +53,15 @@ public static class MemberDeclarationExtensions
         var argumentLists = newDeclaration.DescendantNodes().OfType<ArgumentListSyntax>().ToList();
         newDeclaration = newDeclaration.ReplaceNodes(argumentLists, (argumentList, __) =>
         {
-            var newArguments = argumentList.Arguments.Select(p => p.WithoutTrivia()).ToList();
+            var newArguments = argumentList.Arguments.Select((argument, index) =>
+            {
+                if (index > 0)
+                {
+                    argument = argument.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace());
+                }
+
+                return argument.WithoutTrailingTrivia();
+            }).ToList();
             var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
             newArgumentList = newArgumentList.WithOpenParenToken(newArgumentList.OpenParenToken.WithoutTrivia());
             return newArgumentList;
