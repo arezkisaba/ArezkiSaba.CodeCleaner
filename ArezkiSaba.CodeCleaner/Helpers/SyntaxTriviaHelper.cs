@@ -14,4 +14,9 @@ public static class SyntaxTriviaHelper
     {
         return SyntaxFactory.Whitespace("    ");
     }
+
+    public static SyntaxTrivia GetWhitespace()
+    {
+        return SyntaxFactory.Whitespace(" ");
+    }
 }

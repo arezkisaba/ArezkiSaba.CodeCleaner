@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ArezkiSaba.CodeCleaner.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -40,7 +41,10 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
         var canAddReadonlyModifier = CanAddReadonlyModifier(referenceLocations);
         if (canAddReadonlyModifier)
         {
-            node = node.AddModifiers(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword).WithTrailingTrivia());
+            node = node.AddModifiers(
+                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
+                    .WithTrailingTrivia(SyntaxTriviaHelper.GetWhitespace())
+            );
         }
 
         return base.VisitFieldDeclaration(node);

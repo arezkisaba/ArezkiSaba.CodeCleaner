@@ -1,5 +1,4 @@
-﻿using ArezkiSaba.CodeCleaner.Rewriters;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -15,7 +14,7 @@ public static class SolutionExtensions
         this Solution solution,
         Document document)
     {
-        document = await Formatter.FormatAsync(document);
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -73,7 +72,7 @@ public static class SolutionExtensions
         this Solution solution,
         Document document)
     {
-        document = await Formatter.FormatAsync(document);
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -112,7 +111,7 @@ public static class SolutionExtensions
             return (document, solution);
         }
 
-        document = await Formatter.FormatAsync(document);
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -143,7 +142,7 @@ public static class SolutionExtensions
         this Solution solution,
         Document document)
     {
-        document = await Formatter.FormatAsync(document);
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -174,7 +173,7 @@ public static class SolutionExtensions
         this Solution solution,
         Document document)
     {
-        document = await Formatter.FormatAsync(document);
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -207,7 +206,7 @@ public static class SolutionExtensions
         this Solution solution,
         Document document)
     {
-        document = await Formatter.FormatAsync(document);
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -239,7 +238,7 @@ public static class SolutionExtensions
         this Solution solution,
         Document document)
     {
-        document = await Formatter.FormatAsync(document);
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -285,7 +284,7 @@ public static class SolutionExtensions
             return (document, solution);
         }
 
-        document = await Formatter.FormatAsync(document);
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
@@ -323,7 +322,7 @@ public static class SolutionExtensions
         this Solution solution,
         Document document)
     {
-        document = await Formatter.FormatAsync(document);
+        ////document = await Formatter.FormatAsync(document);
         var documentEditor = await DocumentEditor.CreateAsync(document);
         var root = documentEditor.GetDocumentEditorRoot();
         var semanticModel = await document.GetSemanticModelAsync();
@@ -341,35 +340,43 @@ public static class SolutionExtensions
                 var variableDeclarator = fieldDeclaration.DescendantNodes().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
                 var symbol = semanticModel.GetDeclaredSymbol(variableDeclarator);
                 var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
-                var locations = references.SelectMany(obj => obj.Locations).ToList();
-                foreach (var location in locations)
+                foreach (var reference in references)
                 {
-                    var documentRoot = await location.Document.GetSyntaxRootAsync();
-                    var referencedNode = documentRoot.FindNode(location.Location.SourceSpan);
-                    var accessorDeclaration = referencedNode.Ancestors()
-                        .OfType<AccessorDeclarationSyntax>()
-                        .FirstOrDefault();
-                    var isReferencedFromProperty = accessorDeclaration != null;
-                    if (isReferencedFromProperty)
-                    {
+                    foreach (var location in reference.Locations)
+                    { 
+                        var documentRoot = await location.Document.GetSyntaxRootAsync();
+                        var referencedNode = documentRoot.FindNode(location.Location.SourceSpan);
                         var propertyDeclaration = referencedNode.Ancestors()
                             .OfType<PropertyDeclarationSyntax>()
                             .FirstOrDefault();
-                        var indentationTrivias = propertyDeclaration.GetLeadingTrivia()
-                            .Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia))
-                            .ToList();
-                        documentEditor.InsertBefore(
-                            propertyDeclaration,
-                            fieldDeclaration
-                                .WithLeadingTrivia(
-                                    SyntaxFactory.TriviaList()
-                                        .Add(SyntaxTriviaHelper.GetEndOfLine())
-                                        .AddRange(indentationTrivias)
-                                )
-                                .WithoutTrailingTrivia()
-                        );
-                        documentEditor.RemoveNode(fieldDeclaration);
-                        break;
+
+                        var fieldName = fieldDeclaration.GetName();
+                        var propertyName = propertyDeclaration.GetName();
+
+                        if (fieldName.ToPascalCase() != propertyName)
+                        {
+                            continue;
+                        }
+
+                        var isReferencedFromProperty = propertyDeclaration != null;
+                        if (isReferencedFromProperty)
+                        {
+                            var indentationTrivias = propertyDeclaration.GetLeadingTrivia()
+                                .Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia))
+                                .ToList();
+                            documentEditor.InsertBefore(
+                                propertyDeclaration,
+                                fieldDeclaration
+                                    .WithLeadingTrivia(
+                                        SyntaxFactory.TriviaList()
+                                            .Add(SyntaxTriviaHelper.GetEndOfLine())
+                                            .AddRange(indentationTrivias)
+                                    )
+                                    .WithoutTrailingTrivia()
+                            );
+                            documentEditor.RemoveNode(fieldDeclaration);
+                            break;
+                        }
                     }
                 }
             }

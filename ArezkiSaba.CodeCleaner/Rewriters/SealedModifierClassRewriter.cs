@@ -27,7 +27,10 @@ public sealed class SealedModifierClassRewriter : CSharpSyntaxRewriter
         var canAddSealedModifier = CanAddSealedModifier(node);
         if (canAddSealedModifier)
         {
-            node = node.AddModifiers(SyntaxFactory.Token(SyntaxKind.SealedKeyword).WithTrailingTrivia());
+            node = node.AddModifiers(
+                SyntaxFactory.Token(SyntaxKind.SealedKeyword)
+                    .WithTrailingTrivia(SyntaxTriviaHelper.GetWhitespace())
+            );
         }
 
         return base.VisitClassDeclaration(node);

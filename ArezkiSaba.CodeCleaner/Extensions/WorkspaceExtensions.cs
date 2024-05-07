@@ -19,14 +19,14 @@ public static class WorkspaceExtensions
         this Workspace workspace)
     {
         var cleaningFuncs = new List<(Func<Document, Task<Document>> func, Func<Project, Task<bool>> predicate)>();
-        cleaningFuncs.Add(((document) => document.StartTypeInferenceRewriterAsync(), (project) => Task.FromResult(true)));
         cleaningFuncs.Add(((document) => document.StartReadonlyModifierFieldRewriterAsync(), (project) => Task.FromResult(true)));
         cleaningFuncs.Add(((document) => document.StartSealedModifierClassRewriterAsync(), async (project) => await project.IsNonNugetProjectAsync()));
+        cleaningFuncs.Add(((document) => document.ReorderClassMembersAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartTypeInferenceRewriterAsync(), (project) => Task.FromResult(true)));
         cleaningFuncs.Add(((document) => document.StartUsingDirectiveSorterAsync(), (project) => Task.FromResult(true)));
         cleaningFuncs.Add(((document) => document.StartDuplicatedUsingDirectiveRemoverAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.ReorderClassMembersAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartEmptyLinesBracesRemoverAsync(), (project) => Task.FromResult(true)));
         cleaningFuncs.Add(((document) => document.StartDuplicatedEmptyLinesRemoverAsync(), (project) => Task.FromResult(true)));
+        cleaningFuncs.Add(((document) => document.StartEmptyLinesBracesRemoverAsync(), (project) => Task.FromResult(true)));
         cleaningFuncs.Add(((document) => document.StartRegionInserterAsync(), (project) => Task.FromResult(true)));
         cleaningFuncs.Add(((document) => document.StartMethodDeclarationParameterLineBreakerAsync(), (project) => Task.FromResult(true)));
         cleaningFuncs.Add(((document) => document.StartInvocationExpressionArgumentLineBreakerAsync(), (project) => Task.FromResult(true)));
@@ -53,11 +53,9 @@ public static class WorkspaceExtensions
                     }
 
                     documentToUpdate = await func(documentToUpdate);
-                    documentToUpdate = await Formatter.FormatAsync(documentToUpdate);
                 }
 
-                project = documentToUpdate.Project;
-                newSolution = project.Solution;
+                newSolution = documentToUpdate.Project.Solution;
             }
         }
 
@@ -79,9 +77,9 @@ public static class WorkspaceExtensions
         refactoringFuncs.Add((document, solution) => solution.ReorderFieldsWithPropfullPropertiesAsync(document));
 
         var newSolution = workspace.CurrentSolution;
-        foreach (var projectId in workspace.CurrentSolution.ProjectIds)
+        foreach (var projectId in newSolution.ProjectIds)
         {
-            var project = workspace.CurrentSolution.GetProject(projectId);
+            var project = newSolution.GetProject(projectId);
             foreach (var documentId in project.DocumentIds)
             {
                 var documentToUpdate = project.GetDocument(documentId);
@@ -107,7 +105,13 @@ public static class WorkspaceExtensions
     {
         if (!ReferenceEquals(newSolution, workspace.CurrentSolution))
         {
-            workspace.TryApplyChanges(newSolution);
+            var changesApplied = workspace.TryApplyChanges(newSolution);
+            if (changesApplied)
+            {
+            }
+            else
+            {
+            }
         }
     }
 

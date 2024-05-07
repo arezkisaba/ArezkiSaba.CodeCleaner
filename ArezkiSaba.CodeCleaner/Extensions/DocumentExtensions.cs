@@ -3,16 +3,36 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class DocumentExtensions
 {
+    public static async Task<Document> ReorderClassMembersAsync(
+        this Document document)
+    {
+        ////document = await Formatter.FormatAsync(document);
+        var documentEditor = await DocumentEditor.CreateAsync(document);
+        var root = documentEditor.GetDocumentEditorRoot();
+
+        // Take interfaces, classes, structs
+        var typeDeclarations = root.ChildNodes().OfType<TypeDeclarationSyntax>()
+            .Reverse()
+            .ToList();
+        foreach (var typeDeclaration in typeDeclarations)
+        {
+            var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
+            documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
+        }
+
+        return documentEditor.GetChangedDocument();
+    }
+
     public static async Task<Document> StartTypeInferenceRewriterAsync(
         this Document document)
     {
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         return document.WithSyntaxRoot(new TypeInferenceRewriter(semanticModel).Visit(root));
@@ -21,6 +41,7 @@ public static class DocumentExtensions
     public static async Task<Document> StartReadonlyModifierFieldRewriterAsync(
         this Document document)
     {
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         return document.WithSyntaxRoot(
@@ -34,6 +55,7 @@ public static class DocumentExtensions
     public static async Task<Document> StartSealedModifierClassRewriterAsync(
         this Document document)
     {
+        ////document = await Formatter.FormatAsync(document);
         var allTypeDeclarations = await GetAllTypeDeclarations(document);
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
@@ -49,6 +71,7 @@ public static class DocumentExtensions
     public static async Task<Document> StartUsingDirectiveSorterAsync(
         this Document document)
     {
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         var compilationUnit = root as CompilationUnitSyntax;
         var sortedUsingDirectives = SyntaxFactory.List(compilationUnit.Usings
@@ -63,6 +86,7 @@ public static class DocumentExtensions
     public static async Task<Document> StartDuplicatedUsingDirectiveRemoverAsync(
         this Document document)
     {
+        ////document = await Formatter.FormatAsync(document);
         var documentEditor = await DocumentEditor.CreateAsync(document);
         var usingDirectives = documentEditor.OriginalRoot.ChildNodes().OfType<UsingDirectiveSyntax>().ToList();
         var usingDirectivesToRemove = new List<UsingDirectiveSyntax>();
@@ -87,6 +111,10 @@ public static class DocumentExtensions
     public static async Task<Document> StartEmptyLinesBracesRemoverAsync(
         this Document document)
     {
+        ////////document = await Formatter.FormatAsync(document);
+        ////var root = await document.GetSyntaxRootAsync();
+        ////return document.WithSyntaxRoot(new BraceEmptyLinesRemover().Visit(root));
+
         bool isUpdated;
         DocumentEditor documentEditor;
         List<SyntaxToken> tokens = [];
@@ -105,19 +133,17 @@ public static class DocumentExtensions
                 if (token.IsKind(SyntaxKind.OpenBraceToken))
                 {
                     var targetToken = tokens[i + 1];
-                    if (targetToken.HasLeadingTrivia)
-                    {
-                        var targetTokenUpdated = targetToken.WithLeadingTrivia();
-                        var node = targetToken.Parent;
-                        var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
+                    var leadingTrivia = targetToken.LeadingTrivia.Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+                    var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivia);
+                    var node = targetToken.Parent;
+                    var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
 
-                        if (targetToken.HasLeadingTrivia != targetTokenUpdated.HasLeadingTrivia)
-                        {
-                            documentEditor.ReplaceNode(node, nodeUpdated);
-                            document = documentEditor.GetChangedDocument();
-                            isUpdated = true;
-                            break;
-                        }
+                    if (targetToken.LeadingTrivia.Count != targetTokenUpdated.LeadingTrivia.Count)
+                    {
+                        documentEditor.ReplaceNode(node, nodeUpdated);
+                        document = documentEditor.GetChangedDocument();
+                        isUpdated = true;
+                        break;
                     }
                 }
             }
@@ -137,11 +163,12 @@ public static class DocumentExtensions
                 if (token.IsKind(SyntaxKind.CloseBraceToken))
                 {
                     var targetToken = token;
-                    var targetTokenUpdated = targetToken.WithLeadingTrivia();
+                    var leadingTrivia = targetToken.LeadingTrivia.Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+                    var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivia);
                     var node = targetToken.Parent;
                     var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
 
-                    if (targetToken.HasLeadingTrivia != targetTokenUpdated.HasLeadingTrivia)
+                    if (targetToken.LeadingTrivia.Count != targetTokenUpdated.LeadingTrivia.Count)
                     {
                         documentEditor.ReplaceNode(node, nodeUpdated);
                         document = documentEditor.GetChangedDocument();
@@ -158,27 +185,9 @@ public static class DocumentExtensions
     public static async Task<Document> StartDuplicatedEmptyLinesRemoverAsync(
         this Document document)
     {
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         return document.WithSyntaxRoot(new DuplicatedEmptyLinesRemover().Visit(root));
-    }
-
-    public static async Task<Document> ReorderClassMembersAsync(
-        this Document document)
-    {
-        var documentEditor = await DocumentEditor.CreateAsync(document);
-        var root = documentEditor.GetDocumentEditorRoot();
-
-        // Take interfaces, classes, structs
-        var typeDeclarations = root.ChildNodes().OfType<TypeDeclarationSyntax>()
-            .Reverse()
-            .ToList();
-        foreach (var typeDeclaration in typeDeclarations)
-        {
-            var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
-            documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
-        }
-
-        return documentEditor.GetChangedDocument();
     }
 
     public static async Task<Document> StartRegionInserterAsync(
@@ -189,6 +198,7 @@ public static class DocumentExtensions
             return document;
         }
 
+        ////document = await Formatter.FormatAsync(document);
         var documentEditor = await DocumentEditor.CreateAsync(document);
         var declarations = documentEditor.OriginalRoot.DescendantNodes().OfType<MethodDeclarationSyntax>()
             .Where(obj => obj.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
@@ -245,6 +255,7 @@ public static class DocumentExtensions
     public static async Task<Document> StartMethodDeclarationParameterLineBreakerAsync(
         this Document document)
     {
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         return document.WithSyntaxRoot(new MethodDeclarationParameterLineBreaker().Visit(root));
     }
@@ -252,6 +263,7 @@ public static class DocumentExtensions
     public static async Task<Document> StartInvocationExpressionArgumentLineBreakerAsync(
         this Document document)
     {
+        ////document = await Formatter.FormatAsync(document);
         var root = await document.GetSyntaxRootAsync();
         return document.WithSyntaxRoot(new InvocationExpressionArgumentLineBreaker().Visit(root));
     }
@@ -369,7 +381,6 @@ public static class DocumentExtensions
             SyntaxKind.ClassDeclaration,
             SyntaxKind.InterfaceDeclaration,
         };
-        var indentationTrivia = typeDeclarationRoot.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
         var memberDeclarationsReversed = typeDeclarationRoot.ChildNodes().OfType<MemberDeclarationSyntax>().Reverse().ToList();
 
         var memberDeclarationsToAdd = new List<MemberDeclarationSyntax>();
@@ -392,6 +403,7 @@ public static class DocumentExtensions
             memberDeclarationsToAdd.Add(newMemberDeclaration);
         }
 
+        var indentationTrivia = typeDeclarationRoot.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
         var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
         foreach (var declarationToExtract in declarationsToExtract)
         {
@@ -418,7 +430,12 @@ public static class DocumentExtensions
                     leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
                 }
 
-                leadingTrivias.Add(indentationTrivia);
+                var tab = SyntaxTriviaHelper.GetTab();
+                if (indentationTrivia.FullSpan.Length % tab.FullSpan.Length == 0)
+                {
+                    leadingTrivias.Add(indentationTrivia);
+                }
+
                 leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
 
                 return obj

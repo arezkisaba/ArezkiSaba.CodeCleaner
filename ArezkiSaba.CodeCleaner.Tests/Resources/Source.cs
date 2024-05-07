@@ -18,15 +18,23 @@ public class TestClass1<T>
 {
 
 
+    public class InternalClass1
+    {
+
+        private string readonlyStringField;
 
 
-    private string _readonlyStringField2;
+    }
+
+
+
+    private string readonlyStringField2;
 
     public TestClass1(string arg1, string arg2)
     {
 
         _readonlyStringField1 = arg1;
-        _readonlyStringField2 = arg2;
+        readonlyStringField2 = arg2;
         nonReadonlyBooleanField = true;
 
     }
@@ -64,7 +72,7 @@ public class TestClass1<T>
     private TestClass1()
     {
         _readonlyStringField1 = "some useless value";
-        _readonlyStringField2 = "some useless value";
+        readonlyStringField2 = "some useless value";
         nonReadonlyBooleanField = false;
     }
 
@@ -75,8 +83,8 @@ public class TestClass1<T>
 
     public bool CanDoSomethingElse
     {
-        get { return _canDoSomethingElse; }
-        set { _canDoSomethingElse = value; }
+        get { return canDoSomethingElse; }
+        set { canDoSomethingElse = value; }
     }
 
     public event EventHandler someOtherEventCamelCasedTriggered;
@@ -105,7 +113,7 @@ public class TestClass1<T>
 
     }
 
-    private bool _canDoSomethingElse;
+    private bool canDoSomethingElse;
     public async Task _handleOnSomeEventCallback(string variable1,
                 string variable2,
         string variable3, string variable4)

@@ -96,7 +96,7 @@ public class TestClass1<T>
             variable4: variable4
         );
 
-        MapControllerRoute(a: "1", b: "2");
+        MapControllerRoute(a: "1",b: "2");
     }
 
     public Task SomeAsyncMethodAsync()
@@ -126,6 +126,11 @@ public class TestClass1<T>
     }
 
     #endregion
+
+    public sealed class InternalClass1
+    {
+        private readonly string _readonlyStringField;
+    }
 }
 
 public sealed class TestClass2 : TestClass1<int>
