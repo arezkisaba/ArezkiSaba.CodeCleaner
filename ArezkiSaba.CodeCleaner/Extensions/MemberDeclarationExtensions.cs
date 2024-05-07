@@ -38,12 +38,7 @@ public static class MemberDeclarationExtensions
         {
             var newParameters = parameterList.Parameters.Select((parameter, index) =>
             {
-                if (index > 0)
-                {
-                    parameter = parameter.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace());
-                }
-
-                return parameter.WithoutTrailingTrivia();
+                return parameter.WithoutLeadingTrivia().WithoutTrailingTrivia();
             }).ToList();
             var newParametersList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
             newParametersList = newParametersList.WithOpenParenToken(newParametersList.OpenParenToken.WithoutTrivia());
@@ -55,12 +50,7 @@ public static class MemberDeclarationExtensions
         {
             var newArguments = argumentList.Arguments.Select((argument, index) =>
             {
-                if (index > 0)
-                {
-                    argument = argument.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace());
-                }
-
-                return argument.WithoutTrailingTrivia();
+                return argument.WithoutLeadingTrivia().WithoutTrailingTrivia();
             }).ToList();
             var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
             newArgumentList = newArgumentList.WithOpenParenToken(newArgumentList.OpenParenToken.WithoutTrivia());
