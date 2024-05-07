@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Formatting;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -9,7 +8,6 @@ public static class WorkspaceExtensions
         this Workspace workspace)
     {
         await workspace.CleanAsync();
-        await workspace.RefactorAsync();
         return workspace;
     }
 
@@ -18,18 +16,27 @@ public static class WorkspaceExtensions
     private static async Task CleanAsync(
         this Workspace workspace)
     {
-        var cleaningFuncs = new List<(Func<Document, Task<(Document, Solution)>> func, Func<Project, Task<bool>> predicate)>();
-        cleaningFuncs.Add(((document) => document.StartReadonlyModifierFieldRewriterAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartSealedModifierClassRewriterAsync(), async (project) => await project.IsNonNugetProjectAsync()));
-        cleaningFuncs.Add(((document) => document.ReorderClassMembersAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartTypeInferenceRewriterAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartUsingDirectiveSorterAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartDuplicatedUsingDirectiveRemoverAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartDuplicatedEmptyLinesRemoverAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartEmptyLinesBracesRemoverAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartRegionInserterAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartMethodDeclarationParameterLineBreakerAsync(), (project) => Task.FromResult(true)));
-        cleaningFuncs.Add(((document) => document.StartInvocationExpressionArgumentLineBreakerAsync(), (project) => Task.FromResult(true)));
+        var funcs = new List<(Func<Document, Solution, Task<(Document, Solution)>> func, Func<Project, Task<bool>> predicate)>();
+        funcs.Add(((document, solution) => document.StartReadonlyModifierFieldRewriterAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartSealedModifierClassRewriterAsync(solution), async (project) => await project.IsNonNugetProjectAsync()));
+        funcs.Add(((document, solution) => document.ReorderClassMembersAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.ReorderFieldsWithPropfullPropertiesAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartTypeInferenceRewriterAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartUsingDirectiveSorterAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartDuplicatedUsingDirectiveRemoverAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartDuplicatedEmptyLinesRemoverAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartEmptyLinesBracesRemoverAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartRegionInserterAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartMethodDeclarationParameterLineBreakerAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartInvocationExpressionArgumentLineBreakerAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartFieldRenamerAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartEventFieldRenamerAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartPropertyRenamerAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartMethodRenamerAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartLocalVariableRenamerAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartParameterRenamerAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution), (project) => Task.FromResult(true)));
+        funcs.Add(((document, solution) => document.StartAsyncMethodRenamerAsync(solution), (project) => Task.FromResult(true)));
 
         var newSolution = workspace.CurrentSolution;
         foreach (var projectId in workspace.CurrentSolution.ProjectIds)
@@ -44,7 +51,7 @@ public static class WorkspaceExtensions
                     continue;
                 }
 
-                foreach (var (cleaningFunc, predicate) in cleaningFuncs)
+                foreach (var (func, predicate) in funcs)
                 {
                     var canExecuteFunc = await predicate(project);
                     if (!canExecuteFunc)
@@ -52,44 +59,7 @@ public static class WorkspaceExtensions
                         continue;
                     }
 
-                    (documentToUpdate, newSolution) = await cleaningFunc(documentToUpdate);
-                }
-            }
-        }
-
-        ApplyChanges(workspace, newSolution);
-    }
-
-    private static async Task RefactorAsync(
-        this Workspace workspace)
-    {
-        var refactoringFuncs = new List<Func<Document, Solution, Task<(Document document, Solution solution)>>>();
-        refactoringFuncs.Add((document, solution) => solution.StartFieldRenamerAsync(document));
-        refactoringFuncs.Add((document, solution) => solution.StartEventFieldRenamerAsync(document));
-        refactoringFuncs.Add((document, solution) => solution.StartPropertyRenamerAsync(document));
-        refactoringFuncs.Add((document, solution) => solution.StartMethodRenamerAsync(document));
-        refactoringFuncs.Add((document, solution) => solution.StartLocalVariableRenamerAsync(document));
-        refactoringFuncs.Add((document, solution) => solution.StartParameterRenamerAsync(document));
-        refactoringFuncs.Add((document, solution) => solution.StartUnusedMethodParameterRenamerAsync(document));
-        refactoringFuncs.Add((document, solution) => solution.StartAsyncMethodRenamerAsync(document));
-        refactoringFuncs.Add((document, solution) => solution.ReorderFieldsWithPropfullPropertiesAsync(document));
-
-        var newSolution = workspace.CurrentSolution;
-        foreach (var projectId in newSolution.ProjectIds)
-        {
-            var project = newSolution.GetProject(projectId);
-            foreach (var documentId in project.DocumentIds)
-            {
-                var documentToUpdate = project.GetDocument(documentId);
-                var rootToUpdate = await documentToUpdate.GetSyntaxRootAsync();
-                if (documentToUpdate.IsAutoGenerated() || rootToUpdate.BeginsWithAutoGeneratedComment())
-                {
-                    continue;
-                }
-
-                foreach (var refactoringFunc in refactoringFuncs)
-                {
-                    (documentToUpdate, newSolution) = await refactoringFunc(documentToUpdate, newSolution);
+                    (documentToUpdate, newSolution) = await func(documentToUpdate, newSolution);
                 }
             }
         }
