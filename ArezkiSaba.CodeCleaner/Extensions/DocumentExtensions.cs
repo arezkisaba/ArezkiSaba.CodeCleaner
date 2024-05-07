@@ -403,77 +403,67 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        ////var root = await document.GetSyntaxRootAsync();
-        ////document = document.WithSyntaxRoot(
-        ////    new InvocationExpressionArgumentLineBreaker(
-        ////    ).Visit(root)
-        ////);
-
-        var excludedTypes = new List<Type>
+        if (true)
+        {
+            var root = await document.GetSyntaxRootAsync();
+            document = document.WithSyntaxRoot(
+                new InvocationExpressionArgumentLineBreaker(
+                ).Visit(root)
+            );
+        }
+        else
+        {
+            var excludedTypes = new List<Type>
         {
             typeof(LocalFunctionStatementSyntax),
             typeof(SimpleLambdaExpressionSyntax),
             typeof(ParenthesizedLambdaExpressionSyntax)
         };
 
-        var includedStatementTypes = new List<Type>
+            var includedStatementTypes = new List<Type>
         {
             typeof(ObjectCreationExpressionSyntax),
             typeof(ExpressionStatementSyntax),
             typeof(ReturnStatementSyntax)
         };
 
-        var documentEditor = await DocumentEditor.CreateAsync(document);
-        var invocationExpressions = documentEditor.OriginalRoot.DescendantNodes().OfType<InvocationExpressionSyntax>().Reverse().ToList();
-        foreach (var invocationExpression in invocationExpressions)
-        {
-            var hasExcludedType = invocationExpression.DescendantNodes()
-                .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
-            if (hasExcludedType)
+            var documentEditor = await DocumentEditor.CreateAsync(document);
+            var invocationExpressions = documentEditor.OriginalRoot.DescendantNodes().OfType<InvocationExpressionSyntax>().Reverse().ToList();
+            foreach (var invocationExpression in invocationExpressions)
             {
-                continue;
-            }
-
-            var hasIncludedType = invocationExpression.DescendantNodes()
-                .Any(node => includedStatementTypes.Any(includedType => node.GetType() == includedType));
-            if (!hasIncludedType)
-            {
-                continue;
-            }
-
-            var tokens = invocationExpression.DescendantTokens().ToList();
-            foreach (var token in tokens)
-            {
-                var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
-                var isOpeningParentheseForMethodParameters =
-                    token.IsKind(SyntaxKind.OpenParenToken) &&
-                    (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
-                    !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
-                var isCommaSeparatorForMethodParameters =
-                    token.IsKind(SyntaxKind.CommaToken) &&
-                    (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
-                    !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
-                var isClosingParentheseForMethodParameters =
-                    token.IsKind(SyntaxKind.CloseParenToken) &&
-                    (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
-                    !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
-
-                var baseLeadingTrivia = invocationExpression.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-                if (isOpeningParentheseForMethodParameters && needLineBreak)
+                var hasExcludedType = invocationExpression.DescendantNodes()
+                    .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
+                if (hasExcludedType)
                 {
-                    var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithTrailingTrivia(
-                        SyntaxFactory.TriviaList(
-                            SyntaxTriviaHelper.GetEndOfLine(),
-                            baseLeadingTrivia,
-                            SyntaxTriviaHelper.GetTab()
-                        )
-                    ));
-                    documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
-                    ////document = documentEditor.GetChangedDocument();
+                    continue;
                 }
-                else if (isCommaSeparatorForMethodParameters)
+
+                var hasIncludedType = invocationExpression.DescendantNodes()
+                    .Any(node => includedStatementTypes.Any(includedType => node.GetType() == includedType));
+                if (!hasIncludedType)
                 {
-                    if (needLineBreak)
+                    continue;
+                }
+
+                var tokens = invocationExpression.DescendantTokens().Reverse().ToList();
+                foreach (var token in tokens)
+                {
+                    var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
+                    var isOpeningParentheseForMethodParameters =
+                        token.IsKind(SyntaxKind.OpenParenToken) &&
+                        (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
+                        !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
+                    var isCommaSeparatorForMethodParameters =
+                        token.IsKind(SyntaxKind.CommaToken) &&
+                        (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
+                        !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
+                    var isClosingParentheseForMethodParameters =
+                        token.IsKind(SyntaxKind.CloseParenToken) &&
+                        (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&
+                        !(token.Parent?.Parent?.IsKind(SyntaxKind.LocalFunctionStatement) ?? false);
+
+                    var baseLeadingTrivia = invocationExpression.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+                    if (isOpeningParentheseForMethodParameters && needLineBreak)
                     {
                         var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithTrailingTrivia(
                             SyntaxFactory.TriviaList(
@@ -483,31 +473,47 @@ public static class DocumentExtensions
                             )
                         ));
                         documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
+                        ////document = documentEditor.GetChangedDocument();
                     }
-                    else
+                    else if (isCommaSeparatorForMethodParameters)
                     {
-                        var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithTrailingTrivia(
+                        if (needLineBreak)
+                        {
+                            var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithTrailingTrivia(
+                                SyntaxFactory.TriviaList(
+                                    SyntaxTriviaHelper.GetEndOfLine(),
+                                    baseLeadingTrivia,
+                                    SyntaxTriviaHelper.GetTab()
+                                )
+                            ));
+                            documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
+                        }
+                        else
+                        {
+                            var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithTrailingTrivia(
+                                SyntaxFactory.TriviaList(
+                                    SyntaxTriviaHelper.GetWhitespace()
+                                )
+                            ));
+                            documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
+                        }
+                    }
+                    else if (isClosingParentheseForMethodParameters && needLineBreak)
+                    {
+                        var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithLeadingTrivia(
                             SyntaxFactory.TriviaList(
-                                SyntaxTriviaHelper.GetWhitespace()
+                                SyntaxTriviaHelper.GetEndOfLine(),
+                                baseLeadingTrivia
                             )
                         ));
                         documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
                     }
                 }
-                else if (isClosingParentheseForMethodParameters && needLineBreak)
-                {
-                    var invocationExpressionUpdated = invocationExpression.ReplaceToken(token, token.WithLeadingTrivia(
-                        SyntaxFactory.TriviaList(
-                            SyntaxTriviaHelper.GetEndOfLine(),
-                            baseLeadingTrivia
-                        )
-                    ));
-                    documentEditor.ReplaceNode(invocationExpression, invocationExpressionUpdated);
-                }
             }
+
+            document = documentEditor.GetChangedDocument();
         }
 
-        document = documentEditor.GetChangedDocument();
         return new RefactorOperationResult(
             document,
             document.Project,

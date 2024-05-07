@@ -39,6 +39,8 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IServiceDirectoryApiClient serviceDirectoryApiClient)
     {
+        serviceCollection.AddSingleton<ISecretService>(new RegistrySecretService(webHostEnvironment.EnvironmentName, Assembly.GetExecutingAssembly().GetName().Name), new BoardApiClient(boardApiOptions.Value.Url, secretService.Decrypt(boardApiOptions.Value.ApiKey));
+
         serviceCollection.AddOctavApiClient(serviceDirectoryApiClient);
         serviceCollection.AddOctavSolutionsApiClient(serviceDirectoryApiClient);
 
@@ -54,16 +56,12 @@ public static class ServiceCollectionExtensions
         ////serviceCollection.AddScoped<IDevisService, DevisService>();
         serviceCollection.AddScoped<IFluxAIAService, FluxAIAService>();
         serviceCollection.AddScoped<IPiecesJustificativesService, PiecesJustificativesService>();
-        serviceCollection.AddScoped<IBoardApiClient>(
-            serviceProvider =>
-            {
-                var secretService = serviceProvider.GetService<ISecretService>();
-                var boardApiOptions = serviceProvider.GetService<IOptions<BoardApiOptions>>();
-                return new BoardApiClient(
-                    boardApiOptions.Value.Url,
-                    secretService.Decrypt(boardApiOptions.Value.ApiKey)
-                );
-            }
+        serviceCollection.AddScoped<IBoardApiClient>(serviceProvider =>
+        {
+            var secretService = serviceProvider.GetService<ISecretService>();
+            var boardApiOptions = serviceProvider.GetService<IOptions<BoardApiOptions>>();
+            return new BoardApiClient(boardApiOptions.Value.Url, secretService.Decrypt(boardApiOptions.Value.ApiKey));
+        }
         );
 
         // OAV Specific
@@ -105,9 +103,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IWebHostEnvironment webHostEnvironment)
     {
-        serviceCollection.AddSingleton<ISecretService>(
-            new RegistrySecretService(webHostEnvironment.EnvironmentName, Assembly.GetExecutingAssembly().GetName().Name)
-        );
+        serviceCollection.AddSingleton<ISecretService>(new RegistrySecretService(webHostEnvironment.EnvironmentName, Assembly.GetExecutingAssembly().GetName().Name));
         return serviceCollection;
     }
 }
