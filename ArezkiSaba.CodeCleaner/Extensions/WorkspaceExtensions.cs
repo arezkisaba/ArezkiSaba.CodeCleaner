@@ -4,16 +4,7 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class WorkspaceExtensions
 {
-    public static async Task<Workspace> CleanAndRefactorAsync(
-        this Workspace workspace)
-    {
-        await workspace.CleanAsync();
-        return workspace;
-    }
-
-    #region Private use
-
-    private static async Task CleanAsync(
+    public static async Task<Workspace> RefactorAsync(
         this Workspace workspace)
     {
         var funcs = new List<(Func<Document, Solution, Task<RefactorOperationResult>> func, Func<Project, Task<bool>> predicate)>();
@@ -65,10 +56,13 @@ public static class WorkspaceExtensions
                     currentSolution = result.Solution;
                 }
             }
-
-            ApplyChanges(workspace, currentSolution);
         }
+
+        ApplyChanges(workspace, currentSolution);
+        return workspace;
     }
+
+    #region Private use
 
     private static void ApplyChanges(
         this Workspace workspace,

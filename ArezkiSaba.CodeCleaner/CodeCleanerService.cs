@@ -60,7 +60,7 @@ public sealed class CodeCleanerService
         Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution opening done.");
 
         Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution formatting...");
-        await workspace.CleanAndRefactorAsync();
+        await workspace.RefactorAsync();
         Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution formatting done.");
     }
 
