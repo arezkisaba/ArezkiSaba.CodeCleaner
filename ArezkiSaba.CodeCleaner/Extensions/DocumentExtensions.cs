@@ -11,7 +11,49 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class DocumentExtensions
 {
-    public static async Task<(Document, Solution)> ReorderClassMembersAsync(
+    public static async Task<RefactorOperationResult> StartReadonlyModifierFieldRewriterAsync(
+        this Document document,
+        Solution solution)
+    {
+        ////document = await Formatter.FormatAsync(document);
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        document = document.WithSyntaxRoot(
+            new ReadonlyModifierFieldRewriter(
+                document.Project.Solution,
+                semanticModel
+            ).Visit(root)
+        );
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
+    }
+
+    public static async Task<RefactorOperationResult> StartSealedModifierClassRewriterAsync(
+        this Document document,
+        Solution solution)
+    {
+        ////document = await Formatter.FormatAsync(document);
+        var allTypeDeclarations = await GetAllTypeDeclarations(document);
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        document = document.WithSyntaxRoot(
+            new SealedModifierClassRewriter(
+                document.Project.Solution,
+                semanticModel,
+                allTypeDeclarations
+            ).Visit(root)
+        );
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
+    }
+
+    public static async Task<RefactorOperationResult> ReorderClassMembersAsync(
         this Document document,
         Solution solution)
     {
@@ -30,10 +72,86 @@ public static class DocumentExtensions
         }
 
         document = documentEditor.GetChangedDocument();
-        return (document, document.Project.Solution);
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartTypeInferenceRewriterAsync(
+    public static async Task<RefactorOperationResult> ReorderFieldsWithPropfullPropertiesAsync(
+        this Document document,
+        Solution solution)
+    {
+        ////document = await Formatter.FormatAsync(document);
+        var documentEditor = await DocumentEditor.CreateAsync(document);
+        var root = documentEditor.GetDocumentEditorRoot();
+        var semanticModel = await document.GetSemanticModelAsync();
+
+        var typeDeclarations = root.DescendantNodes().OfType<TypeDeclarationSyntax>()
+            .Reverse()
+            .ToList();
+        foreach (var typeDeclaration in typeDeclarations)
+        {
+            var fieldDeclarations = typeDeclaration.ChildNodes().OfType<FieldDeclarationSyntax>()
+                .Reverse()
+                .ToList();
+            foreach (var fieldDeclaration in fieldDeclarations)
+            {
+                var variableDeclarator = fieldDeclaration.DescendantNodes().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+                var symbol = semanticModel.GetDeclaredSymbol(variableDeclarator);
+                var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
+                foreach (var reference in references)
+                {
+                    foreach (var location in reference.Locations)
+                    {
+                        var documentRoot = await location.Document.GetSyntaxRootAsync();
+                        var referencedNode = documentRoot.FindNode(location.Location.SourceSpan);
+                        var propertyDeclaration = referencedNode.Ancestors()
+                            .OfType<PropertyDeclarationSyntax>()
+                            .FirstOrDefault();
+
+                        var fieldName = fieldDeclaration.GetName();
+                        var propertyName = propertyDeclaration.GetName();
+
+                        if (fieldName.ToPascalCase() != propertyName)
+                        {
+                            continue;
+                        }
+
+                        var isReferencedFromProperty = propertyDeclaration != null;
+                        if (isReferencedFromProperty)
+                        {
+                            var indentationTrivias = propertyDeclaration.GetLeadingTrivia()
+                                .Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia))
+                                .ToList();
+                            documentEditor.InsertBefore(
+                                propertyDeclaration,
+                                fieldDeclaration
+                                    .WithLeadingTrivia(
+                                        SyntaxFactory.TriviaList()
+                                            .Add(SyntaxTriviaHelper.GetEndOfLine())
+                                            .AddRange(indentationTrivias)
+                                    )
+                                    .WithoutTrailingTrivia()
+                            );
+                            documentEditor.RemoveNode(fieldDeclaration);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        document = documentEditor.GetChangedDocument();
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
+    }
+
+    public static async Task<RefactorOperationResult> StartTypeInferenceRewriterAsync(
         this Document document,
         Solution solution)
     {
@@ -45,44 +163,14 @@ public static class DocumentExtensions
                 semanticModel
             ).Visit(root)
         );
-        return (document, document.Project.Solution);
-    }
-
-    public static async Task<(Document, Solution)> StartReadonlyModifierFieldRewriterAsync(
-        this Document document,
-        Solution solution)
-    {
-        ////document = await Formatter.FormatAsync(document);
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        document = document.WithSyntaxRoot(
-            new ReadonlyModifierFieldRewriter(
-                document.Project.Solution,
-                semanticModel
-            ).Visit(root)
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
         );
-        return (document, document.Project.Solution);
     }
 
-    public static async Task<(Document, Solution)> StartSealedModifierClassRewriterAsync(
-        this Document document,
-        Solution solution)
-    {
-        ////document = await Formatter.FormatAsync(document);
-        var allTypeDeclarations = await GetAllTypeDeclarations(document);
-        var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
-        document = document.WithSyntaxRoot(
-            new SealedModifierClassRewriter(
-                document.Project.Solution,
-                semanticModel,
-                allTypeDeclarations
-            ).Visit(root)
-        );
-        return (document, document.Project.Solution);
-    }
-
-    public static async Task<(Document, Solution)> StartUsingDirectiveSorterAsync(
+    public static async Task<RefactorOperationResult> StartUsingDirectiveSorterAsync(
         this Document document,
         Solution solution)
     {
@@ -95,10 +183,14 @@ public static class DocumentExtensions
         );
         compilationUnit = compilationUnit.WithUsings(sortedUsingDirectives);
         document = document.WithSyntaxRoot(compilationUnit);
-        return (document, document.Project.Solution);
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartDuplicatedUsingDirectiveRemoverAsync(
+    public static async Task<RefactorOperationResult> StartDuplicatedUsingDirectiveRemoverAsync(
         this Document document,
         Solution solution)
     {
@@ -122,10 +214,14 @@ public static class DocumentExtensions
         }
 
         document = documentEditor.GetChangedDocument();
-        return (document, document.Project.Solution);
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartEmptyLinesBracesRemoverAsync(
+    public static async Task<RefactorOperationResult> StartEmptyLinesBracesRemoverAsync(
         this Document document,
         Solution solution)
     {
@@ -194,10 +290,14 @@ public static class DocumentExtensions
         } while (isUpdated);
 
         document = documentEditor.GetChangedDocument();
-        return (document, document.Project.Solution);
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartDuplicatedEmptyLinesRemoverAsync(
+    public static async Task<RefactorOperationResult> StartDuplicatedEmptyLinesRemoverAsync(
         this Document document,
         Solution solution)
     {
@@ -207,16 +307,24 @@ public static class DocumentExtensions
             new DuplicatedEmptyLinesRemover(
             ).Visit(root)
         );
-        return (document, document.Project.Solution);
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartRegionInserterAsync(
+    public static async Task<RefactorOperationResult> StartRegionInserterAsync(
         this Document document,
         Solution solution)
     {
         if (document.SkipProgramEntryPoint())
         {
-            return (document, document.Project.Solution);
+            return new RefactorOperationResult(
+                document,
+                document.Project,
+                document.Project.Solution
+            );
         }
 
         ////document = await Formatter.FormatAsync(document);
@@ -227,7 +335,11 @@ public static class DocumentExtensions
 
         if (!declarations.Any())
         {
-            return (document, document.Project.Solution);
+            return new RefactorOperationResult(
+                document,
+                document.Project,
+                document.Project.Solution
+            );
         }
 
         var firstDeclaration = declarations.First();
@@ -271,10 +383,14 @@ public static class DocumentExtensions
         }
 
         document = documentEditor.GetChangedDocument();
-        return (document, document.Project.Solution);
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartMethodDeclarationParameterLineBreakerAsync(
+    public static async Task<RefactorOperationResult> StartMethodDeclarationParameterLineBreakerAsync(
         this Document document,
         Solution solution)
     {
@@ -284,10 +400,14 @@ public static class DocumentExtensions
             new MethodDeclarationParameterLineBreaker(
             ).Visit(root)
         );
-        return (document, document.Project.Solution);
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartInvocationExpressionArgumentLineBreakerAsync(
+    public static async Task<RefactorOperationResult> StartInvocationExpressionArgumentLineBreakerAsync(
         this Document document,
         Solution solution)
     {
@@ -297,10 +417,14 @@ public static class DocumentExtensions
             new InvocationExpressionArgumentLineBreaker(
             ).Visit(root)
         );
-        return (document, document.Project.Solution);
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartFieldRenamerAsync(
+    public static async Task<RefactorOperationResult> StartFieldRenamerAsync(
         this Document document,
         Solution solution)
     {
@@ -350,15 +474,18 @@ public static class DocumentExtensions
                         name,
                         newName
                     );
-                    document = solution.GetProject(document.Project.Id).GetDocument(document.Id);
                 }
             }
         }
 
-        return (document, solution);
+        return new RefactorOperationResult(
+            solution.GetProject(document.Project.Id).GetDocument(document.Id),
+            solution.GetProject(document.Project.Id),
+            solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartEventFieldRenamerAsync(
+    public static async Task<RefactorOperationResult> StartEventFieldRenamerAsync(
         this Document document,
         Solution solution)
     {
@@ -385,20 +512,27 @@ public static class DocumentExtensions
                     name,
                     newName
                 );
-                document = solution.GetProject(document.Project.Id).GetDocument(document.Id);
             }
         }
 
-        return (document, solution);
+        return new RefactorOperationResult(
+            solution.GetProject(document.Project.Id).GetDocument(document.Id),
+            solution.GetProject(document.Project.Id),
+            solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartPropertyRenamerAsync(
+    public static async Task<RefactorOperationResult> StartPropertyRenamerAsync(
         this Document document,
         Solution solution)
     {
         if (document.Name.Contains("ViewModel"))
         {
-            return (document, solution);
+            return new RefactorOperationResult(
+                document,
+                document.Project,
+                solution
+            );
         }
 
         ////document = await Formatter.FormatAsync(document);
@@ -422,13 +556,16 @@ public static class DocumentExtensions
                 name,
                 newName
             );
-            document = solution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return (document, solution);
+        return new RefactorOperationResult(
+            solution.GetProject(document.Project.Id).GetDocument(document.Id),
+            solution.GetProject(document.Project.Id),
+            solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartMethodRenamerAsync(
+    public static async Task<RefactorOperationResult> StartMethodRenamerAsync(
         this Document document,
         Solution solution)
     {
@@ -453,13 +590,16 @@ public static class DocumentExtensions
                 name,
                 newName
             );
-            document = solution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return (document, solution);
+        return new RefactorOperationResult(
+            solution.GetProject(document.Project.Id).GetDocument(document.Id),
+            solution.GetProject(document.Project.Id),
+            solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartLocalVariableRenamerAsync(
+    public static async Task<RefactorOperationResult> StartLocalVariableRenamerAsync(
         this Document document,
         Solution solution)
     {
@@ -485,14 +625,17 @@ public static class DocumentExtensions
                     symbol.Name,
                     newName
                 );
-                document = solution.GetProject(document.Project.Id).GetDocument(document.Id);
             }
         }
 
-        return (document, solution);
+        return new RefactorOperationResult(
+            solution.GetProject(document.Project.Id).GetDocument(document.Id),
+            solution.GetProject(document.Project.Id),
+            solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartParameterRenamerAsync(
+    public static async Task<RefactorOperationResult> StartParameterRenamerAsync(
         this Document document,
         Solution solution)
     {
@@ -518,13 +661,16 @@ public static class DocumentExtensions
                 symbol.Name,
                 newName
             );
-            document = solution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return (document, solution);
+        return new RefactorOperationResult(
+            solution.GetProject(document.Project.Id).GetDocument(document.Id),
+            solution.GetProject(document.Project.Id),
+            solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartUnusedMethodParameterRenamerAsync(
+    public static async Task<RefactorOperationResult> StartUnusedMethodParameterRenamerAsync(
         this Document document,
         Solution solution)
     {
@@ -559,19 +705,26 @@ public static class DocumentExtensions
             solution = await RenameParameterNameIfUnreferencedAsync(solution, semanticModel, senderParameter, "_");
             var argsParameter = parameters[1];
             solution = await RenameParameterNameIfUnreferencedAsync(solution, semanticModel, argsParameter, "__");
-            document = solution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return (document, solution);
+        return new RefactorOperationResult(
+            solution.GetProject(document.Project.Id).GetDocument(document.Id),
+            solution.GetProject(document.Project.Id),
+            solution
+        );
     }
 
-    public static async Task<(Document, Solution)> StartAsyncMethodRenamerAsync(
+    public static async Task<RefactorOperationResult> StartAsyncMethodRenamerAsync(
         this Document document,
         Solution solution)
     {
         if (document.SkipProgramEntryPoint())
         {
-            return (document, solution);
+            return new RefactorOperationResult(
+                document,
+                document.Project,
+                solution
+            );
         }
 
         ////document = await Formatter.FormatAsync(document);
@@ -605,77 +758,11 @@ public static class DocumentExtensions
             document = solution.GetProject(document.Project.Id).GetDocument(document.Id);
         }
 
-        return (document, solution);
-    }
-
-    public static async Task<(Document, Solution)> ReorderFieldsWithPropfullPropertiesAsync(
-        this Document document,
-        Solution solution)
-    {
-        ////document = await Formatter.FormatAsync(document);
-        var documentEditor = await DocumentEditor.CreateAsync(document);
-        var root = documentEditor.GetDocumentEditorRoot();
-        var semanticModel = await document.GetSemanticModelAsync();
-
-        var typeDeclarations = root.DescendantNodes().OfType<TypeDeclarationSyntax>()
-            .Reverse()
-            .ToList();
-        foreach (var typeDeclaration in typeDeclarations)
-        {
-            var fieldDeclarations = typeDeclaration.ChildNodes().OfType<FieldDeclarationSyntax>()
-                .Reverse()
-                .ToList();
-            foreach (var fieldDeclaration in fieldDeclarations)
-            {
-                var variableDeclarator = fieldDeclaration.DescendantNodes().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
-                var symbol = semanticModel.GetDeclaredSymbol(variableDeclarator);
-                var references = await SymbolFinder.FindReferencesAsync(symbol, solution);
-                foreach (var reference in references)
-                {
-                    foreach (var location in reference.Locations)
-                    {
-                        var documentRoot = await location.Document.GetSyntaxRootAsync();
-                        var referencedNode = documentRoot.FindNode(location.Location.SourceSpan);
-                        var propertyDeclaration = referencedNode.Ancestors()
-                            .OfType<PropertyDeclarationSyntax>()
-                            .FirstOrDefault();
-
-                        var fieldName = fieldDeclaration.GetName();
-                        var propertyName = propertyDeclaration.GetName();
-
-                        if (fieldName.ToPascalCase() != propertyName)
-                        {
-                            continue;
-                        }
-
-                        var isReferencedFromProperty = propertyDeclaration != null;
-                        if (isReferencedFromProperty)
-                        {
-                            var indentationTrivias = propertyDeclaration.GetLeadingTrivia()
-                                .Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia))
-                                .ToList();
-                            documentEditor.InsertBefore(
-                                propertyDeclaration,
-                                fieldDeclaration
-                                    .WithLeadingTrivia(
-                                        SyntaxFactory.TriviaList()
-                                            .Add(SyntaxTriviaHelper.GetEndOfLine())
-                                            .AddRange(indentationTrivias)
-                                    )
-                                    .WithoutTrailingTrivia()
-                            );
-                            documentEditor.RemoveNode(fieldDeclaration);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        document = documentEditor.GetChangedDocument();
-        solution = document.Project.Solution;
-
-        return (document, solution);
+        return new RefactorOperationResult(
+            solution.GetProject(document.Project.Id).GetDocument(document.Id),
+            solution.GetProject(document.Project.Id),
+            solution
+        );
     }
 
     public static bool IsAutoGenerated(
@@ -974,4 +1061,23 @@ public static class DocumentExtensions
     }
 
     #endregion
+}
+
+public sealed class RefactorOperationResult
+{
+    public Document Document { get; }
+
+    public Project Project { get; }
+
+    public Solution Solution { get; }
+
+    public RefactorOperationResult(
+        Document document,
+        Project project,
+        Solution solution)
+    {
+        Document = document;
+        Project = project;
+        Solution = solution;
+    }
 }
