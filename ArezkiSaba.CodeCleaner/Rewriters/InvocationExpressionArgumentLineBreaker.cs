@@ -23,7 +23,7 @@ public sealed class InvocationExpressionArgumentLineBreaker : CSharpSyntaxRewrit
             return token;
         }
 
-        var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 70;
+        var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
         var isOpeningParentheseForMethodParameters =
             token.IsKind(SyntaxKind.OpenParenToken) &&
             (token.Parent?.IsKind(SyntaxKind.ArgumentList) ?? false) &&

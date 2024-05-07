@@ -12,7 +12,7 @@ public static class InvocationExpressionExtensions
             return 0;
         }
 
-        var text = invocationExpression.GetText().ToString();
+        var text = invocationExpression.GetText().ToString().Replace(Environment.NewLine, string.Empty);
         return text.Length;
     }
 }

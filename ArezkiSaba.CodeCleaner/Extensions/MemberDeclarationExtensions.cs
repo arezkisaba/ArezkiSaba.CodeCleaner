@@ -42,6 +42,7 @@ public static class MemberDeclarationExtensions
             }).ToList();
             var newParametersList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
             newParametersList = newParametersList.WithOpenParenToken(newParametersList.OpenParenToken.WithoutTrivia());
+            newParametersList = newParametersList.WithCloseParenToken(newParametersList.CloseParenToken.WithoutTrivia());
             return newParametersList;
         });
 
@@ -54,6 +55,7 @@ public static class MemberDeclarationExtensions
             }).ToList();
             var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
             newArgumentList = newArgumentList.WithOpenParenToken(newArgumentList.OpenParenToken.WithoutTrivia());
+            newArgumentList = newArgumentList.WithCloseParenToken(newArgumentList.CloseParenToken.WithoutTrivia());
             return newArgumentList;
         });
 
