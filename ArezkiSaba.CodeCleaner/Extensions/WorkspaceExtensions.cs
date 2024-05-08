@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ArezkiSaba.CodeCleaner.Models;
+using Microsoft.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -28,7 +29,7 @@ public static class WorkspaceExtensions
         funcs.Add(((document, solution) => document.StartParameterRenamerAsync(solution), (project) => Task.FromResult(true)));
         funcs.Add(((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution), (project) => Task.FromResult(true)));
         funcs.Add(((document, solution) => document.StartAsyncMethodRenamerAsync(solution), (project) => Task.FromResult(true)));
-        funcs.Add(((document, solution) => document.FormatAsync(solution), (project) => Task.FromResult(true)));
+        ////funcs.Add(((document, solution) => document.FormatAsync(solution), (project) => Task.FromResult(true)));
 
         var currentSolution = workspace.CurrentSolution;
         foreach (var projectId in workspace.CurrentSolution.ProjectIds)

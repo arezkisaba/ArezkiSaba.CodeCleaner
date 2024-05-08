@@ -38,11 +38,16 @@ public static class MemberDeclarationExtensions
         {
             var newParameters = parameterList.Parameters.Select((parameter, index) =>
             {
-                return parameter.WithoutLeadingTrivia().WithoutTrailingTrivia();
+                if (index == 0)
+                {
+                    return parameter.WithoutLeadingTrivia().WithoutTrailingTrivia();
+                }
+
+                return parameter.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace()).WithoutTrailingTrivia();
             }).ToList();
             var newParametersList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
             newParametersList = newParametersList.WithOpenParenToken(newParametersList.OpenParenToken.WithoutTrivia());
-            newParametersList = newParametersList.WithCloseParenToken(newParametersList.CloseParenToken.WithoutTrivia());
+            newParametersList = newParametersList.WithCloseParenToken(newParametersList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
             return newParametersList;
         });
 
@@ -51,7 +56,12 @@ public static class MemberDeclarationExtensions
         {
             var newArguments = argumentList.Arguments.Select((argument, index) =>
             {
-                return argument.WithoutLeadingTrivia().WithoutTrailingTrivia();
+                if (index == 0)
+                {
+                    return argument.WithoutLeadingTrivia().WithoutTrailingTrivia();
+                }
+
+                return argument.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace()).WithoutTrailingTrivia();
             }).ToList();
             var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
             newArgumentList = newArgumentList.WithOpenParenToken(newArgumentList.OpenParenToken.WithoutTrivia());
