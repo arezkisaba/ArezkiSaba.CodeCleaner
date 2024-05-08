@@ -412,7 +412,7 @@ public static class DocumentExtensions
                 continue;
             }
 
-            ////var needLineBreak = methodDeclaration.GetInvocationExpressionLength() > 100;
+            var needLineBreak = true;
             var parametersList = methodDeclaration.ParameterList;
             if (!parametersList.Parameters.Any())
             {
@@ -423,12 +423,14 @@ public static class DocumentExtensions
             for (var i = 0; i < parametersList.Parameters.Count; i++)
             {
                 var parameter = parametersList.Parameters[i];
-
-                parameter = parameter.WithLeadingTrivia(
-                    SyntaxTriviaHelper.GetEndOfLine(),
-                    baseLeadingTrivia,
-                    SyntaxTriviaHelper.GetTab()
-                );
+                if (needLineBreak)
+                {
+                    parameter = parameter.WithLeadingTrivia(
+                        SyntaxTriviaHelper.GetEndOfLine(),
+                        baseLeadingTrivia,
+                        SyntaxTriviaHelper.GetTab()
+                    );
+                }
 
                 newParameters.Add(parameter);
             }
@@ -490,7 +492,6 @@ public static class DocumentExtensions
                     for (var i = 0; i < argumentList.Arguments.Count; i++)
                     {
                         var argument = argumentList.Arguments[i];
-
                         if (needLineBreak)
                         {
                             argument = argument.WithLeadingTrivia(
