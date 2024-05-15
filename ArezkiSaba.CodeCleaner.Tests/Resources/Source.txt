@@ -176,4 +176,11 @@ public class TestClass1<T>
 
 public class TestClass2 : TestClass1<int>
 {
+    private TestClass2(int variable1, int variable2) : base()
+    {
+    }
+
+    public TestClass2(int variable1, int variable2) : this(variable1, variable2)
+    {
+    }
 }

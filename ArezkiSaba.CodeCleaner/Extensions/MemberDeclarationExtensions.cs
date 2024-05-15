@@ -26,7 +26,7 @@ public static class MemberDeclarationExtensions
         }
     }
 
-    public static MemberDeclarationSyntax RemoveAllTriviasFromParametersAndArguments(
+    public static MemberDeclarationSyntax FormatByDefault(
         this MemberDeclarationSyntax declaration)
     {
         var newDeclaration = declaration;
@@ -45,7 +45,26 @@ public static class MemberDeclarationExtensions
             }).ToList();
             var newParametersList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
             newParametersList = newParametersList.WithOpenParenToken(newParametersList.OpenParenToken.WithoutTrivia());
-            newParametersList = newParametersList.WithCloseParenToken(newParametersList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+
+            if (newDeclaration.HasBaseOrThisInitializer())
+            {
+                newParametersList = newParametersList.WithCloseParenToken(
+                    newParametersList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia(
+                        SyntaxFactory.TriviaList(
+                            SyntaxTriviaHelper.GetEndOfLine(),
+                            newDeclaration.FindFirstLeadingTrivia().Value,
+                            SyntaxTriviaHelper.GetTab()
+                        )
+                    )
+                );
+            }
+            else
+            {
+                newParametersList = newParametersList.WithCloseParenToken(
+                    newParametersList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine())
+                );
+            }
+
             return newParametersList;
         });
 
@@ -63,7 +82,21 @@ public static class MemberDeclarationExtensions
             }).ToList();
             var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
             newArgumentList = newArgumentList.WithOpenParenToken(newArgumentList.OpenParenToken.WithoutTrivia());
-            newArgumentList = newArgumentList.WithCloseParenToken(newArgumentList.CloseParenToken.WithoutTrivia());
+
+            if (argumentList.Parent.IsKind(SyntaxKind.BaseConstructorInitializer)
+            || argumentList.Parent.IsKind(SyntaxKind.ThisConstructorInitializer))
+            {
+                newArgumentList = newArgumentList.WithCloseParenToken(
+                    newArgumentList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine())
+                );
+            }
+            else
+            {
+                newArgumentList = newArgumentList.WithCloseParenToken(
+                    newArgumentList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia()
+                );
+            }
+
             return newArgumentList;
         });
 
