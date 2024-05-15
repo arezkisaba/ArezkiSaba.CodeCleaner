@@ -155,7 +155,7 @@ public class TestClass1<T>
 
 
     private bool nonReadonlyBooleanField;
-
+    
     public static TestClass1 SomePublicFactoryMethod()
     {
 
@@ -171,7 +171,15 @@ public class TestClass1<T>
 
     private bool _canDoSomething;
 
+    #region Private use
 
+    private static void SomePrivateStaticMethod2()
+    {
+
+
+    }
+
+    #endregion
 }
 
 public class TestClass2 : TestClass1<int>

@@ -3,6 +3,7 @@ using ArezkiSaba.CodeCleaner.Rewriters;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -12,6 +13,33 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class DocumentExtensions
 {
+    public static async Task<RefactorOperationResult> StartRegionRemoverAsync(
+        this Document document,
+        Solution solution)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        var documentEditor = DocumentEditor.CreateAsync(document).Result;
+        var trivias = root.DescendantTrivia()
+            .Where(trivia => trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)).ToList();
+
+        foreach (var trivia in trivias)
+        {
+            var parent = trivia.Token.Parent;
+            var newParent = parent.WithoutLeadingTrivia();
+            var leadingTrivias = parent.GetLeadingTrivia().Where(obj => !obj.IsKind(SyntaxKind.RegionDirectiveTrivia) && !obj.IsKind(SyntaxKind.EndRegionDirectiveTrivia)).ToList();
+            documentEditor.ReplaceNode(parent, newParent);
+            parent = newParent;
+        }
+
+        document = documentEditor.GetChangedDocument();
+
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
+    }
+
     public static async Task<RefactorOperationResult> StartReadonlyModifierFieldRewriterAsync(
         this Document document,
         Solution solution)
@@ -215,6 +243,22 @@ public static class DocumentExtensions
         );
     }
 
+    public static async Task<RefactorOperationResult> StartDuplicatedEmptyLinesRemoverAsync(
+        this Document document,
+        Solution solution)
+    {
+        var root = await document.GetSyntaxRootAsync();
+        document = document.WithSyntaxRoot(
+            new DuplicatedEmptyLinesRemover(
+            ).Visit(root)
+        );
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
+    }
+
     public static async Task<RefactorOperationResult> StartEmptyLinesBracesRemoverAsync(
         this Document document,
         Solution solution)
@@ -237,8 +281,8 @@ public static class DocumentExtensions
                 if (token.IsKind(SyntaxKind.OpenBraceToken))
                 {
                     var targetToken = tokens[i + 1];
-                    var leadingTrivia = targetToken.LeadingTrivia.Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
-                    var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivia);
+                    var leadingTrivias = targetToken.LeadingTrivia.Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+                    var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivias);
                     var node = targetToken.Parent;
                     var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
 
@@ -267,8 +311,17 @@ public static class DocumentExtensions
                 if (token.IsKind(SyntaxKind.CloseBraceToken))
                 {
                     var targetToken = token;
-                    var leadingTrivia = targetToken.LeadingTrivia.Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
-                    var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivia);
+                    var leadingTrivias = new List<SyntaxTrivia>();
+                    for (var j = 0; j < targetToken.LeadingTrivia.Count; j++)
+                    {
+                        var leadingTrivia = targetToken.LeadingTrivia[j];
+                        if (j > 0 && !leadingTrivia.IsKind(SyntaxKind.EndOfLineTrivia) && !leadingTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                        {
+                            leadingTrivias.Add(leadingTrivia);
+                        }
+                    }
+                    
+                    var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivias);
                     var node = targetToken.Parent;
                     var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
 
@@ -284,22 +337,6 @@ public static class DocumentExtensions
         } while (isUpdated);
 
         document = documentEditor.GetChangedDocument();
-        return new RefactorOperationResult(
-            document,
-            document.Project,
-            document.Project.Solution
-        );
-    }
-
-    public static async Task<RefactorOperationResult> StartDuplicatedEmptyLinesRemoverAsync(
-        this Document document,
-        Solution solution)
-    {
-        var root = await document.GetSyntaxRootAsync();
-        document = document.WithSyntaxRoot(
-            new DuplicatedEmptyLinesRemover(
-            ).Visit(root)
-        );
         return new RefactorOperationResult(
             document,
             document.Project,
@@ -974,16 +1011,23 @@ public static class DocumentExtensions
         var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
         foreach (var declarationToExtract in declarationsToExtract)
         {
+            var tab = SyntaxTriviaHelper.GetTab();
+            if (baseLeadingTrivia.Value.FullSpan.Length == 1 || baseLeadingTrivia.Value.FullSpan.Length == 5)
+            {
+                baseLeadingTrivia = tab;
+            }
+
             orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, baseLeadingTrivia.Value));
         }
 
-        return typeDeclarationRoot.WithMembers(new SyntaxList<MemberDeclarationSyntax>(orderedMemberDeclarations));
+        return typeDeclarationRoot
+            .WithMembers(new SyntaxList<MemberDeclarationSyntax>(orderedMemberDeclarations));
     }
 
     private static List<MemberDeclarationSyntax> GetMemberDeclarations(
         List<MemberDeclarationSyntax> memberDeclarations,
         SyntaxKind syntaxKind,
-        SyntaxTrivia indentationTrivia)
+        SyntaxTrivia baseLeadingTrivia)
     {
         var sortedemberDeclarations = memberDeclarations
             .Where(obj => obj.IsKind(syntaxKind))
@@ -992,15 +1036,20 @@ public static class DocumentExtensions
             .Select((obj, i) =>
             {
                 var leadingTrivias = new List<SyntaxTrivia>();
+
+                var existingLeadingTriviasToInclude = obj.GetLeadingTrivia().Where(
+                    obj => obj.IsKind(SyntaxKind.RegionDirectiveTrivia) || obj.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
+                ).ToList();
+                if (existingLeadingTriviasToInclude.Any())
+                {
+                    existingLeadingTriviasToInclude.Insert(0, SyntaxTriviaHelper.GetEndOfLine());
+                    existingLeadingTriviasToInclude.Insert(1, baseLeadingTrivia);
+                    leadingTrivias.AddRange(existingLeadingTriviasToInclude);
+                }
+
                 if (i == 0 || (syntaxKind != SyntaxKind.FieldDeclaration && syntaxKind != SyntaxKind.EventFieldDeclaration))
                 {
                     leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
-                }
-
-                var tab = SyntaxTriviaHelper.GetTab();
-                if (indentationTrivia.FullSpan.Length % tab.FullSpan.Length == 0)
-                {
-                    leadingTrivias.Add(indentationTrivia);
                 }
 
                 leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
@@ -1011,9 +1060,7 @@ public static class DocumentExtensions
                         SyntaxFactory.TriviaList(leadingTrivias)
                     )
                     .WithTrailingTrivia(
-                        SyntaxFactory.TriviaList(
-                            SyntaxTriviaHelper.GetEndOfLine()
-                        )
+                        SyntaxTriviaHelper.GetEndOfLine()
                     );
             });
         return sortedemberDeclarations.ToList();
