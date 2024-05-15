@@ -34,72 +34,97 @@ public static class MemberDeclarationExtensions
         var parameterLists = newDeclaration.DescendantNodes().OfType<ParameterListSyntax>().ToList();
         newDeclaration = newDeclaration.ReplaceNodes(parameterLists, (parameterList, __) =>
         {
-            var newParameters = parameterList.Parameters.Select((parameter, index) =>
-            {
-                if (index == 0)
-                {
-                    return parameter.WithoutLeadingTrivia().WithoutTrailingTrivia();
-                }
-
-                return parameter.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace()).WithoutTrailingTrivia();
-            }).ToList();
-            var newParametersList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
-            newParametersList = newParametersList.WithOpenParenToken(newParametersList.OpenParenToken.WithoutTrivia());
-
-            if (newDeclaration.HasBaseOrThisInitializer())
-            {
-                newParametersList = newParametersList.WithCloseParenToken(
-                    newParametersList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia(
-                        SyntaxFactory.TriviaList(
-                            SyntaxTriviaHelper.GetEndOfLine(),
-                            newDeclaration.FindFirstLeadingTrivia().Value,
-                            SyntaxTriviaHelper.GetTab()
-                        )
-                    )
-                );
-            }
-            else
-            {
-                newParametersList = newParametersList.WithCloseParenToken(
-                    newParametersList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine())
-                );
-            }
-
-            return newParametersList;
+            return FormatParametersByDefault(newDeclaration, parameterList);
         });
 
         var argumentLists = newDeclaration.DescendantNodes().OfType<ArgumentListSyntax>().ToList();
         newDeclaration = newDeclaration.ReplaceNodes(argumentLists, (argumentList, __) =>
         {
-            var newArguments = argumentList.Arguments.Select((argument, index) =>
-            {
-                if (index == 0)
-                {
-                    return argument.WithoutLeadingTrivia().WithoutTrailingTrivia();
-                }
+            return FormatArgumentsByDefault(argumentList);
+        });
 
-                return argument.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace()).WithoutTrailingTrivia();
-            }).ToList();
-            var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
-            newArgumentList = newArgumentList.WithOpenParenToken(newArgumentList.OpenParenToken.WithoutTrivia());
-
-            if (argumentList.Parent.IsKind(SyntaxKind.BaseConstructorInitializer)
-            || argumentList.Parent.IsKind(SyntaxKind.ThisConstructorInitializer))
-            {
-                newArgumentList = newArgumentList.WithCloseParenToken(
-                    newArgumentList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine())
-                );
-            }
-            else
-            {
-                newArgumentList = newArgumentList.WithCloseParenToken(
-                    newArgumentList.CloseParenToken.WithLeadingTrivia().WithTrailingTrivia()
-                );
-            }
-
-            return newArgumentList;
+        var constructorInitializers = newDeclaration.DescendantNodes().OfType<ConstructorInitializerSyntax>().ToList();
+        newDeclaration = newDeclaration.ReplaceNodes(constructorInitializers, (constructorInitializer, __) =>
+        {
+            return constructorInitializer.WithColonToken(constructorInitializer.ColonToken.WithoutLeadingTrivias());
         });
 
         return newDeclaration;
     }
+
+    #region Private use
+
+    private static SyntaxNode FormatParametersByDefault(
+        MemberDeclarationSyntax newDeclaration,
+        ParameterListSyntax parameterList)
+    {
+        var newParameters = parameterList.Parameters.Select((parameter, index) =>
+        {
+            if (index == 0)
+            {
+                return parameter.WithoutLeadingTrivia().WithoutTrailingTrivia();
+            }
+
+            return parameter.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace()).WithoutTrailingTrivia();
+        }).ToList();
+        var newParametersList = parameterList.WithParameters(SyntaxFactory.SeparatedList(newParameters));
+        newParametersList = newParametersList.WithOpenParenToken(newParametersList.OpenParenToken.WithoutTrivia());
+
+        if (newDeclaration.HasBaseOrThisInitializer())
+        {
+            newParametersList = newParametersList.WithCloseParenToken(
+                newParametersList.CloseParenToken.WithoutLeadingTrivias().WithTrailingTrivia(
+                    SyntaxFactory.TriviaList(
+                        SyntaxTriviaHelper.GetEndOfLine(),
+                        newDeclaration.FindFirstLeadingTrivia().Value,
+                        SyntaxTriviaHelper.GetTab()
+                    )
+                )
+            );
+        }
+        else
+        {
+            newParametersList = newParametersList.WithCloseParenToken(
+                newParametersList.CloseParenToken.WithoutLeadingTrivias().WithTrailingTrivia(
+                    SyntaxTriviaHelper.GetEndOfLine()
+                )
+            );
+        }
+
+        return newParametersList;
+    }
+
+    private static SyntaxNode FormatArgumentsByDefault(
+        ArgumentListSyntax argumentList)
+    {
+        var newArguments = argumentList.Arguments.Select((argument, index) =>
+        {
+            if (index == 0)
+            {
+                return argument.WithoutLeadingTrivia().WithoutTrailingTrivia();
+            }
+
+            return argument.WithLeadingTrivia(SyntaxTriviaHelper.GetWhitespace()).WithoutTrailingTrivia();
+        }).ToList();
+        var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
+        newArgumentList = newArgumentList.WithOpenParenToken(newArgumentList.OpenParenToken.WithoutTrivia());
+
+        if (argumentList.Parent.IsKind(SyntaxKind.BaseConstructorInitializer)
+        || argumentList.Parent.IsKind(SyntaxKind.ThisConstructorInitializer))
+        {
+            newArgumentList = newArgumentList.WithCloseParenToken(
+                newArgumentList.CloseParenToken.WithoutLeadingTrivias().WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine())
+            );
+        }
+        else
+        {
+            newArgumentList = newArgumentList.WithCloseParenToken(
+                newArgumentList.CloseParenToken.WithoutTrivias()
+            );
+        }
+
+        return newArgumentList;
+    }
+
+    #endregion
 }

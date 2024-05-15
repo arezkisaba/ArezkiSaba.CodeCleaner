@@ -180,7 +180,8 @@ public class TestClass2 : TestClass1<int>
     {
     }
 
-    public TestClass2(int variable1, int variable2) : this(variable1, variable2)
+    public TestClass2(int variable1, int variable2)
+        : this(variable1, variable2)
     {
     }
 }
