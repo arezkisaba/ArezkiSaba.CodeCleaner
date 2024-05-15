@@ -17,7 +17,7 @@ public static class Program
             ////targetLocation = @"C:\git\ArezkiSaba.CodeCleaner\ArezkiSaba.CodeCleaner.SampleProject.sln";
 #else
             Console.Write("Please enter target folder : ");
-            sourceCodeLocation = Console.ReadLine();
+            targetLocation = Console.ReadLine();
 #endif
         }
 
