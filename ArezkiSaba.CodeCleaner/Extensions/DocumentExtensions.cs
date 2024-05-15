@@ -474,50 +474,7 @@ public static class DocumentExtensions
                 var invocationExpressions = expressionStatement.ChildNodes().OfType<InvocationExpressionSyntax>().ToList();
                 foreach (var invocationExpression in invocationExpressions)
                 {
-                    var baseLeadingTrivia = invocationExpression.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
-                    var hasExcludedType = invocationExpression.DescendantNodes()
-                        .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
-                    if (hasExcludedType)
-                    {
-                        continue;
-                    }
-
-                    var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
-                    var argumentList = invocationExpression.ArgumentList;
-                    if (!argumentList.Arguments.Any())
-                    {
-                        continue;
-                    }
-
-                    var newArguments = new List<ArgumentSyntax>();
-                    for (var i = 0; i < argumentList.Arguments.Count; i++)
-                    {
-                        var argument = argumentList.Arguments[i];
-                        if (needLineBreak)
-                        {
-                            argument = argument.WithLeadingTrivia(
-                                SyntaxTriviaHelper.GetEndOfLine(),
-                                baseLeadingTrivia,
-                                SyntaxTriviaHelper.GetTab()
-                            );
-
-                            if (i == argumentList.Arguments.Count - 1)
-                            {
-                                argument = argument.WithTrailingTrivia(
-                                    SyntaxTriviaHelper.GetEndOfLine(),
-                                    baseLeadingTrivia
-                                );
-                            }
-                        }
-
-                        newArguments.Add(argument);
-                    }
-
-                    var newArgumentList = argumentList.WithArguments(
-                        SyntaxFactory.SeparatedList(newArguments)
-                    );
-                    var newInvocationExpression = invocationExpression.WithArgumentList(newArgumentList);
-                    documentEditor.ReplaceNode(invocationExpression, newInvocationExpression);
+                    HandleInvocationExpression(excludedTypes, documentEditor, invocationExpression);
                 }
             }
         }
@@ -529,6 +486,60 @@ public static class DocumentExtensions
             document.Project,
             document.Project.Solution
         );
+    }
+
+    private static void HandleInvocationExpression(List<Type> excludedTypes, DocumentEditor documentEditor, InvocationExpressionSyntax invocationExpression)
+    {
+        var baseLeadingTrivia = invocationExpression.DescendantTrivia().First(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+        var hasExcludedType = invocationExpression.DescendantNodes()
+            .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
+        if (hasExcludedType)
+        {
+            return;
+        }
+
+        var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
+        var argumentList = invocationExpression.ArgumentList;
+        if (!argumentList.Arguments.Any())
+        {
+            return;
+        }
+
+        var newArguments = new List<ArgumentSyntax>();
+        for (var i = 0; i < argumentList.Arguments.Count; i++)
+        {
+            var argument = argumentList.Arguments[i];
+            var childInvocationExpressions = argument.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+            foreach (var childInvocationExpression in childInvocationExpressions)
+            {
+                HandleInvocationExpression(excludedTypes, documentEditor, childInvocationExpression);
+            }
+
+            if (needLineBreak)
+            {
+                argument = argument.WithLeadingTrivia(
+                    SyntaxTriviaHelper.GetEndOfLine(),
+                    baseLeadingTrivia,
+                    SyntaxTriviaHelper.GetTab()
+                );
+
+                if (i == argumentList.Arguments.Count - 1)
+                {
+                    argument = argument.WithTrailingTrivia(
+                        SyntaxTriviaHelper.GetEndOfLine(),
+                        baseLeadingTrivia
+                    );
+                }
+            }
+
+            newArguments.Add(argument);
+        }
+
+        var newArgumentList = argumentList.WithArguments(
+            SyntaxFactory.SeparatedList(newArguments)
+        );
+        var newInvocationExpression = invocationExpression.WithArgumentList(newArgumentList);
+        documentEditor.ReplaceNode(invocationExpression, newInvocationExpression);
     }
 
     public static async Task<RefactorOperationResult> StartFieldRenamerAsync(
