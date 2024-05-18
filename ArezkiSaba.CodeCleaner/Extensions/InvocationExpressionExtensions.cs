@@ -4,7 +4,7 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class InvocationExpressionExtensions
 {
-    public static int GetInvocationExpressionLength(
+    public static int GetExpressionLength(
         this ExpressionSyntax expression)
     {
         if (expression == null)

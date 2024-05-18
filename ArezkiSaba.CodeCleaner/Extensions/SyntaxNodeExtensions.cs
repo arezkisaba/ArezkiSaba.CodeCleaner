@@ -18,10 +18,16 @@ public static class SyntaxNodeExtensions
         return root.DescendantNodes().OfType<BaseMethodDeclarationSyntax>().ToList();
     }
 
-    public static IList<InvocationExpressionSyntax> FindAllInvocationExpressions(
+    public static IList<ExpressionSyntax> FindAllInvocationAndCreationExpressions(
         this SyntaxNode root)
     {
-        return root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+        return root.DescendantNodes().Where(obj => obj.IsInvocationOrCreationExpression()).Cast<ExpressionSyntax>().ToList();
+    }
+
+    public static bool IsInvocationOrCreationExpression(
+        this SyntaxNode root)
+    {
+        return root.IsKind(SyntaxKind.InvocationExpression) || root.IsKind(SyntaxKind.ObjectCreationExpression);
     }
 
     public static bool HasBaseOrThisInitializer(
