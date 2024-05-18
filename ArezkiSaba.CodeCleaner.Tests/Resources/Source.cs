@@ -208,6 +208,18 @@ public class TestClass2 : TestClass1<int>
     {
         return null;
     }
+
+    public string Method2()
+    {
+        var position = new[]
+        {
+            new SignatureInfoDto(SignatoryTypeDto.Fournisseur, new PositionPdfDto(4, 42, 130, 150, 55)),
+            new SignatureInfoDto(SignatoryTypeDto.TiersDeConfiance, new PositionPdfDto(4, 211, 105, 150, 80)),
+            new SignatureInfoDto(SignatoryTypeDto.Client, new PositionPdfDto(4, 380, 105, 140, 80))
+        };
+
+        return Method1(Method1("2222222222222222222222222222222", new DummyClass("DummyClassParameter1", "DummyClassParameter2", "DummyClassParameter3", "DummyClassParameter4"), "2222222222222222222222222222222", "2222222222222222222222222222222"), new DummyClass("DummyClassParameter1", "DummyClassParameter2", "DummyClassParameter3", "DummyClassParameter4"), Method1("3333333333333333333333333333333", new DummyClass("DummyClassParameter1", "DummyClassParameter2", "DummyClassParameter3" "DummyClassParameter4"), "3333333333333333333333333333333", "3333333333333333333333333333333"), "1111111111111111111111111111111111111");
+    }
 }
 
 private record DummyClass(string parameter1, string parameter2, string parameter3, string parameter4);
