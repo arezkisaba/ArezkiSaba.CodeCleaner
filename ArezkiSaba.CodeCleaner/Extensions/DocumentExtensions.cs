@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Rename;
 using Newtonsoft.Json.Linq;
 using System.Drawing.Text;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Xml.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
@@ -329,7 +330,7 @@ public static class DocumentExtensions
                             leadingTrivias.Add(leadingTrivia);
                         }
                     }
-                    
+
                     var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivias);
                     var node = targetToken.Parent;
                     var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
@@ -500,31 +501,121 @@ public static class DocumentExtensions
             typeof(ParenthesizedLambdaExpressionSyntax)
         };
 
-        var documentEditor = await DocumentEditor.CreateAsync(document);
-        var declarations = documentEditor.GetDocumentEditorRoot().FindAllConstructorAndMethodDeclarations();
-        foreach (var declaration in declarations)
-        {
-            var blockStatement = declaration.ChildNodes().OfType<BlockSyntax>().FirstOrDefault();
-            if (blockStatement == null)
-            {
-                continue;
-            }
 
-            var expressionStatements = blockStatement.DescendantNodes().Where(
-                obj => obj.IsKind(SyntaxKind.ExpressionStatement) || obj.IsKind(SyntaxKind.ReturnStatement)
-            ).ToList();
-            foreach (var expressionStatement in expressionStatements)
+        bool isUpdated;
+        DocumentEditor documentEditor;
+        List<SyntaxToken> tokens = [];
+
+        // After open brace
+
+        do
+        {
+            isUpdated = false;
+            documentEditor = await DocumentEditor.CreateAsync(document);
+            var invocationExpressions = documentEditor.OriginalRoot.FindAllInvocationExpressions();
+
+            foreach (var invocationExpression in invocationExpressions)
             {
-                var expressions = expressionStatement.ChildNodes().OfType<ExpressionSyntax>().Where(
-                    obj => obj.IsKind(SyntaxKind.InvocationExpression) || obj.IsKind(SyntaxKind.ObjectCreationExpression)
-                ).ToList();
-                foreach (var expression in expressions)
+                SyntaxTrivia? baseLeadingTrivia = null;
+
+                var imbricationLevel = 0;
+                var parentInvocationExpression = invocationExpression.Ancestors().OfType<InvocationExpressionSyntax>().FirstOrDefault();
+                if (parentInvocationExpression != null)
                 {
-                    var baseLeadingTrivia = expressionStatement.FindFirstLeadingTrivia();
-                    HandleExpressionForInvocationExpressionArgumentLineBreaker(excludedTypes, documentEditor, expression, baseLeadingTrivia);
+                    var ancestors = invocationExpression.Ancestors().ToList();
+                    foreach (var ancestor in ancestors)
+                    {
+                        if (ancestor.IsKind(SyntaxKind.InvocationExpression))
+                        {
+                            imbricationLevel++;
+                        }
+                        else if (ancestor is StatementSyntax)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                var parentStatement = invocationExpression.Ancestors().OfType<StatementSyntax>().FirstOrDefault();
+                if (parentStatement != null)
+                {
+                    baseLeadingTrivia = parentStatement.FindFirstLeadingTrivia();
+                }
+
+                if (baseLeadingTrivia != null)
+                {
+                    var hasExcludedType = invocationExpression.DescendantNodes()
+                        .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
+                    if (hasExcludedType)
+                    {
+                        continue;
+                    }
+
+                    // InvocationExpressionSyntax, ObjectCreationSyntax, LocalDeclarationSyntax
+
+                    var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
+                    var argumentList = invocationExpression.ArgumentList;
+                    if (argumentList == null || !argumentList.Arguments.Any())
+                    {
+                        continue;
+                    }
+
+                    var newArguments = new List<ArgumentSyntax>();
+                    for (var i = 0; i < argumentList.Arguments.Count; i++)
+                    {
+                        var argument = argumentList.Arguments[i];
+                        if (needLineBreak)
+                        {
+                            var leadingTrivias = new List<SyntaxTrivia>();
+                            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                            if (baseLeadingTrivia != null)
+                            {
+                                leadingTrivias.Add(baseLeadingTrivia.Value);
+                            }
+
+                            for (var j = 0; j < imbricationLevel + 1; j++)
+                            {
+                                leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+                            }
+
+                            argument = argument.WithLeadingTrivia(leadingTrivias);
+
+                            if (i == argumentList.Arguments.Count - 1)
+                            {
+                                var trailingTrivias = new List<SyntaxTrivia>();
+                                trailingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                                if (baseLeadingTrivia != null)
+                                {
+                                    trailingTrivias.Add(baseLeadingTrivia.Value);
+                                }
+
+                                for (var j = 0; j < imbricationLevel; j++)
+                                {
+                                    trailingTrivias.Add(SyntaxTriviaHelper.GetTab());
+                                }
+
+                                argument = argument.WithTrailingTrivia(trailingTrivias);
+                            }
+                        }
+
+                        newArguments.Add(argument);
+                    }
+
+                    var newArgumentList = argumentList.WithArguments(
+                        SyntaxFactory.SeparatedList(newArguments)
+                    );
+
+                    var newInvocationExpression = invocationExpression.WithArgumentList(newArgumentList);
+                    if (invocationExpression.FullSpan.Length != newInvocationExpression.FullSpan.Length)
+                    {
+                        documentEditor.ReplaceNode(invocationExpression, newInvocationExpression);
+                        document = documentEditor.GetChangedDocument();
+                        isUpdated = true;
+                        break;
+                    }
                 }
             }
-        }
+        } while (isUpdated);
 
         document = documentEditor.GetChangedDocument();
         return new RefactorOperationResult(

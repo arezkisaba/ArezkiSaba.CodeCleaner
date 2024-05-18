@@ -188,30 +188,19 @@ public class TestClass2 : TestClass1<int>
             "3"
         };
     }
-
+    
     public TestClass2(int variable1, int variable2)
         : this(variable1, variable2)
     {
-        return new DocumentDto(
-            DocumentClés.MandatSEPA,
-            TypeDeDocumentDto.DocumentOAV,
-            TypeContractuelDto.Contractuel,
-            $"Mandat SEPA - {cleProduit}.pdf",
-            "Mandat SEPA",
-            "Mandat SEPA",
-            "Avant de souscrire, vous devez lire attentivement le mandat SEPA.",
-            "Accepter",
-            "Refuser",
-            true,
-            true,
-            TypeSignatureDocumentDto.SignatureManuelleEtElectronique,
-            new CaseÀCocherDto[] { },
-            new[]
-            {
-                new SignatureInfoDto(SignatoryTypeDto.Fournisseur, new PositionPdfDto(-1, 90, 296, 156, 55)),
-                new SignatureInfoDto(SignatoryTypeDto.TiersDeConfiance, new PositionPdfDto(-1, 260, 276, 156, 80)),
-                new SignatureInfoDto(SignatoryTypeDto.Client, new PositionPdfDto(-1, 428, 276, 156, 80))
-            },
-            hasNuméroUnique: true);
+        var variable1 = Method1(Method1("2222222222222222222222222222222", "2222222222222222222222222222222", "2222222222222222222222222222222", "2222222222222222222222222222222"), "1111111111111111111111111111111111111", Method1("3333333333333333333333333333333", Method1("4444444444444444444444444444444", "4444444444444444444444444444444", "4444444444444444444444444444444", "4444444444444444444444444444444"), "3333333333333333333333333333333", "3333333333333333333333333333333"), "1111111111111111111111111111111111111");
+    }
+
+    public string Method1(
+        string parameter1,
+        string parameter2,
+        string parameter3,
+        string parameter4)
+    {
+        return null;
     }
 }

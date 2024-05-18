@@ -18,6 +18,12 @@ public static class SyntaxNodeExtensions
         return root.DescendantNodes().OfType<BaseMethodDeclarationSyntax>().ToList();
     }
 
+    public static IList<InvocationExpressionSyntax> FindAllInvocationExpressions(
+        this SyntaxNode root)
+    {
+        return root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+    }
+
     public static bool HasBaseOrThisInitializer(
         this SyntaxNode root)
     {
