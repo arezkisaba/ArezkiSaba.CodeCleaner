@@ -16,29 +16,32 @@ public sealed class RegionRemover : CSharpSyntaxRewriter
     public override SyntaxToken VisitToken(
         SyntaxToken token)
     {
+        var regionsDirectives = new List<SyntaxKind>()
+        {
+            SyntaxKind.RegionDirectiveTrivia,
+            SyntaxKind.EndRegionDirectiveTrivia
+        };
         var allTrivias = token.GetAllTrivia().ToList();
-        var hasRegionTrivias = allTrivias.Any(
-            obj => obj.IsKind(SyntaxKind.RegionDirectiveTrivia) || obj.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
-        );
+        var hasRegionTrivias = allTrivias.Any(trivia => regionsDirectives.Any(regionDirective => trivia.IsKind(regionDirective)));
         if (!hasRegionTrivias)
         {
             return base.VisitToken(token);
         }
 
-        return base.VisitToken(token.RemoveTrivias(GetTriviasToRemove(allTrivias)));
+        return base.VisitToken(token.RemoveTrivias(GetTriviasToRemove(allTrivias, regionsDirectives)));
     }
 
     #region Private use
 
     private static List<SyntaxTrivia> GetTriviasToRemove(
-        IList<SyntaxTrivia> allTrivias)
+        IList<SyntaxTrivia> allTrivias,
+        IList<SyntaxKind> regionsDirectives)
     {
         var triviasToRemove = new List<SyntaxTrivia>();
         for (var i = 0; i < allTrivias.Count; i++)
         {
             var trivia = allTrivias[i];
-
-            if (!trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) && !trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            if (regionsDirectives.All(regionDirective => !trivia.IsKind(regionDirective)))
             {
                 continue;
             }
