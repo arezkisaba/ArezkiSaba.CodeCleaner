@@ -1,5 +1,6 @@
 using ArezkiSaba.CodeCleaner.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 using System.Reflection;

@@ -82,6 +82,12 @@ public static class MemberDeclarationExtensions
                 )
             );
         }
+        else if (!newDeclaration.HasDeclaration())
+        {
+            newParametersList = newParametersList.WithCloseParenToken(
+                newParametersList.CloseParenToken.WithoutLeadingTrivias().WithTrailingTrivia()
+            );
+        }
         else
         {
             newParametersList = newParametersList.WithCloseParenToken(

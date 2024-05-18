@@ -9,7 +9,16 @@ using NativeHttpClient = System.Net.Http.HttpClient;
 
 namespace ArezkiSaba.CodeCleaner.Tests;
 
-public class TestClass1<T>
+public interface ITestClass
+{
+    void MapControllerRoute(
+        string a,
+        string b);
+
+    Task SomeAsyncMethodWithSuffixAsync();
+}
+
+public class TestClass1<T> : ITestClass,  where T : struct
 {
     private const string SomeConstField = "SOME CONST VALUE";
     private static string SomeStaticField;
@@ -143,18 +152,28 @@ public sealed class TestClass2 : TestClass1<int>
         var variable1 = Method1(
             Method1(
                 "2222222222222222222222222222222",
-                "2222222222222222222222222222222",
+                new DummyClass(
+                    "DummyClassParameter1",
+                    "DummyClassParameter2",
+                    "DummyClassParameter3",
+                    "DummyClassParameter4"
+                ),
                 "2222222222222222222222222222222",
                 "2222222222222222222222222222222"
             ),
-            "1111111111111111111111111111111111111",
+            new DummyClass(
+                "DummyClassParameter1",
+                "DummyClassParameter2",
+                "DummyClassParameter3",
+                "DummyClassParameter4"
+            ),
             Method1(
                 "3333333333333333333333333333333",
-                Method1(
-                    "4444444444444444444444444444444",
-                    "4444444444444444444444444444444",
-                    "4444444444444444444444444444444",
-                    "4444444444444444444444444444444"
+                new DummyClass(
+                    "DummyClassParameter1",
+                    "DummyClassParameter2",
+                    "DummyClassParameter3" ,
+                    "DummyClassParameter4"
                 ),
                 "3333333333333333333333333333333",
                 "3333333333333333333333333333333"
@@ -178,10 +197,12 @@ public sealed class TestClass2 : TestClass1<int>
 
     public string Method1(
         string parameter1,
-        string parameter2,
+        DummyClass parameter2,
         string parameter3,
         string parameter4)
     {
         return null;
     }
 }
+
+private record DummyClass(string parameter1, string parameter2, string parameter3, string parameter4);

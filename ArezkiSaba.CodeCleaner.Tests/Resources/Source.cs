@@ -12,9 +12,14 @@ using Windows;
 
 namespace ArezkiSaba.CodeCleaner.Tests;
 
+public interface ITestClass
+{
+    void MapControllerRoute(string a, string b);
 
+    Task SomeAsyncMethodWithSuffixAsync();
+}
 
-public class TestClass1<T>
+public class TestClass1<T> : ITestClass,  where T : struct
 {
 
 
