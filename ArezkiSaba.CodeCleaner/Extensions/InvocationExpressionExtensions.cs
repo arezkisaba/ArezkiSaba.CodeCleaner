@@ -5,14 +5,14 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 public static class InvocationExpressionExtensions
 {
     public static int GetInvocationExpressionLength(
-        this InvocationExpressionSyntax invocationExpression)
+        this ExpressionSyntax expression)
     {
-        if (invocationExpression == null)
+        if (expression == null)
         {
             return 0;
         }
 
-        var text = invocationExpression.GetText().ToString().Replace(Environment.NewLine, string.Empty);
+        var text = expression.GetText().ToString().Replace(Environment.NewLine, string.Empty);
         return text.Length;
     }
 }

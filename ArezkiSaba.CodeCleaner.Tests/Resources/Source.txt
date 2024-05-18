@@ -168,7 +168,6 @@ public class TestClass1<T>
     public static TestClass1 SomePublicFactoryMethod()
     {
 
-
         return new TestClass1();
 
 

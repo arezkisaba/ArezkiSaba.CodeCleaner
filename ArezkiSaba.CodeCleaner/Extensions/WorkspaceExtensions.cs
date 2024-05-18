@@ -22,7 +22,7 @@ public static class WorkspaceExtensions
             ((document, solution) => document.StartEmptyLinesBracesRemoverAsync(solution), (project) => Task.FromResult(true)),
             ((document, solution) => document.StartRegionInserterAsync(solution), (project) => Task.FromResult(true)),
             ((document, solution) => document.StartMethodDeclarationParameterLineBreakerAsync(solution), (project) => Task.FromResult(true)),
-            ((document, solution) => document.StartInvocationExpressionArgumentLineBreakerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartExpressionArgumentLineBreakerAsync(solution), (project) => Task.FromResult(true)),
             ((document, solution) => document.StartFieldRenamerAsync(solution), (project) => Task.FromResult(true)),
             ((document, solution) => document.StartEventFieldRenamerAsync(solution), (project) => Task.FromResult(true)),
             ((document, solution) => document.StartPropertyRenamerAsync(solution), (project) => Task.FromResult(true)),

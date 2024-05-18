@@ -167,6 +167,26 @@ public class TestClass1<T>
 
     public static TestClass1 SomePublicFactoryMethod()
     {
+        return new DocumentDto(
+            DocumentClés.BulletinDeSouscription,
+            TypeDeDocumentDto.DocumentOAV,
+            TypeContractuelDto.Contractuel,
+            $"Demande de souscription - {cleProduit}.pdf",
+            "Demande de souscription",
+            "Demande de souscription",
+            "Avant de souscrire, vous devez lire attentivement la demande de souscription.",
+            "Accepter",
+            "Refuser",
+            true,
+            true,
+            TypeSignatureDocumentDto.SignatureManuelleEtElectronique,
+            new[]
+            {
+                    new CaseÀCocherDto("<b>En cochant cette case</b>, je reconnais avoir bien lu la demande de souscription et l’accepter pleinement et sans réserve.", true)
+            },
+            position,
+            grigriPosition,
+            hasNuméroUnique: true);
 
 
         return new TestClass1();

@@ -489,7 +489,7 @@ public static class DocumentExtensions
         );
     }
 
-    public static async Task<RefactorOperationResult> StartInvocationExpressionArgumentLineBreakerAsync(
+    public static async Task<RefactorOperationResult> StartExpressionArgumentLineBreakerAsync(
         this Document document,
         Solution solution)
     {
@@ -510,13 +510,17 @@ public static class DocumentExtensions
                 continue;
             }
 
-            var expressionStatements = blockStatement.DescendantNodes().OfType<ExpressionStatementSyntax>().ToList();
+            var expressionStatements = blockStatement.DescendantNodes().Where(
+                obj => obj.IsKind(SyntaxKind.ExpressionStatement) || obj.IsKind(SyntaxKind.ReturnStatement)
+            ).ToList();
             foreach (var expressionStatement in expressionStatements)
             {
-                var invocationExpressions = expressionStatement.ChildNodes().OfType<InvocationExpressionSyntax>().ToList();
-                foreach (var invocationExpression in invocationExpressions)
+                var expressions = expressionStatement.ChildNodes().OfType<ExpressionSyntax>().Where(
+                    obj => obj.IsKind(SyntaxKind.InvocationExpression) || obj.IsKind(SyntaxKind.ObjectCreationExpression)
+                ).ToList();
+                foreach (var expression in expressions)
                 {
-                    HandleInvocationExpression(excludedTypes, documentEditor, invocationExpression);
+                    HandleExpressionForInvocationExpressionArgumentLineBreaker(excludedTypes, documentEditor, expression);
                 }
             }
         }
@@ -1134,26 +1138,35 @@ public static class DocumentExtensions
         return 7;
     }
 
-    private static void HandleInvocationExpression(
+    private static void HandleExpressionForInvocationExpressionArgumentLineBreaker(
         List<Type> excludedTypes,
         DocumentEditor documentEditor,
-        InvocationExpressionSyntax invocationExpression)
+        ExpressionSyntax expression)
     {
-        var hasExcludedType = invocationExpression.DescendantNodes()
+        var hasExcludedType = expression.DescendantNodes()
             .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
         if (hasExcludedType)
         {
             return;
         }
 
-        var needLineBreak = invocationExpression.GetInvocationExpressionLength() > 100;
-        var argumentList = invocationExpression.ArgumentList;
+        var needLineBreak = expression.GetInvocationExpressionLength() > 100;
+        ArgumentListSyntax argumentList = null;
+        if (expression is InvocationExpressionSyntax invocationExpression)
+        {
+            argumentList = invocationExpression.ArgumentList;
+        }
+        else if (expression is ObjectCreationExpressionSyntax objectCreationExpression)
+        {
+            argumentList = objectCreationExpression.ArgumentList;
+        }
+
         if (!argumentList.Arguments.Any())
         {
             return;
         }
 
-        var baseLeadingTrivia = invocationExpression.FindFirstLeadingTrivia();
+        var baseLeadingTrivia = expression.FindFirstLeadingTrivia();
         if (baseLeadingTrivia == null)
         {
             return;
@@ -1192,8 +1205,14 @@ public static class DocumentExtensions
         var newArgumentList = argumentList.WithArguments(
             SyntaxFactory.SeparatedList(newArguments)
         );
-        var newInvocationExpression = invocationExpression.WithArgumentList(newArgumentList);
-        documentEditor.ReplaceNode(invocationExpression, newInvocationExpression);
+        if (expression is InvocationExpressionSyntax invocationExpression2)
+        {
+            documentEditor.ReplaceNode(expression, invocationExpression2.WithArgumentList(newArgumentList));
+        }
+        else if (expression is ObjectCreationExpressionSyntax objectCreationExpression2)
+        {
+            documentEditor.ReplaceNode(expression, objectCreationExpression2.WithArgumentList(newArgumentList));
+        }
     }
 
     private static async Task<Solution> RenameParameterNameIfUnreferencedAsync(
