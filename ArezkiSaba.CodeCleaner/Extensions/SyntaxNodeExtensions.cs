@@ -27,7 +27,7 @@ public static class SyntaxNodeExtensions
     public static SyntaxTrivia? FindFirstLeadingTrivia(
         this SyntaxNode root)
     {
-        var baseLeadingTrivia = root.DescendantTrivia().FirstOrDefault(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+        var baseLeadingTrivia = root.GetLeadingTrivia().FirstOrDefault(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
         if (baseLeadingTrivia.IsKind(SyntaxKind.None))
         {
             return null;

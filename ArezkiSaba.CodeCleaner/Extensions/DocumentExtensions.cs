@@ -1014,21 +1014,10 @@ public static class DocumentExtensions
         }
 
         var baseLeadingTrivia = typeDeclarationRoot.FindFirstLeadingTrivia();
-        if (baseLeadingTrivia == null)
-        {
-            throw new InvalidOperationException("baseLeadingTrivia should not be null");
-        }
-
         var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
         foreach (var declarationToExtract in declarationsToExtract)
         {
-            var tab = SyntaxTriviaHelper.GetTab();
-            if (baseLeadingTrivia.Value.FullSpan.Length == 1 || baseLeadingTrivia.Value.FullSpan.Length == 5)
-            {
-                baseLeadingTrivia = tab;
-            }
-
-            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, baseLeadingTrivia.Value));
+            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, baseLeadingTrivia));
         }
 
         return typeDeclarationRoot
@@ -1038,7 +1027,7 @@ public static class DocumentExtensions
     private static List<MemberDeclarationSyntax> GetMemberDeclarations(
         List<MemberDeclarationSyntax> memberDeclarations,
         SyntaxKind syntaxKind,
-        SyntaxTrivia baseLeadingTrivia)
+        SyntaxTrivia? baseLeadingTrivia)
     {
         var sortedemberDeclarations = memberDeclarations
             .Where(obj => obj.IsKind(syntaxKind))
@@ -1048,19 +1037,24 @@ public static class DocumentExtensions
             {
                 var leadingTrivias = new List<SyntaxTrivia>();
 
-                var existingLeadingTriviasToInclude = obj.GetLeadingTrivia().Where(
-                    obj => obj.IsKind(SyntaxKind.RegionDirectiveTrivia) || obj.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
-                ).ToList();
-                if (existingLeadingTriviasToInclude.Any())
-                {
-                    existingLeadingTriviasToInclude.Insert(0, SyntaxTriviaHelper.GetEndOfLine());
-                    existingLeadingTriviasToInclude.Insert(1, baseLeadingTrivia);
-                    leadingTrivias.AddRange(existingLeadingTriviasToInclude);
-                }
+                ////var existingLeadingTriviasToInclude = obj.GetLeadingTrivia().Where(
+                ////    obj => obj.IsKind(SyntaxKind.RegionDirectiveTrivia) || obj.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
+                ////).ToList();
+                ////if (existingLeadingTriviasToInclude.Any())
+                ////{
+                ////    existingLeadingTriviasToInclude.Insert(0, SyntaxTriviaHelper.GetEndOfLine());
+                ////    existingLeadingTriviasToInclude.Insert(1, baseLeadingTrivia);
+                ////    leadingTrivias.AddRange(existingLeadingTriviasToInclude);
+                ////}
 
                 if (i == 0 || (syntaxKind != SyntaxKind.FieldDeclaration && syntaxKind != SyntaxKind.EventFieldDeclaration))
                 {
                     leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                }
+
+                if (baseLeadingTrivia != null)
+                {
+                    leadingTrivias.Add(baseLeadingTrivia.Value);
                 }
 
                 leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
