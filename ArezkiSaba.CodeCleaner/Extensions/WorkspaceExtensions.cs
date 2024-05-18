@@ -8,29 +8,31 @@ public static class WorkspaceExtensions
     public static async Task<Workspace> RefactorAsync(
         this Workspace workspace)
     {
-        var funcs = new List<(Func<Document, Solution, Task<RefactorOperationResult>> func, Func<Project, Task<bool>> predicate)>();
-        funcs.Add(((document, solution) => document.StartRegionRemoverAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartTypeInferenceRewriterAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartReadonlyModifierFieldRewriterAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartSealedModifierClassRewriterAsync(solution), async (project) => await project.IsNonNugetProjectAsync()));
-        funcs.Add(((document, solution) => document.StartDuplicatedEmptyLinesRemoverAsync(solution), (project) => Task.FromResult(true)));
-        funcs.Add(((document, solution) => document.ReorderClassMembersAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.ReorderFieldsWithPropfullPropertiesAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartUsingDirectiveSorterAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartDuplicatedUsingDirectiveRemoverAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartEmptyLinesBracesRemoverAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartRegionInserterAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartMethodDeclarationParameterLineBreakerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartInvocationExpressionArgumentLineBreakerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartFieldRenamerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartEventFieldRenamerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartPropertyRenamerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartMethodRenamerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartLocalVariableRenamerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartParameterRenamerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.StartAsyncMethodRenamerAsync(solution), (project) => Task.FromResult(true)));
-        ////funcs.Add(((document, solution) => document.FormatAsync(solution), (project) => Task.FromResult(true)));
+        var funcs = new List<(Func<Document, Solution, Task<RefactorOperationResult>> func, Func<Project, Task<bool>> predicate)>
+        {
+            ((document, solution) => document.StartRegionRemoverAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartTypeInferenceRewriterAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartReadonlyModifierFieldRewriterAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartSealedModifierClassRewriterAsync(solution), async (project) => await project.IsNonNugetProjectAsync()),
+            ((document, solution) => document.StartDuplicatedEmptyLinesRemoverAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.ReorderClassMembersAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.ReorderFieldsWithPropfullPropertiesAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartUsingDirectiveSorterAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartDuplicatedUsingDirectiveRemoverAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartEmptyLinesBracesRemoverAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartRegionInserterAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartMethodDeclarationParameterLineBreakerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartInvocationExpressionArgumentLineBreakerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartFieldRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartEventFieldRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartPropertyRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartMethodRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartLocalVariableRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartParameterRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartAsyncMethodRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.FormatAsync(solution), (project) => Task.FromResult(true))
+        };
 
         var currentSolution = workspace.CurrentSolution;
         foreach (var projectId in workspace.CurrentSolution.ProjectIds)

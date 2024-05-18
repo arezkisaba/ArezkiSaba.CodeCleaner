@@ -11,7 +11,7 @@ namespace ArezkiSaba.CodeCleaner.Tests;
 
 public class TestClass1<T>
 {
-    private const string SomeConstField;
+    private const string SomeConstField = "SOME CONST VALUE";
     private static string SomeStaticField;
     private readonly string _readonlyStringField1;
     private readonly string _readonlyStringField2;

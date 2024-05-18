@@ -1,257 +1,191 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Prevoir.Octav.Dto.Extensions;
-using Prevoir.Octav.ApiClient;
-using Prevoir.SolutionCapitalObseques.Bristol.Domain.Produit.Caracteristiques;
-using Prevoir.SolutionCapitalObseques.Bristol.Domain.Simulation;
-using Prevoir.SolutionCapitalObseques.Bristol.Domain.Simulation.Factory;
-using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.Bareme;
-using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.Simulation;
-using Prevoir.SolutionCapitalObseques.Bristol.Infrastructure.Database.Simulation.Contracts;
-using Prevoir.SolutionCapitalObseques.Common;
-using Prevoir.SolutionCapitalObseques.Common.Bodies;
-using Prevoir.SolutionCapitalObseques.Common.Common;
-using Prevoir.SolutionCapitalObseques.Common.Responses;
-using Prevoir.Toolkit.Bristol.ApiControllers.Bases;
-using Prevoir.Toolkit.Utils.Extensions;
-using DureePaiement = Prevoir.SolutionCapitalObseques.Bristol.Domain.Commun.DureePaiement;
-using Periodicite = Prevoir.SolutionCapitalObseques.Bristol.Domain.Commun.Periodicite;
+﻿using ArezkiSaba.CodeCleaner.Tests;
+using System.Drawing;
+using System;
+using static System.Math;
+using Windows.Storage;
+using ArezkiSaba.CodeCleaner.Tests;
+using NativeHttpClient = System.Net.Http.HttpClient;
+using ArezkiSaba.CodeCleaner;
+using System;
+using Windows;
 
-namespace Prevoir.SolutionCapitalObseques.Bristol.ApiControllers;
 
-[Route($"{RoutePrefix}/{Constantes.RouteSimulationBase}")]
-public class SimulationController : ApiControllerBase
+namespace ArezkiSaba.CodeCleaner.Tests;
+
+
+
+public class TestClass1<T>
 {
-    private readonly IOctavApiClient _octavApiClient;
-    private readonly ISimulationRepository _simulationRepository;
-    private readonly ISimulateurService _simulateurService;
 
-    public SimulationController(
-        IOctavApiClient octavApiClient,
-        ISimulationRepository simulationRepository,
-        ISimulateurService simulateurService)
+
+    public class InternalClass1
     {
-        _octavApiClient = octavApiClient;
-        _simulationRepository = simulationRepository;
-        _simulateurService = simulateurService;
+
+        private string readonlyStringField;
+
+
     }
 
-    [HttpPost("initialiser")]
-    public async Task<InitialiserSimulationResponseDto> InitialiserSimulationAsync(
-        [FromBody] InitialiserSimulationBodyDto command)
+
+
+    private string readonlyStringField2;
+
+    public TestClass1(string arg1, string arg2)
     {
-        var simulation = SimulationFactory.CreerSimulation(command.IdVisite, command.IdPersonne);
-        var simulationParDefaut = GetDonneParDefautFromSimulation(simulation);
 
-        var simulationEntity = (await _simulationRepository.GetByEntretienEtAdherentAsync(command.IdVisite, command.IdPersonne)).SingleOrDefault();
-        if (simulationEntity == null)
-        {
-            var entretien = await _octavApiClient.Entretien.GetAsync(command.IdVisite);
-            var personne = entretien.Entretien.Foyer.GetClientById(command.IdPersonne);
-            var age = personne.EtatCivil.DateNaissance.Value.CalculerAge();
+        _readonlyStringField1 = arg1;
+        readonlyStringField2 = arg2;
+        nonReadonlyBooleanField = true;
 
-            if (age >= 50 && age <= 55)
-            {
-                simulationParDefaut.DureePaiement = DureePaiementDto.Vingt;
-            }
-            else
-            {
-                if (age >= 56 && age <= 63)
-                {
-                    simulationParDefaut.DureePaiement = DureePaiementDto.Quinze;
-                }
-                else
-                {
-                    if (age >= 64 && age <= 71)
-                    {
-                        simulationParDefaut.DureePaiement = DureePaiementDto.Dix;
-                    }
-                    else
-                    {
-                        if (age >= 72 && age <= 80)
-                        {
-                            simulationParDefaut.DureePaiement = DureePaiementDto.Viager;
-                        }
-                    }
-                }
-            }
-
-            simulationEntity = new SimulationEntity
-            {
-                EntretienId = command.IdVisite,
-                AdherentId = command.IdPersonne,
-                IsGarantieDoublementAccidentSelectionnee = simulationParDefaut.IsGarantieDoublementAccidentSelectionnee,
-                DureePaiement = (DureeDePaiement)simulationParDefaut.DureePaiement,
-                Periodicite = (Infrastructure.Database.Bareme.Periodicite)simulationParDefaut.Periodicite,
-                CotisationGarantieCapitalDeces = simulationParDefaut.CotisationGarantieCapitalDeces,
-                CotisationGarantieDoublementAccident = simulationParDefaut.CotisationGarantieDoublementAccident,
-                MontantGarantieDoublementAccident = simulationParDefaut.MontantGarantieDoublementAccident,
-                MontantGarantieCapitalDeces = simulationParDefaut.MontantGarantieCapitalDeces,
-                CotisationTotale = simulationParDefaut.CotisationTotale,
-                DateEffet = simulationParDefaut.DateEffet.Date
-            };
-
-            await _simulationRepository.InsertAsync(simulationEntity);
-        }
-
-        var dureePaiement = DureePaiementDto.Dix;
-        var periodicite = PeriodiciteDto.Mensuel;
-        switch (simulationEntity.DureePaiement)
-        {
-            case DureeDePaiement.Dix:
-                dureePaiement = DureePaiementDto.Dix;
-                break;
-            case DureeDePaiement.Quinze:
-                dureePaiement = DureePaiementDto.Quinze;
-                break;
-            case DureeDePaiement.Vingt:
-                dureePaiement = DureePaiementDto.Vingt;
-                break;
-            case DureeDePaiement.Viager:
-                dureePaiement = DureePaiementDto.Viager;
-                break;
-        }
-
-        switch (simulationEntity.Periodicite)
-        {
-            case Infrastructure.Database.Bareme.Periodicite.Mensuelle:
-                periodicite = PeriodiciteDto.Mensuel;
-                break;
-            case Infrastructure.Database.Bareme.Periodicite.Trimestrielle:
-                periodicite = PeriodiciteDto.Trimestriel;
-
-                break;
-            case Infrastructure.Database.Bareme.Periodicite.Semestrielle:
-                periodicite = PeriodiciteDto.Semestriel;
-                break;
-        }
-
-        simulationParDefaut.CotisationGarantieCapitalDeces = simulationEntity.CotisationGarantieCapitalDeces;
-        simulationParDefaut.DateEffet = simulationEntity.DateEffet;
-        simulationParDefaut.CotisationGarantieDoublementAccident = simulationEntity.CotisationGarantieDoublementAccident;
-        simulationParDefaut.CotisationTotale = simulationEntity.CotisationTotale;
-        simulationParDefaut.DureePaiement = dureePaiement;
-        simulationParDefaut.IsGarantieDoublementAccidentSelectionnee = simulationEntity.IsGarantieDoublementAccidentSelectionnee;
-        simulationParDefaut.MontantGarantieCapitalDeces = simulationEntity.MontantGarantieCapitalDeces;
-        simulationParDefaut.MontantGarantieDoublementAccident = simulationEntity.MontantGarantieDoublementAccident;
-        simulationParDefaut.Periodicite = periodicite;
-
-        return simulationParDefaut;
     }
 
-    [HttpPost("modifier")]
-    public async Task<ModifierSimulationResponseDto> ModifierAsync(
-        [FromBody] ModifierSimulationBodyDto command)
+    private string _readonlyStringField1;
+
+
+
+    public void OnSomeEventCallback(
+                    object sender,
+            EventArgs e)
     {
-        var simulationEntity = (await _simulationRepository.GetByEntretienEtAdherentAsync(command.IdVisite, command.IdPersonne)).SingleOrDefault();
-        if (simulationEntity == null)
-        {
-            throw new InvalidOperationException("Adherent not found");
-        }
 
-        var entretien = await _octavApiClient.Entretien.GetAsync(command.IdVisite);
-        var personne = entretien.Entretien.Foyer.GetClientById(command.IdPersonne);
-        var age = personne.EtatCivil.DateNaissance.Value.CalculerAge();
 
-        var bareme = await _simulateurService.CalculerCotisationsDeLaSimulationAsync(age, command.Montant, (int)command.Periodicite, (int)command.DureePaiement);
-        var montantGarantieDoublementAccident = 0d;
-        var cotisationTotale = bareme.PrimeGarantiesObligatoire;
-        var periodiciteEntity = GetPeriodicite(command.Periodicite);
-        var dureeDePaiementEntity = GetDureeDePaiement(command.DureePaiement);
+        string variable1 = "1";
+        string variable2 = "2";
+        string variable3 = "3";
+        string variable4 = "4";
 
-        var cotisationGarantieObligatoire = bareme.PrimeGarantiesObligatoire;
-        var cotisationGarantieOptionelle = bareme.PrimeGarantiesOptionelle;
+        _handleOnSomeEventCallback(
+                                        variable1: variable1,
+            variable2: variable2,
+            variable3: variable3, variable4: variable4);
 
-        if (command.IsGarantieDoublementAccidentSelectionnee)
-        {
-            montantGarantieDoublementAccident = command.Montant * 2;
-            cotisationTotale = bareme.PrimeTotale;
-        }
 
-        if (command.IsGarantieDoublementAccidentSelectionnee)
-        {
-            simulationEntity.IsGarantieDoublementAccidentSelectionnee = true;
-            simulationEntity.MontantGarantieDoublementAccident = montantGarantieDoublementAccident;
-            simulationEntity.CotisationGarantieDoublementAccident = cotisationGarantieOptionelle;
-        }
-        else
-        {
-            simulationEntity.IsGarantieDoublementAccidentSelectionnee = false;
-            simulationEntity.MontantGarantieDoublementAccident = 0;
-            simulationEntity.CotisationGarantieDoublementAccident = 0;
-        }
-
-        simulationEntity.MontantGarantieCapitalDeces = command.Montant;
-        simulationEntity.CotisationGarantieCapitalDeces = cotisationGarantieObligatoire;
-        simulationEntity.Periodicite = periodiciteEntity;
-        simulationEntity.DureePaiement = dureeDePaiementEntity;
-        simulationEntity.CotisationTotale = cotisationTotale;
-
-        await _simulationRepository.UpsertAsync(simulationEntity);
-
-        return new ModifierSimulationResponseDto
-        {
-            CotisationGarantieCapitalDeces = simulationEntity.CotisationGarantieCapitalDeces,
-            CotisationGarantieDoublementAccident = simulationEntity.CotisationGarantieDoublementAccident,
-            MontantGarantieDoublementAccident = simulationEntity.MontantGarantieDoublementAccident,
-            CotisationTotale = simulationEntity.CotisationTotale,
-        };
+        MapControllerRoute(
+            a: "1",
+            b: "2");
     }
 
-    #region Private use
-
-    private Infrastructure.Database.Bareme.Periodicite GetPeriodicite(
-        PeriodiciteDto periodicite)
+    private void MapControllerRoute(string a, string b)
     {
-        Infrastructure.Database.Bareme.Periodicite periodiciteEntity;
-        switch (periodicite)
+    }
+
+    private TestClass1()
+    {
+        _readonlyStringField1 = "some useless value";
+        readonlyStringField2 = "some useless value";
+        nonReadonlyBooleanField = false;
+    }
+
+    public Task SomeAsyncMethodWithSuffixAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public bool CanDoSomethingElse
+    {
+        get { return canDoSomethingElse; }
+        set { canDoSomethingElse = value; }
+    }
+
+    public event EventHandler someOtherEventCamelCasedTriggered;
+
+    private void SomePrivateMethod()
+    {
+    }
+
+    public bool CanDoSomething
+    {
+        get { return _canDoSomething; }
+        set { _canDoSomething = value; }
+    }
+
+    public Task SomeAsyncMethod()
+    {
+
+
+        return Task.CompletedTask;
+
+    }
+
+    private static void SomePrivateStaticMethod()
+    {
+
+
+    }
+
+    private bool canDoSomethingElse;
+    public async Task _handleOnSomeEventCallback(string variable1,
+                string variable2,
+        string variable3, string variable4)
+    {
+
+
+        var _someVariableWithBadNamingConvention = "Hi";
+        var SomeOtherVariableWithBadNamingConvention = "there";
+
+        Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention} !");
+
+
+
+        nonReadonlyBooleanField = true;
+
+
+        if (nonReadonlyBooleanField)
         {
-            case PeriodiciteDto.Mensuel:
-                periodiciteEntity = Infrastructure.Database.Bareme.Periodicite.Mensuelle;
-                break;
-            case PeriodiciteDto.Trimestriel:
-                periodiciteEntity = Infrastructure.Database.Bareme.Periodicite.Trimestrielle;
-                break;
-            case PeriodiciteDto.Semestriel:
-                periodiciteEntity = Infrastructure.Database.Bareme.Periodicite.Semestrielle;
-                break;
-            default:
-                throw new Exception("Periodicité non trouvée");
+
+
+            Console.WriteLine($"{_someVariableWithBadNamingConvention} {SomeOtherVariableWithBadNamingConvention} again !");
+
+
+
         }
 
-        return periodiciteEntity;
+
+
+
     }
 
-    private DureeDePaiement GetDureeDePaiement(
-        DureePaiementDto dureePaiement)
+    public bool CanDoSomeOtherThing { get; set; }
+
+    private static string _someStaticField;
+
+    public event EventHandler SomeEventTriggered;
+
+
+
+
+    private bool nonReadonlyBooleanField;
+
+    private const string someConstField = "SOME CONST VALUE";
+
+
+
+    private bool _canDoSomething;
+
+    #region SomeRegionName
+
+
+    public static TestClass1 SomePublicFactoryMethod()
     {
-        DureeDePaiement dureeDePaiementEntity;
-        switch (dureePaiement)
-        {
-            case DureePaiementDto.Dix:
-                dureeDePaiementEntity = DureeDePaiement.Dix;
-                break;
-            case DureePaiementDto.Quinze:
-                dureeDePaiementEntity = DureeDePaiement.Quinze;
 
-                break;
-            case DureePaiementDto.Vingt:
-                dureeDePaiementEntity = DureeDePaiement.Vingt;
 
-                break;
-            case DureePaiementDto.Viager:
-                dureeDePaiementEntity = DureeDePaiement.Viager;
-                break;
-            default:
-                throw new Exception("durée de paiement non trouvée");
-        }
+        return new TestClass1();
 
-        return dureeDePaiementEntity;
+
     }
 
-    private InitialiserSimulationResponseDto GetDonneParDefautFromSimulation(
-        Simulation simulation)
-    {
-    }
 
     #endregion
+}
+
+public class TestClass2 : TestClass1<int>
+{
+    private TestClass2(int variable1, int variable2) : base()
+    {
+    }
+
+    public TestClass2(int variable1, int variable2)
+        : this(variable1, variable2)
+    {
+    }
 }

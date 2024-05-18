@@ -155,7 +155,16 @@ public class TestClass1<T>
 
 
     private bool nonReadonlyBooleanField;
-    
+
+    private const string someConstField = "SOME CONST VALUE";
+
+
+
+    private bool _canDoSomething;
+
+    #region SomeRegionName
+
+
     public static TestClass1 SomePublicFactoryMethod()
     {
 
@@ -165,19 +174,6 @@ public class TestClass1<T>
 
     }
 
-    private const string someConstField;
-
-
-
-    private bool _canDoSomething;
-
-    #region Private use
-
-    private static void SomePrivateStaticMethod2()
-    {
-
-
-    }
 
     #endregion
 }

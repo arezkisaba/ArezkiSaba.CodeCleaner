@@ -8,31 +8,27 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
+using Newtonsoft.Json.Linq;
+using System.Drawing.Text;
+using System.Linq;
+using System.Xml.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class DocumentExtensions
 {
+    private record ToReplaceEntry(SyntaxNode Where, SyntaxToken From, SyntaxToken To);
+
     public static async Task<RefactorOperationResult> StartRegionRemoverAsync(
         this Document document,
         Solution solution)
     {
         var root = await document.GetSyntaxRootAsync();
-        var documentEditor = DocumentEditor.CreateAsync(document).Result;
-        var trivias = root.DescendantTrivia()
-            .Where(trivia => trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)).ToList();
-
-        foreach (var trivia in trivias)
-        {
-            var parent = trivia.Token.Parent;
-            var newParent = parent.WithoutLeadingTrivia();
-            var leadingTrivias = parent.GetLeadingTrivia().Where(obj => !obj.IsKind(SyntaxKind.RegionDirectiveTrivia) && !obj.IsKind(SyntaxKind.EndRegionDirectiveTrivia)).ToList();
-            documentEditor.ReplaceNode(parent, newParent);
-            parent = newParent;
-        }
-
-        document = documentEditor.GetChangedDocument();
-
+        var semanticModel = await document.GetSemanticModelAsync();
+        document = document.WithSyntaxRoot(
+            new RegionRemover(
+            ).Visit(root)
+        );
         return new RefactorOperationResult(
             document,
             document.Project,
@@ -473,7 +469,6 @@ public static class DocumentExtensions
         }
 
         document = documentEditor.GetChangedDocument();
-
         return new RefactorOperationResult(
             document,
             document.Project,
@@ -514,7 +509,6 @@ public static class DocumentExtensions
         }
 
         document = documentEditor.GetChangedDocument();
-
         return new RefactorOperationResult(
             document,
             document.Project,
