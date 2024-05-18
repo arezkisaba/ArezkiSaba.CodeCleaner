@@ -522,7 +522,12 @@ public static class DocumentExtensions
                     var ancestors = expression.Ancestors().ToList();
                     foreach (var ancestor in ancestors)
                     {
-                        if (ancestor.IsInvocationOrCreationExpression() || ancestor is ImplicitArrayCreationExpressionSyntax)
+                        if (ancestor.IsInvocationOrCreationExpression() ||
+                            ancestor is ArrayCreationExpressionSyntax ||
+                            ancestor is ImplicitArrayCreationExpressionSyntax ||
+                            ancestor is StackAllocArrayCreationExpressionSyntax ||
+                            ancestor is ImplicitStackAllocArrayCreationExpressionSyntax ||
+                            ancestor is CollectionExpressionSyntax)
                         {
                             imbricationLevel++;
                         }
