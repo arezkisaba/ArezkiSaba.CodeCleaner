@@ -277,7 +277,18 @@ public static class DocumentExtensions
                 if (token.IsKind(SyntaxKind.OpenBraceToken))
                 {
                     var targetToken = tokens[i + 1];
-                    var leadingTrivias = targetToken.LeadingTrivia.Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+                    var leadingTrivias = new List<SyntaxTrivia>();
+                    for (var j = 0; j < targetToken.LeadingTrivia.Count; j++)
+                    {
+                        var leadingTrivia = targetToken.LeadingTrivia[j];
+                        if (!leadingTrivia.IsKind(SyntaxKind.EndOfLineTrivia) &&
+                            !leadingTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) &&
+                            !leadingTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                        {
+                            leadingTrivias.Add(leadingTrivia);
+                        }
+                    }
+
                     var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivias);
                     var node = targetToken.Parent;
                     var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
@@ -311,7 +322,9 @@ public static class DocumentExtensions
                     for (var j = 0; j < targetToken.LeadingTrivia.Count; j++)
                     {
                         var leadingTrivia = targetToken.LeadingTrivia[j];
-                        if (j > 0 && !leadingTrivia.IsKind(SyntaxKind.EndOfLineTrivia) && !leadingTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                        if (!leadingTrivia.IsKind(SyntaxKind.EndOfLineTrivia) &&
+                            !leadingTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) &&
+                            !leadingTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
                         {
                             leadingTrivias.Add(leadingTrivia);
                         }

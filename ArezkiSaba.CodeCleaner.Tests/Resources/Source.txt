@@ -182,6 +182,12 @@ public class TestClass2 : TestClass1<int>
 {
     private TestClass2(int variable1, int variable2) : base()
     {
+        var items = new[]
+        {
+            "1",
+            "2",
+            "3"
+        };
     }
 
     public TestClass2(int variable1, int variable2)
