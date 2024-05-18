@@ -504,9 +504,6 @@ public static class DocumentExtensions
 
         bool isUpdated;
         DocumentEditor documentEditor;
-        List<SyntaxToken> tokens = [];
-
-        // After open brace
 
         do
         {
@@ -602,7 +599,6 @@ public static class DocumentExtensions
                     var newArgumentList = argumentList.WithArguments(
                         SyntaxFactory.SeparatedList(newArguments)
                     );
-
                     var newExpression = expression.WithArgumentList(newArgumentList);
                     if (expression.FullSpan.Length != newExpression.FullSpan.Length)
                     {
