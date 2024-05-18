@@ -520,7 +520,8 @@ public static class DocumentExtensions
                 ).ToList();
                 foreach (var expression in expressions)
                 {
-                    HandleExpressionForInvocationExpressionArgumentLineBreaker(excludedTypes, documentEditor, expression);
+                    var baseLeadingTrivia = expressionStatement.FindFirstLeadingTrivia();
+                    HandleExpressionForInvocationExpressionArgumentLineBreaker(excludedTypes, documentEditor, expression, baseLeadingTrivia);
                 }
             }
         }
@@ -1135,7 +1136,8 @@ public static class DocumentExtensions
     private static void HandleExpressionForInvocationExpressionArgumentLineBreaker(
         List<Type> excludedTypes,
         DocumentEditor documentEditor,
-        ExpressionSyntax expression)
+        ExpressionSyntax expression,
+        SyntaxTrivia? baseLeadingTrivia)
     {
         var hasExcludedType = expression.DescendantNodes()
             .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
@@ -1155,13 +1157,7 @@ public static class DocumentExtensions
             argumentList = objectCreationExpression.ArgumentList;
         }
 
-        if (!argumentList.Arguments.Any())
-        {
-            return;
-        }
-
-        var baseLeadingTrivia = expression.FindFirstLeadingTrivia();
-        if (baseLeadingTrivia == null)
+        if (argumentList == null || !argumentList.Arguments.Any())
         {
             return;
         }
@@ -1178,18 +1174,26 @@ public static class DocumentExtensions
 
             if (needLineBreak)
             {
-                argument = argument.WithLeadingTrivia(
-                    SyntaxTriviaHelper.GetEndOfLine(),
-                    baseLeadingTrivia.Value,
-                    SyntaxTriviaHelper.GetTab()
-                );
+                var leadingTrivias = new List<SyntaxTrivia>();
+                leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                if (baseLeadingTrivia != null)
+                {
+                    leadingTrivias.Add(baseLeadingTrivia.Value);
+                }
+
+                leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+                argument = argument.WithLeadingTrivia(leadingTrivias);
 
                 if (i == argumentList.Arguments.Count - 1)
                 {
-                    argument = argument.WithTrailingTrivia(
-                        SyntaxTriviaHelper.GetEndOfLine(),
-                        baseLeadingTrivia.Value
-                    );
+                    var trailingTrivias = new List<SyntaxTrivia>();
+                    trailingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                    if (baseLeadingTrivia != null)
+                    {
+                        trailingTrivias.Add(baseLeadingTrivia.Value);
+                    }
+
+                    argument = argument.WithTrailingTrivia(trailingTrivias);
                 }
             }
 

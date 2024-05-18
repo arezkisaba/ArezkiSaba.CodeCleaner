@@ -167,27 +167,6 @@ public class TestClass1<T>
 
     public static TestClass1 SomePublicFactoryMethod()
     {
-        return new DocumentDto(
-            DocumentClés.BulletinDeSouscription,
-            TypeDeDocumentDto.DocumentOAV,
-            TypeContractuelDto.Contractuel,
-            $"Demande de souscription - {cleProduit}.pdf",
-            "Demande de souscription",
-            "Demande de souscription",
-            "Avant de souscrire, vous devez lire attentivement la demande de souscription.",
-            "Accepter",
-            "Refuser",
-            true,
-            true,
-            TypeSignatureDocumentDto.SignatureManuelleEtElectronique,
-            new[]
-            {
-                    new CaseÀCocherDto("<b>En cochant cette case</b>, je reconnais avoir bien lu la demande de souscription et l’accepter pleinement et sans réserve.", true)
-            },
-            position,
-            grigriPosition,
-            hasNuméroUnique: true);
-
 
         return new TestClass1();
 
@@ -213,5 +192,26 @@ public class TestClass2 : TestClass1<int>
     public TestClass2(int variable1, int variable2)
         : this(variable1, variable2)
     {
+        return new DocumentDto(
+            DocumentClés.MandatSEPA,
+            TypeDeDocumentDto.DocumentOAV,
+            TypeContractuelDto.Contractuel,
+            $"Mandat SEPA - {cleProduit}.pdf",
+            "Mandat SEPA",
+            "Mandat SEPA",
+            "Avant de souscrire, vous devez lire attentivement le mandat SEPA.",
+            "Accepter",
+            "Refuser",
+            true,
+            true,
+            TypeSignatureDocumentDto.SignatureManuelleEtElectronique,
+            new CaseÀCocherDto[] { },
+            new[]
+            {
+                new SignatureInfoDto(SignatoryTypeDto.Fournisseur, new PositionPdfDto(-1, 90, 296, 156, 55)),
+                new SignatureInfoDto(SignatoryTypeDto.TiersDeConfiance, new PositionPdfDto(-1, 260, 276, 156, 80)),
+                new SignatureInfoDto(SignatoryTypeDto.Client, new PositionPdfDto(-1, 428, 276, 156, 80))
+            },
+            hasNuméroUnique: true);
     }
 }

@@ -31,6 +31,11 @@ public static class WorkspaceExtensions
             ((document, solution) => document.StartParameterRenamerAsync(solution), (project) => Task.FromResult(true)),
             ((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution), (project) => Task.FromResult(true)),
             ((document, solution) => document.StartAsyncMethodRenamerAsync(solution), (project) => Task.FromResult(true)),
+            
+
+
+
+
             ////((document, solution) => document.FormatAsync(solution), (project) => Task.FromResult(true))
         };
 
