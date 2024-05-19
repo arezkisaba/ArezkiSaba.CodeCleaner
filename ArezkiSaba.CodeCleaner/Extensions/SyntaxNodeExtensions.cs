@@ -84,7 +84,8 @@ public static class SyntaxNodeExtensions
     public static bool IsInvocationOrCreationExpression(
         this SyntaxNode root)
     {
-        return root.IsKind(SyntaxKind.InvocationExpression) || root.IsKind(SyntaxKind.ObjectCreationExpression);
+        return root.IsKind(SyntaxKind.InvocationExpression)
+            || root.IsKind(SyntaxKind.ObjectCreationExpression);
     }
 
     public static bool IsImbricationExpression(

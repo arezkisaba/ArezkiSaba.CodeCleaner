@@ -551,51 +551,129 @@ public static class DocumentExtensions
 
                     var needLineBreak = expression.GetExpressionLength() > 100;
                     var argumentList = expression.GetArgumentList();
-                    if (argumentList == null || !argumentList.Arguments.Any())
-                    {
-                        continue;
-                    }
 
-                    var newExpression = expression;
-                    var newArguments = new List<ArgumentSyntax>();
-                    for (var i = 0; i < argumentList.Arguments.Count; i++)
+                    if (argumentList != null && argumentList.Arguments.Any())
                     {
-                        var argument = argumentList.Arguments[i];
+                        var newExpression = expression;
+                        var newArguments = new List<ArgumentSyntax>();
+                        for (var i = 0; i < argumentList.Arguments.Count; i++)
+                        {
+                            var argument = argumentList.Arguments[i];
+                            if (needLineBreak)
+                            {
+                                var leadingTrivias = new List<SyntaxTrivia>();
+                                if (baseLeadingTrivia != null)
+                                {
+                                    leadingTrivias.Add(baseLeadingTrivia.Value);
+                                }
+
+                                for (var j = 0; j < imbricationLevel + 1; j++)
+                                {
+                                    leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+                                }
+
+                                newArguments.Add(
+                                    argument.WithLeadingTrivia(leadingTrivias).WithoutTrailingTrivia()
+                                );
+                            }
+                        }
+
                         if (needLineBreak)
                         {
-                            var leadingTrivias = new List<SyntaxTrivia>();
+                            var closeParenLeadingTrivia = new List<SyntaxTrivia>();
                             if (baseLeadingTrivia != null)
                             {
-                                leadingTrivias.Add(baseLeadingTrivia.Value);
+                                closeParenLeadingTrivia.Add(baseLeadingTrivia.Value);
                             }
 
-                            for (var j = 0; j < imbricationLevel + 1; j++)
+                            for (var j = 0; j < imbricationLevel; j++)
                             {
-                                leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+                                closeParenLeadingTrivia.Add(SyntaxTriviaHelper.GetTab());
                             }
 
-                            newArguments.Add(
-                                argument.WithLeadingTrivia(leadingTrivias).WithoutTrailingTrivia()
-                            );
+                            var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
+                            newArgumentList = newArgumentList.WithEndOfLines(closeParenLeadingTrivia);
+                            newExpression = newExpression.WithArgumentList(newArgumentList);
+                            if (expression.FullSpan.Length != newExpression.FullSpan.Length)
+                            {
+                                documentEditor.ReplaceNode(expression, newExpression);
+                                document = documentEditor.GetChangedDocument();
+                                isUpdated = true;
+                                break;
+                            }
                         }
                     }
 
-                    if (needLineBreak)
+                    var assignmentExpressions = expression.GetAssignmentExpressions();
+                    if (assignmentExpressions != null && assignmentExpressions.Any())
                     {
-                        var closeParenLeadingTrivia = new List<SyntaxTrivia>();
-                        if (baseLeadingTrivia != null)
+                        var i = 0;
+                        var lastTrailingTrivias = Enumerable.Empty<SyntaxTrivia>();
+                        var newExpression = expression.ReplaceNodes(assignmentExpressions, (assignmentExpression, __) =>
                         {
-                            closeParenLeadingTrivia.Add(baseLeadingTrivia.Value);
+                            if (needLineBreak)
+                            {
+                                var leadingTrivias = new List<SyntaxTrivia>();
+                                leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                                if (baseLeadingTrivia != null)
+                                {
+                                    leadingTrivias.Add(baseLeadingTrivia.Value);
+                                }
+
+                                for (var j = 0; j < imbricationLevel + 1; j++)
+                                {
+                                    leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+                                }
+
+                                assignmentExpression = assignmentExpression.WithLeadingTrivia(leadingTrivias);
+
+                                if (i == assignmentExpressions.Count - 1)
+                                {
+                                    var trailingTrivias = new List<SyntaxTrivia>();
+                                    trailingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                                    if (baseLeadingTrivia != null)
+                                    {
+                                        trailingTrivias.Add(baseLeadingTrivia.Value);
+                                    }
+
+                                    for (var j = 0; j < imbricationLevel; j++)
+                                    {
+                                        trailingTrivias.Add(SyntaxTriviaHelper.GetTab());
+                                    }
+
+                                    assignmentExpression = assignmentExpression.WithTrailingTrivia(trailingTrivias);
+                                    lastTrailingTrivias = trailingTrivias;
+                                }
+
+                                i++;
+                            }
+
+                            return assignmentExpression;
+                        });
+
+                        if (needLineBreak)
+                        {
+                            var initializerExpression = newExpression.FirstNode<InitializerExpressionSyntax>(recursive: false);
+                            newExpression = newExpression.ReplaceNode(initializerExpression, initializerExpression.WithLeadingTrivia(lastTrailingTrivias));
+
+                            var token1 = newExpression.FirstNode<InitializerExpressionSyntax>(recursive: false).FirstToken<SyntaxToken>(recursive: false);
+                            newExpression = newExpression.ReplaceToken(token1, token1.WithoutTrailingTrivias());
+
+                            var token2 = newExpression.FirstNode<IdentifierNameSyntax>().FirstToken<SyntaxToken>(recursive: false);
+                            newExpression = newExpression.ReplaceToken(token2, token2.WithoutTrailingTrivias());
+
+                            var tokens = newExpression.FirstNode<InitializerExpressionSyntax>(recursive: false).Tokens<SyntaxToken>(recursive: false);
+                            foreach (var token in tokens)
+                            {
+                                if (!token.IsKind(SyntaxKind.CommaToken))
+                                {
+                                    continue;
+                                }
+
+                                newExpression = newExpression.ReplaceToken(token, token.WithoutTrailingTrivias());
+                            }
                         }
 
-                        for (var j = 0; j < imbricationLevel; j++)
-                        {
-                            closeParenLeadingTrivia.Add(SyntaxTriviaHelper.GetTab());
-                        }
-
-                        var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
-                        newArgumentList = newArgumentList.WithEndOfLines(closeParenLeadingTrivia);
-                        newExpression = newExpression.WithArgumentList(newArgumentList);
                         if (expression.FullSpan.Length != newExpression.FullSpan.Length)
                         {
                             documentEditor.ReplaceNode(expression, newExpression);
