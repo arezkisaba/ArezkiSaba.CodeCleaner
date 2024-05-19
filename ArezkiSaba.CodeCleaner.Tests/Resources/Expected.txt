@@ -90,7 +90,6 @@ public class TestClass1<T> : ITestClass,  where T : struct
     }
 
     public void OnSomeEventCallback(
-
         object _,
         EventArgs __)
     {
@@ -150,7 +149,7 @@ public sealed class TestClass2 : TestClass1<int>
     public TestClass2(
         int variable1,
         int variable2)
-    : this(variable1, variable2)
+        : this(variable1, variable2)
     {
         var variable1 = Method1(
             Method1(
@@ -187,7 +186,8 @@ public sealed class TestClass2 : TestClass1<int>
 
     private TestClass2(
         int variable1,
-        int variable2)     : base()
+        int variable2)
+        : base()
     {
         var result = new List<GarantieDto>();
         result.Add(
@@ -239,7 +239,6 @@ public sealed class TestClass2 : TestClass1<int>
     }
 
     public string Method1(
-
         string parameter1,
         DummyClass parameter2,
         string parameter3,

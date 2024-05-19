@@ -31,11 +31,11 @@ public static class MemberDeclarationExtensions
     {
         var newDeclaration = declaration;
 
-        ////var parameterLists = newDeclaration.DescendantNodes().OfType<ParameterListSyntax>().ToList();
-        ////newDeclaration = newDeclaration.ReplaceNodes(parameterLists, (parameterList, __) =>
-        ////{
-        ////    return FormatParametersByDefault(newDeclaration, parameterList);
-        ////});
+        var parameterLists = newDeclaration.DescendantNodes().OfType<ParameterListSyntax>().ToList();
+        newDeclaration = newDeclaration.ReplaceNodes(parameterLists, (parameterList, __) =>
+        {
+            return FormatParametersByDefault(newDeclaration, parameterList);
+        });
 
         ////var argumentLists = newDeclaration.DescendantNodes().OfType<ArgumentListSyntax>().ToList();
         ////newDeclaration = newDeclaration.ReplaceNodes(argumentLists, (argumentList, __) =>
@@ -47,7 +47,7 @@ public static class MemberDeclarationExtensions
         newDeclaration = newDeclaration.ReplaceNodes(constructorInitializers, (constructorInitializer, __) =>
         {
             var leadingTrivias = declaration.GetLeadingTrivia().Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
-            return constructorInitializer.WithColonToken(constructorInitializer.ColonToken.WithLeadingTrivia(leadingTrivias));
+            return constructorInitializer.WithColonToken(constructorInitializer.ColonToken.WithoutLeadingTrivias());
         });
 
         return newDeclaration;
