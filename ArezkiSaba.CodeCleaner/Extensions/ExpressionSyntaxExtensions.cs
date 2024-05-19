@@ -27,7 +27,7 @@ public static class ExpressionSyntaxExtensions
         {
             return invocationExpression.WithArgumentList(argumentList);
         }
-        else if (root is ObjectCreationExpressionSyntax objectCreationExpression)
+        else if (root is BaseObjectCreationExpressionSyntax objectCreationExpression)
         {
             return objectCreationExpression.WithArgumentList(argumentList);
         }

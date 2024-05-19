@@ -30,6 +30,17 @@ public static class SyntaxNodeExtensions
         return root.IsKind(SyntaxKind.InvocationExpression) || root.IsKind(SyntaxKind.ObjectCreationExpression);
     }
 
+    public static bool IsImbricationxpression(
+        this SyntaxNode root)
+    {
+        return root.IsInvocationOrCreationExpression() ||
+            root is ArrayCreationExpressionSyntax ||
+            root is ImplicitArrayCreationExpressionSyntax ||
+            root is StackAllocArrayCreationExpressionSyntax ||
+            root is ImplicitStackAllocArrayCreationExpressionSyntax ||
+            root is CollectionExpressionSyntax;
+    }
+
     public static bool HasBaseOrThisInitializer(
         this SyntaxNode root)
     {

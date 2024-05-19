@@ -516,18 +516,13 @@ public static class DocumentExtensions
                 SyntaxTrivia? baseLeadingTrivia = null;
 
                 var imbricationLevel = 0;
-                var parentExpression = expression.Ancestors().Where(obj => obj.IsInvocationOrCreationExpression()).FirstOrDefault();
+                var parentExpression = expression.Ancestors().Where(obj => obj.IsImbricationxpression()).FirstOrDefault();
                 if (parentExpression != null)
                 {
                     var ancestors = expression.Ancestors().ToList();
                     foreach (var ancestor in ancestors)
                     {
-                        if (ancestor.IsInvocationOrCreationExpression() ||
-                            ancestor is ArrayCreationExpressionSyntax ||
-                            ancestor is ImplicitArrayCreationExpressionSyntax ||
-                            ancestor is StackAllocArrayCreationExpressionSyntax ||
-                            ancestor is ImplicitStackAllocArrayCreationExpressionSyntax ||
-                            ancestor is CollectionExpressionSyntax)
+                        if (ancestor.IsImbricationxpression())
                         {
                             imbricationLevel++;
                         }

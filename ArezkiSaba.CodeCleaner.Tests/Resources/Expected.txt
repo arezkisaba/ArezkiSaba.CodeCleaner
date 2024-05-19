@@ -187,6 +187,20 @@ public sealed class TestClass2 : TestClass1<int>
         int variable2)
         : base()
     {
+        var array = new[]
+        {
+            new string(
+                ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a'],
+                0,
+                0
+            ),
+            new string(
+                ['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b'],
+                0,
+                0
+            ),
+        };
+
         var items = new[]
         {
             "1",
