@@ -186,10 +186,17 @@ public class TestClass2 : TestClass1<int>
 {
     private TestClass2(int variable1, int variable2) : base()
     {
+        var position = new[]
+        {
+            new SignatureInfoDto(SignatoryTypeDto.Fournisseur, new PositionPdfDto(4, 42, 130, 150, 55)),
+            new SignatureInfoDto(SignatoryTypeDto.TiersDeConfiance, new PositionPdfDto(4, 211, 105, 150, 80)),
+            new SignatureInfoDto(SignatoryTypeDto.Client, new PositionPdfDto(4, 380, 105, 140, 80))
+        };
+
         var array = new[]
         {
             new string(['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a'], 0, 0),
-            new string(['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b'], 0, 0),
+            new string(['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b'], 0, 0)
         };
 
         var items = new[]
@@ -203,7 +210,8 @@ public class TestClass2 : TestClass1<int>
     public TestClass2(int variable1, int variable2)
         : this(variable1, variable2)
     {
-        var variable1 = Method1(Method1("2222222222222222222222222222222", new DummyClass("DummyClassParameter1", "DummyClassParameter2", "DummyClassParameter3", "DummyClassParameter4"), "2222222222222222222222222222222", "2222222222222222222222222222222"), new DummyClass("DummyClassParameter1", "DummyClassParameter2", "DummyClassParameter3", "DummyClassParameter4"), Method1("3333333333333333333333333333333", new DummyClass("DummyClassParameter1", "DummyClassParameter2", "DummyClassParameter3" "DummyClassParameter4"), "3333333333333333333333333333333", "3333333333333333333333333333333"), "1111111111111111111111111111111111111");
+        var variable1 = Method1(Method1("2222222222222222222222222222222", new DummyClass("DummyClassParameter1", "DummyClassParameter2", "DummyClassParameter3", "DummyClassParameter4"), "2222222222222222222222222222222", "2222222222222222222222222222222"), new DummyClass("DummyClassParameter1", "DummyClassParameter2", "DummyClassParameter3", "DummyClassParameter4"), Method1("3333333333333333333333333333333", new DummyClass("DummyClassParameter1", "DummyClassParameter2", "DummyClassParameter3" "DummyClassParameter4"), "3333333333333333333333333333333", "3333333333333333333333333333333"), "1111111111111111111111111111111111111"
+        );
     }
 
     public string Method1(

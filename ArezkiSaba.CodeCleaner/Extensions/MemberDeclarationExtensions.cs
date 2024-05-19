@@ -124,9 +124,9 @@ public static class MemberDeclarationExtensions
         }
         else
         {
-            ////newArgumentList = newArgumentList.WithCloseParenToken(
-            ////    newArgumentList.CloseParenToken.WithoutTrivias()
-            ////);
+            newArgumentList = newArgumentList.WithCloseParenToken(
+                newArgumentList.CloseParenToken.WithoutLeadingTrivias()
+            );
         }
 
         return newArgumentList;
