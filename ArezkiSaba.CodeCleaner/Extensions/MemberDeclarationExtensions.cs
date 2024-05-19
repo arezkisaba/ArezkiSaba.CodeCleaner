@@ -31,17 +31,17 @@ public static class MemberDeclarationExtensions
     {
         var newDeclaration = declaration;
 
-        var parameterLists = newDeclaration.DescendantNodes().OfType<ParameterListSyntax>().ToList();
-        newDeclaration = newDeclaration.ReplaceNodes(parameterLists, (parameterList, __) =>
-        {
-            return FormatParametersByDefault(newDeclaration, parameterList);
-        });
+        ////var parameterLists = newDeclaration.DescendantNodes().OfType<ParameterListSyntax>().ToList();
+        ////newDeclaration = newDeclaration.ReplaceNodes(parameterLists, (parameterList, __) =>
+        ////{
+        ////    return FormatParametersByDefault(newDeclaration, parameterList);
+        ////});
 
-        var argumentLists = newDeclaration.DescendantNodes().OfType<ArgumentListSyntax>().ToList();
-        newDeclaration = newDeclaration.ReplaceNodes(argumentLists, (argumentList, __) =>
-        {
-            return FormatArgumentsByDefault(argumentList);
-        });
+        ////var argumentLists = newDeclaration.DescendantNodes().OfType<ArgumentListSyntax>().ToList();
+        ////newDeclaration = newDeclaration.ReplaceNodes(argumentLists, (argumentList, __) =>
+        ////{
+        ////    return FormatArgumentsByDefault(argumentList);
+        ////});
 
         var constructorInitializers = newDeclaration.DescendantNodes().OfType<ConstructorInitializerSyntax>().ToList();
         newDeclaration = newDeclaration.ReplaceNodes(constructorInitializers, (constructorInitializer, __) =>

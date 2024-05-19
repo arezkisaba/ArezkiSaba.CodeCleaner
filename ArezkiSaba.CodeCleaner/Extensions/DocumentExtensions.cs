@@ -556,6 +556,7 @@ public static class DocumentExtensions
                         continue;
                     }
 
+                    var newExpression = expression;
                     var newArguments = new List<ArgumentSyntax>();
                     for (var i = 0; i < argumentList.Arguments.Count; i++)
                     {
@@ -563,7 +564,6 @@ public static class DocumentExtensions
                         if (needLineBreak)
                         {
                             var leadingTrivias = new List<SyntaxTrivia>();
-                            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
                             if (baseLeadingTrivia != null)
                             {
                                 leadingTrivias.Add(baseLeadingTrivia.Value);
@@ -574,39 +574,35 @@ public static class DocumentExtensions
                                 leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
                             }
 
-                            argument = argument.WithLeadingTrivia(leadingTrivias);
-
-                            if (i == argumentList.Arguments.Count - 1)
-                            {
-                                var trailingTrivias = new List<SyntaxTrivia>();
-                                trailingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
-                                if (baseLeadingTrivia != null)
-                                {
-                                    trailingTrivias.Add(baseLeadingTrivia.Value);
-                                }
-
-                                for (var j = 0; j < imbricationLevel; j++)
-                                {
-                                    trailingTrivias.Add(SyntaxTriviaHelper.GetTab());
-                                }
-
-                                argument = argument.WithTrailingTrivia(trailingTrivias);
-                            }
+                            newArguments.Add(
+                                argument.WithLeadingTrivia(leadingTrivias).WithoutTrailingTrivia()
+                            );
                         }
-
-                        newArguments.Add(argument);
                     }
 
-                    var newArgumentList = argumentList.WithArguments(
-                        SyntaxFactory.SeparatedList(newArguments)
-                    );
-                    var newExpression = expression.WithArgumentList(newArgumentList);
-                    if (expression.FullSpan.Length != newExpression.FullSpan.Length)
+                    if (needLineBreak)
                     {
-                        documentEditor.ReplaceNode(expression, newExpression);
-                        document = documentEditor.GetChangedDocument();
-                        isUpdated = true;
-                        break;
+                        var closeParenLeadingTrivia = new List<SyntaxTrivia>();
+                        if (baseLeadingTrivia != null)
+                        {
+                            closeParenLeadingTrivia.Add(baseLeadingTrivia.Value);
+                        }
+
+                        for (var j = 0; j < imbricationLevel; j++)
+                        {
+                            closeParenLeadingTrivia.Add(SyntaxTriviaHelper.GetTab());
+                        }
+
+                        var newArgumentList = argumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
+                        newArgumentList = newArgumentList.WithEndOfLines(closeParenLeadingTrivia);
+                        newExpression = newExpression.WithArgumentList(newArgumentList);
+                        if (expression.FullSpan.Length != newExpression.FullSpan.Length)
+                        {
+                            documentEditor.ReplaceNode(expression, newExpression);
+                            document = documentEditor.GetChangedDocument();
+                            isUpdated = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1274,16 +1270,6 @@ public static class DocumentExtensions
             .Select((obj, i) =>
             {
                 var leadingTrivias = new List<SyntaxTrivia>();
-
-                ////var existingLeadingTriviasToInclude = obj.GetLeadingTrivia().Where(
-                ////    obj => obj.IsKind(SyntaxKind.RegionDirectiveTrivia) || obj.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
-                ////).ToList();
-                ////if (existingLeadingTriviasToInclude.Any())
-                ////{
-                ////    existingLeadingTriviasToInclude.Insert(0, SyntaxTriviaHelper.GetEndOfLine());
-                ////    existingLeadingTriviasToInclude.Insert(1, baseLeadingTrivia);
-                ////    leadingTrivias.AddRange(existingLeadingTriviasToInclude);
-                ////}
 
                 if (i == 0 || (syntaxKind != SyntaxKind.FieldDeclaration && syntaxKind != SyntaxKind.EventFieldDeclaration))
                 {
