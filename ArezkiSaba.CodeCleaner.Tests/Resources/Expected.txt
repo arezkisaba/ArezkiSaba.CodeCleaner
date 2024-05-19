@@ -187,6 +187,15 @@ public sealed class TestClass2 : TestClass1<int>
         int variable2)
         : base()
     {
+        var result = new List<GarantieDto>();
+        result.Add(
+            new GarantieDto
+            {
+                CotisationGarantie = 1111111111,
+                IsObligatoireGarantie = false
+            }
+        );
+
         var position = new[]
         {
             new SignatureInfoDto(

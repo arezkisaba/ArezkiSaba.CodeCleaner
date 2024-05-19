@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json.Linq;
 using System.Drawing.Text;
 using System.Linq;
@@ -728,13 +729,28 @@ public static class DocumentExtensions
                         return assignmentExpression;
                     });
 
-
                     if (needLineBreak)
                     {
-                        newExpression = newExpression.WithLeadingTrivia(lastTrailingTrivias);
-                    }
+                        var initializerExpression = newExpression.FirstNode<InitializerExpressionSyntax>(recursive: false);
+                        newExpression = newExpression.ReplaceNode(initializerExpression, initializerExpression.WithLeadingTrivia(lastTrailingTrivias));
 
-                    //new GarantieDto { Cotis
+                        var token1 = newExpression.FirstNode<InitializerExpressionSyntax>(recursive: false).FirstToken<SyntaxToken>(recursive: false);
+                        newExpression = newExpression.ReplaceToken(token1, token1.WithoutTrailingTrivias());
+
+                        var token2 = newExpression.FirstNode<IdentifierNameSyntax>().FirstToken<SyntaxToken>(recursive: false);
+                        newExpression = newExpression.ReplaceToken(token2, token2.WithoutTrailingTrivias());
+
+                        var tokens = newExpression.FirstNode<InitializerExpressionSyntax>(recursive: false).Tokens<SyntaxToken>(recursive: false);
+                        foreach (var token in tokens)
+                        {
+                            if (!token.IsKind(SyntaxKind.CommaToken))
+                            {
+                                continue;
+                            }
+
+                            newExpression = newExpression.ReplaceToken(token, token.WithoutTrailingTrivias());
+                        }
+                    }
 
                     if (expression.FullSpan.Length != newExpression.FullSpan.Length)
                     {

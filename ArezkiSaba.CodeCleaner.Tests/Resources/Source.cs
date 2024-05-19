@@ -186,6 +186,9 @@ public class TestClass2 : TestClass1<int>
 {
     private TestClass2(int variable1, int variable2) : base()
     {
+        var result = new List<GarantieDto>();
+        result.Add(new GarantieDto { CotisationGarantie = 11111111, IsObligatoireGarantie = false });
+
         var position = new[]
         {
             new SignatureInfoDto(SignatoryTypeDto.Fournisseur, new PositionPdfDto(4, 42, 130, 150, 55)),

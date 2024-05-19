@@ -6,6 +6,57 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class SyntaxNodeExtensions
 {
+    public static T FirstNode<T>(
+        this SyntaxNode root,
+        bool recursive = true)
+    {
+        IEnumerable<SyntaxNode> nodes = null;
+        if (recursive)
+        {
+            nodes = root.DescendantNodes();
+        }
+        else
+        {
+            nodes = root.ChildNodes();
+        }
+
+        return nodes.OfType<T>().FirstOrDefault();
+    }
+
+    public static IEnumerable<T> Tokens<T>(
+        this SyntaxNode root,
+        bool recursive = true)
+    {
+        IEnumerable<SyntaxToken> nodes = null;
+        if (recursive)
+        {
+            nodes = root.DescendantTokens();
+        }
+        else
+        {
+            nodes = root.ChildTokens();
+        }
+
+        return nodes.OfType<T>().ToList();
+    }
+
+    public static T FirstToken<T>(
+        this SyntaxNode root,
+        bool recursive = true)
+    {
+        IEnumerable<SyntaxToken> nodes = null;
+        if (recursive)
+        {
+            nodes = root.DescendantTokens();
+        }
+        else
+        {
+            nodes = root.ChildTokens();
+        }
+
+        return nodes.OfType<T>().FirstOrDefault();
+    }
+
     public static IList<MethodDeclarationSyntax> FindAllMethods(
         this SyntaxNode root)
     {
