@@ -34,4 +34,16 @@ public static class ExpressionSyntaxExtensions
 
         throw new NotImplementedException($"ExpressionSyntax type not found : {root.GetType()}");
     }
+
+    public static IList<AssignmentExpressionSyntax> GetAssignmentExpressions(
+        this ExpressionSyntax root)
+    {
+        var initializerExpression = root.ChildNodes().OfType<InitializerExpressionSyntax>().FirstOrDefault();
+        if (initializerExpression == null)
+        {
+            return Enumerable.Empty<AssignmentExpressionSyntax>().ToList();
+        }
+
+        return initializerExpression.ChildNodes().OfType<AssignmentExpressionSyntax>().ToList();
+    }
 }

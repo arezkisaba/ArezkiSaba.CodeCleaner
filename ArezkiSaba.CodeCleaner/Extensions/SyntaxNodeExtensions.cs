@@ -24,13 +24,19 @@ public static class SyntaxNodeExtensions
         return root.DescendantNodes().Where(obj => obj.IsInvocationOrCreationExpression()).Cast<ExpressionSyntax>().ToList();
     }
 
+    public static IList<ObjectCreationExpressionSyntax> FindAllInitializerExpressions(
+        this SyntaxNode root)
+    {
+        return root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().ToList();
+    }
+
     public static bool IsInvocationOrCreationExpression(
         this SyntaxNode root)
     {
         return root.IsKind(SyntaxKind.InvocationExpression) || root.IsKind(SyntaxKind.ObjectCreationExpression);
     }
 
-    public static bool IsImbricationxpression(
+    public static bool IsImbricationExpression(
         this SyntaxNode root)
     {
         return root.IsInvocationOrCreationExpression() ||
@@ -38,7 +44,8 @@ public static class SyntaxNodeExtensions
             root is ImplicitArrayCreationExpressionSyntax ||
             root is StackAllocArrayCreationExpressionSyntax ||
             root is ImplicitStackAllocArrayCreationExpressionSyntax ||
-            root is CollectionExpressionSyntax;
+            root is CollectionExpressionSyntax ||
+            root is ObjectCreationExpressionSyntax;
     }
 
     public static bool HasBaseOrThisInitializer(
