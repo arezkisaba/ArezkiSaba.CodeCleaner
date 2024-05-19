@@ -187,7 +187,8 @@ public class TestClass2 : TestClass1<int>
     private TestClass2(int variable1, int variable2) : base()
     {
         var result = new List<GarantieDto>();
-        result.Add(new GarantieDto { CotisationGarantie = 1111111111, IsObligatoireGarantie = false });
+        result.Add(new GarantieDto { CotisationGarantie = cotisationObligatoireMensuelle, IsObligatoireGarantie = true, IsSouscriteGarantie = true, NomGarantie = $"Capital décès", CotisationType = CotisationTypeDto.Cotisation }, "test1", "test2");
+
 
         var position = new[]
         {

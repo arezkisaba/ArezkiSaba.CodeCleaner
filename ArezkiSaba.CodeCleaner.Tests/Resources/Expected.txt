@@ -90,6 +90,7 @@ public class TestClass1<T> : ITestClass,  where T : struct
     }
 
     public void OnSomeEventCallback(
+
         object _,
         EventArgs __)
     {
@@ -105,7 +106,9 @@ public class TestClass1<T> : ITestClass,  where T : struct
             variable4: variable4
         );
 
-        MapControllerRoute(a: "1", b: "2");
+        MapControllerRoute(
+            a: "1",
+            b: "2");
     }
 
     public Task SomeAsyncMethodAsync()
@@ -147,7 +150,7 @@ public sealed class TestClass2 : TestClass1<int>
     public TestClass2(
         int variable1,
         int variable2)
-        : this(variable1, variable2)
+    : this(variable1, variable2)
     {
         var variable1 = Method1(
             Method1(
@@ -172,7 +175,7 @@ public sealed class TestClass2 : TestClass1<int>
                 new DummyClass(
                     "DummyClassParameter1",
                     "DummyClassParameter2",
-                    "DummyClassParameter3" ,
+                    "DummyClassParameter3"
                     "DummyClassParameter4"
                 ),
                 "3333333333333333333333333333333",
@@ -184,29 +187,33 @@ public sealed class TestClass2 : TestClass1<int>
 
     private TestClass2(
         int variable1,
-        int variable2)
-        : base()
+        int variable2)     : base()
     {
         var result = new List<GarantieDto>();
         result.Add(
             new GarantieDto
             {
-                CotisationGarantie = 1111111111,
-                IsObligatoireGarantie = false
-            }
+                CotisationGarantie = cotisationObligatoireMensuelle,
+                IsObligatoireGarantie = true,
+                IsSouscriteGarantie = true,
+                NomGarantie = $"Capital décès",
+                CotisationType = CotisationTypeDto.Cotisation
+            },
+            "test1",
+            "test2"
         );
 
         var position = new[]
         {
             new SignatureInfoDto(
                 SignatoryTypeDto.Fournisseur,
-                new PositionPdfDto(4,42,130,150,55)
+                new PositionPdfDto(4, 42, 130, 150, 55)
             ),
             new SignatureInfoDto(
                 SignatoryTypeDto.TiersDeConfiance,
-                new PositionPdfDto(4,211,105,150,80)
+                new PositionPdfDto(4, 211, 105, 150, 80)
             ),
-            new SignatureInfoDto(SignatoryTypeDto.Client, new PositionPdfDto(4,380,105,140,80))
+            new SignatureInfoDto(SignatoryTypeDto.Client, new PositionPdfDto(4, 380, 105, 140, 80))
         };
 
         var array = new[]
@@ -232,6 +239,7 @@ public sealed class TestClass2 : TestClass1<int>
     }
 
     public string Method1(
+
         string parameter1,
         DummyClass parameter2,
         string parameter3,
@@ -265,7 +273,7 @@ public sealed class TestClass2 : TestClass1<int>
                 new DummyClass(
                     "DummyClassParameter1",
                     "DummyClassParameter2",
-                    "DummyClassParameter3" ,
+                    "DummyClassParameter3"
                     "DummyClassParameter4"
                 ),
                 "3333333333333333333333333333333",

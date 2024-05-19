@@ -6,10 +6,37 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class SyntaxNodeExtensions
 {
+    public static IEnumerable<T> Nodes<T>(
+        this SyntaxNode root,
+        bool recursive = false)
+    {
+        if (root == null)
+        {
+            return Enumerable.Empty<T>();
+        }
+
+        IEnumerable<SyntaxNode> nodes = null;
+        if (recursive)
+        {
+            nodes = root.DescendantNodes();
+        }
+        else
+        {
+            nodes = root.ChildNodes();
+        }
+
+        return nodes.OfType<T>().ToList();
+    }
+
     public static T FirstNode<T>(
         this SyntaxNode root,
-        bool recursive = true)
+        bool recursive = false)
     {
+        if (root == null)
+        {
+            return default;
+        }
+
         IEnumerable<SyntaxNode> nodes = null;
         if (recursive)
         {
@@ -25,8 +52,13 @@ public static class SyntaxNodeExtensions
 
     public static IEnumerable<T> Tokens<T>(
         this SyntaxNode root,
-        bool recursive = true)
+        bool recursive = false)
     {
+        if (root == null)
+        {
+            return Enumerable.Empty<T>();
+        }
+
         IEnumerable<SyntaxToken> nodes = null;
         if (recursive)
         {
@@ -42,8 +74,13 @@ public static class SyntaxNodeExtensions
 
     public static T FirstToken<T>(
         this SyntaxNode root,
-        bool recursive = true)
+        bool recursive = false)
     {
+        if (root == null)
+        {
+            return default;
+        }
+
         IEnumerable<SyntaxToken> nodes = null;
         if (recursive)
         {

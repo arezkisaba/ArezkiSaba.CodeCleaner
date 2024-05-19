@@ -46,7 +46,8 @@ public static class MemberDeclarationExtensions
         var constructorInitializers = newDeclaration.DescendantNodes().OfType<ConstructorInitializerSyntax>().ToList();
         newDeclaration = newDeclaration.ReplaceNodes(constructorInitializers, (constructorInitializer, __) =>
         {
-            return constructorInitializer.WithColonToken(constructorInitializer.ColonToken.WithoutLeadingTrivias());
+            var leadingTrivias = declaration.GetLeadingTrivia().Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+            return constructorInitializer.WithColonToken(constructorInitializer.ColonToken.WithLeadingTrivia(leadingTrivias));
         });
 
         return newDeclaration;

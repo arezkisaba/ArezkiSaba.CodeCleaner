@@ -48,4 +48,30 @@ public static class ExpressionSyntaxExtensions
 
         return initializerExpression.ChildNodes().OfType<AssignmentExpressionSyntax>().ToList();
     }
+
+    public static InitializerExpressionSyntax WithEndOfLines(
+        this InitializerExpressionSyntax expression,
+        IList<SyntaxTrivia> closeParenLeadingTrivia)
+    {
+        var i = 0;
+        expression = expression.WithOpenBraceToken(expression.OpenBraceToken.WithLeadingTrivia(closeParenLeadingTrivia).WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+        expression = expression.WithCloseBraceToken(expression.CloseBraceToken.WithLeadingTrivia(closeParenLeadingTrivia));
+        expression = expression.ReplaceTokens(expression.Expressions.GetSeparators(), (separator, __) =>
+        {
+            return separator.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+        });
+        expression = expression.ReplaceNodes(expression.Expressions, (argument, __) =>
+        {
+            if (i == expression.Expressions.Count - 1)
+            {
+                argument = argument.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+            }
+
+            i++;
+            return argument;
+        });
+
+        return expression;
+    }
+
 }
