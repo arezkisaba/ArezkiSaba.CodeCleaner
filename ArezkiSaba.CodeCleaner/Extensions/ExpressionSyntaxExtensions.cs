@@ -53,6 +53,11 @@ public static class ExpressionSyntaxExtensions
         this InitializerExpressionSyntax expression,
         IList<SyntaxTrivia> closeParenLeadingTrivia)
     {
+        if (expression.Expressions.Count == expression.Expressions.GetSeparators().Count())
+        {
+            expression = expression.RemoveLastComma();
+        }
+
         var i = 0;
         expression = expression.WithOpenBraceToken(expression.OpenBraceToken.WithLeadingTrivia(closeParenLeadingTrivia).WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
         expression = expression.WithCloseBraceToken(expression.CloseBraceToken.WithLeadingTrivia(closeParenLeadingTrivia));
@@ -60,6 +65,7 @@ public static class ExpressionSyntaxExtensions
         {
             return separator.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
         });
+
         expression = expression.ReplaceNodes(expression.Expressions, (argument, __) =>
         {
             if (i == expression.Expressions.Count - 1)
@@ -74,4 +80,31 @@ public static class ExpressionSyntaxExtensions
         return expression;
     }
 
+    private static InitializerExpressionSyntax RemoveLastComma(
+        this InitializerExpressionSyntax initializer)
+    {
+        // Get the elements and separators
+        var elements = initializer.Expressions;
+        var separators = initializer.Expressions.GetSeparators().ToList();
+
+        // If there are no separators, return the original initializer
+        if (separators.Count == 0)
+        {
+            return initializer;
+        }
+
+        // Remove the last separator
+        separators.RemoveAt(separators.Count - 1);
+
+        // Create a new list of expressions interleaved with the modified separators
+        var newExpressions = elements
+            .Select((expr, index) => new { expr, index })
+            .SelectMany(pair => pair.index < separators.Count
+                ? new SyntaxNodeOrToken[] { pair.expr, separators[pair.index] }
+                : new SyntaxNodeOrToken[] { pair.expr })
+            .ToArray();
+
+        // Return the new initializer expression
+        return SyntaxFactory.InitializerExpression(initializer.Kind(), SyntaxFactory.SeparatedList<ExpressionSyntax>(newExpressions));
+    }
 }
