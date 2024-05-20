@@ -59,7 +59,7 @@ public sealed class FormatExpressionsOnInitializers
                     if (itemBefore.IsNode)
                     {
                         var targetNode = itemBefore.AsNode();
-                        var targetToken = targetNode.LastChildToken<SyntaxToken>(recursive: false);
+                        var targetToken = targetNode.LastChildToken<SyntaxToken>(recursive: true);
                         newParentExpression = newParentExpression.ReplaceToken(targetToken, targetToken.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
                     }
                     else if (itemBefore.IsToken)
