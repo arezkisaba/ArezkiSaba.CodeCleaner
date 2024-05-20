@@ -190,13 +190,11 @@ public static class ExpressionSyntaxExtensions
             return anonymousObjectCreationExpression;
         }
 
-        // Create a new list of initializers excluding the last separator
         var newInitializers = SyntaxFactory.SeparatedList(
             initializers.Take(initializers.Count),
             separators.Take(separators.Count - 1)
         );
 
-        // Return the new anonymous object creation expression
         return anonymousObjectCreationExpression.WithInitializers(newInitializers);
     }
 

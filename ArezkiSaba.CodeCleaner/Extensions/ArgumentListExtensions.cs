@@ -30,28 +30,4 @@ public static class ArgumentListExtensions
 
         return argumentList;
     }
-
-    public static ArgumentListSyntax WithArgumentsPreservingTrivia(
-        this ArgumentListSyntax argumentList,
-        IEnumerable<ArgumentSyntax> arguments)
-    {
-        var existingArguments = argumentList.Arguments;
-        var leadingTrivia = existingArguments.Select(arg => arg.GetLeadingTrivia()).ToList();
-        var trailingTrivia = existingArguments.Select(arg => arg.GetTrailingTrivia()).ToList();
-
-        var newArguments = SyntaxFactory.SeparatedList(arguments);
-
-        for (int i = 0; i < newArguments.Count; i++)
-        {
-            newArguments = newArguments.Replace(
-                newArguments[i],
-                newArguments[i]
-                    .WithLeadingTrivia(leadingTrivia.ElementAtOrDefault(i))
-                    .WithTrailingTrivia(trailingTrivia.ElementAtOrDefault(i))
-            );
-        }
-
-        // Return the new invocation expression with the updated arguments
-        return SyntaxFactory.ArgumentList(newArguments);
-    }
 }

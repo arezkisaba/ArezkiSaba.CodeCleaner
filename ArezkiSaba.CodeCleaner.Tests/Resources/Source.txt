@@ -205,7 +205,13 @@ public class TestClass2 : TestClass1<int>
 
         var variable5 = new List<string> { "item1", "item2", "item3", "item4", "item5", "item6", "item7", "item8", "item9", "item10" };
 
-        var variable6 = Json(new { areQuotitesValides = await AreQuotitesValidesAsync(saisieBulletinSouscription.Beneficiaires), beneficiaires = saisieBulletinSouscription.Beneficiaires.BeneficiairesAClauseNominative.Select(ReflectionHelper.CreateFrom<BeneficiaireModel, BeneficiaireDto, IBeneficiaireModel>).ToList(), descriptionClauseBeneficiaire = saisieBulletinSouscription.Beneficiaires.GetDescriptionClauseBeneficiaire(), });
+        var variable6 = Json(new { Parameter1 = "1", Parameter2 = "2", Parameter2 = "3", Parameter2 = "4", Parameter2 = "5" });
+
+        var variable7 = Json(new { Parameter1 = "1", Parameter2 = "2", Parameter2 = "3", Parameter2 = "4", Parameter2 = "5", });
+
+        var variable8 = Json(new() { Parameter1 = "1", Parameter2 = "2", Parameter2 = "3", Parameter2 = "4", Parameter2 = "5" });
+
+        var variable9 = Json(new() { Parameter1 = "1", Parameter2 = "2", Parameter2 = "3", Parameter2 = "4", Parameter2 = "5", });
     }
 
     public TestClass2(int parameter1, int parameter2)
