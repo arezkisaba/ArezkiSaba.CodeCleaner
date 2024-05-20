@@ -527,7 +527,7 @@ public static class DocumentExtensions
             foreach (var expression in expressions)
             {
                 SyntaxTrivia? baseLeadingTrivia = null;
-                var needLineBreak = expression.GetExpressionLength() > 100;
+                var needLineBreak = expression.GetLength() > 100;
 
                 var hasExcludedType = expression.DescendantNodes()
                     .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));

@@ -37,18 +37,6 @@ public static class ExpressionSyntaxExtensions
         throw new NotImplementedException($"ExpressionSyntax type not found : {root.GetType()}");
     }
 
-    public static IList<AssignmentExpressionSyntax> GetAssignmentExpressions(
-        this ExpressionSyntax root)
-    {
-        var initializerExpression = root.ChildNodes().OfType<InitializerExpressionSyntax>().FirstOrDefault();
-        if (initializerExpression == null)
-        {
-            return Enumerable.Empty<AssignmentExpressionSyntax>().ToList();
-        }
-
-        return initializerExpression.ChildNodes().OfType<AssignmentExpressionSyntax>().ToList();
-    }
-
     public static InitializerExpressionSyntax WithEndOfLines(
         this InitializerExpressionSyntax expression,
         IList<SyntaxTrivia> closeParenLeadingTrivia)
@@ -80,6 +68,20 @@ public static class ExpressionSyntaxExtensions
         return expression;
     }
 
+    public static int GetLength(
+        this ExpressionSyntax expression)
+    {
+        if (expression == null)
+        {
+            return 0;
+        }
+
+        var text = expression.GetText().ToString().Replace(Environment.NewLine, string.Empty);
+        return text.Length;
+    }
+
+    #region Private use
+
     private static InitializerExpressionSyntax RemoveLastComma(
         this InitializerExpressionSyntax initializer)
     {
@@ -107,4 +109,6 @@ public static class ExpressionSyntaxExtensions
         // Return the new initializer expression
         return SyntaxFactory.InitializerExpression(initializer.Kind(), SyntaxFactory.SeparatedList<ExpressionSyntax>(newExpressions));
     }
+
+    #endregion
 }
