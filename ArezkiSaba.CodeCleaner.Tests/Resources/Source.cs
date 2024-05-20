@@ -12,32 +12,11 @@ using Windows;
 
 namespace ArezkiSaba.CodeCleaner.Tests;
 
-public interface ITestClass
+public class TestClass1<T>
 {
-    void MapControllerRoute(string a, string b);
-
-    Task SomeAsyncMethodWithSuffixAsync();
-}
-
-public class TestClass1<T> : ITestClass,  where T : struct
-{
-
-
-    public class InternalClass1
-    {
-
-        private string readonlyStringField;
-
-
-    }
-
-
-
-    private string readonlyStringField2;
-
     public TestClass1(string arg1, string arg2)
     {
-
+        // some comment
         _readonlyStringField1 = arg1;
         readonlyStringField2 = arg2;
         nonReadonlyBooleanField = true;
@@ -187,7 +166,7 @@ public class TestClass2 : TestClass1<int>
     private TestClass2(int variable1, int variable2) : base()
     {
         var result = new List<GarantieDto>();
-        result.Add(new GarantieDto { CotisationGarantie = cotisationObligatoireMensuelle, IsObligatoireGarantie = true, IsSouscriteGarantie = true, NomGarantie = $"Capital décès", CotisationType = CotisationTypeDto.Cotisation }, "test1", "test2");
+        result.Add(new GarantieDto { CotisationGarantie = cotisationObligatoireMensuelle, IsObligatoireGarantie = true, IsSouscriteGarantie = true, NomGarantie = $"Capital décès", CotisationType = CotisationTypeDto.Cotisation, }, "test1", "test2");
 
 
         var position = new[]

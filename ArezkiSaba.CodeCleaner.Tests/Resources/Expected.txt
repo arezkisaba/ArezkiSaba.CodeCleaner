@@ -9,21 +9,11 @@ using NativeHttpClient = System.Net.Http.HttpClient;
 
 namespace ArezkiSaba.CodeCleaner.Tests;
 
-public interface ITestClass
-{
-    void MapControllerRoute(
-        string a,
-        string b);
-
-    Task SomeAsyncMethodWithSuffixAsync();
-}
-
-public class TestClass1<T> : ITestClass,  where T : struct
+public class TestClass1<T>
 {
     private const string SomeConstField = "SOME CONST VALUE";
     private static string SomeStaticField;
     private readonly string _readonlyStringField1;
-    private readonly string _readonlyStringField2;
     private bool _nonReadonlyBooleanField;
 
     public event EventHandler SomeEventTriggered;
@@ -48,7 +38,7 @@ public class TestClass1<T> : ITestClass,  where T : struct
     private TestClass1()
     {
         _readonlyStringField1 = "some useless value";
-        _readonlyStringField2 = "some useless value";
+        readonlyStringField2 = "some useless value";
         _nonReadonlyBooleanField = false;
     }
 
@@ -56,8 +46,9 @@ public class TestClass1<T> : ITestClass,  where T : struct
         string arg1,
         string arg2)
     {
+        // some comment
         _readonlyStringField1 = arg1;
-        _readonlyStringField2 = arg2;
+        readonlyStringField2 = arg2;
         _nonReadonlyBooleanField = true;
     }
 
@@ -137,11 +128,6 @@ public class TestClass1<T> : ITestClass,  where T : struct
     }
 
     #endregion
-
-    public sealed class InternalClass1
-    {
-        private readonly string _readonlyStringField;
-    }
 }
 
 public sealed class TestClass2 : TestClass1<int>

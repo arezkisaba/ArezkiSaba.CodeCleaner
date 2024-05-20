@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Drawing.Text;
 using System.Linq;
 using System.Linq.Expressions;
@@ -280,6 +281,7 @@ public static class DocumentExtensions
                 {
                     var targetToken = tokens[i + 1];
                     var leadingTrivias = new List<SyntaxTrivia>();
+
                     for (var j = 0; j < targetToken.LeadingTrivia.Count; j++)
                     {
                         var leadingTrivia = targetToken.LeadingTrivia[j];
@@ -288,6 +290,11 @@ public static class DocumentExtensions
                             !leadingTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
                         {
                             leadingTrivias.Add(leadingTrivia);
+
+                            if (leadingTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                            {
+                                leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                            }
                         }
                     }
 
@@ -329,6 +336,11 @@ public static class DocumentExtensions
                             !leadingTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
                         {
                             leadingTrivias.Add(leadingTrivia);
+
+                            if (leadingTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                            {
+                                leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                            }
                         }
                     }
 
@@ -1172,6 +1184,22 @@ public static class DocumentExtensions
                 if (i == 0 || (syntaxKind != SyntaxKind.FieldDeclaration && syntaxKind != SyntaxKind.EventFieldDeclaration))
                 {
                     leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                }
+
+                var commentsTrivia = obj.GetLeadingTrivia().Where(obj => obj.IsKind(SyntaxKind.SingleLineCommentTrivia));
+                if (commentsTrivia.Any())
+                {
+                    foreach (var commentTrivia in commentsTrivia)
+                    {
+                        if (baseLeadingTrivia != null)
+                        {
+                            leadingTrivias.Add(baseLeadingTrivia.Value);
+                        }
+
+                        leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+                        leadingTrivias.Add(commentTrivia);
+                        leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                    }
                 }
 
                 if (baseLeadingTrivia != null)

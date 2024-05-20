@@ -12,32 +12,11 @@ using Windows;
 
 namespace ArezkiSaba.CodeCleaner.Tests;
 
-public interface ITestClass
+public class TestClass1<T>
 {
-    void MapControllerRoute(string a, string b);
-
-    Task SomeAsyncMethodWithSuffixAsync();
-}
-
-public class TestClass1<T> : ITestClass,  where T : struct
-{
-
-
-    public class InternalClass1
-    {
-
-        private string readonlyStringField;
-
-
-    }
-
-
-
-    private string readonlyStringField2;
-
     public TestClass1(string arg1, string arg2)
     {
-
+        // some comment
         _readonlyStringField1 = arg1;
         readonlyStringField2 = arg2;
         nonReadonlyBooleanField = true;
