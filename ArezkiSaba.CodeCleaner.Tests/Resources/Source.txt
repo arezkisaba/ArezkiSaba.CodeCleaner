@@ -182,9 +182,9 @@ public class TestClass2 : TestClass1<int>
 
         var position = new[]
         {
-            new SignatureInfoDto(SignatoryTypeDto.Fournisseur, new PositionPdfDto(4, 42, 130, 150, 55)),
-            new SignatureInfoDto(SignatoryTypeDto.TiersDeConfiance, new PositionPdfDto(4, 211, 105, 150, 80)),
-            new SignatureInfoDto(SignatoryTypeDto.Client, new PositionPdfDto(4, 380, 105, 140, 80))
+                        new SignatureInfoDto(SignatoryTypeDto.Fournisseur, new PositionPdfDto(4, 42, 130, 150, 55)),
+                            new SignatureInfoDto(SignatoryTypeDto.TiersDeConfiance, new PositionPdfDto(4, 211, 105, 150, 80)),
+                                    new SignatureInfoDto(SignatoryTypeDto.Client, new PositionPdfDto(4, 380, 105, 140, 80))
         };
 
         var array = new[]
