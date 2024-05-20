@@ -14,6 +14,75 @@ namespace ArezkiSaba.CodeCleaner.Tests;
 
 public class TestClass1<T>
 {
+    protected override async Task<StatutProduitDto> GetStatutProduitAsync(EntretienDto entretien, string idPersonne, bool isLancementOavActive, string cleProduit, bool isQuatriemeCocheCochee, PrioritéUniversLightDto prioriteUnivers)
+    {
+        var isConjoint = entretien.Foyer.ChefDeFoyer.AdherentId != idPersonne;
+        var dateNaissance = !isConjoint ? entretien.Foyer.ChefDeFoyer.EtatCivil.DateNaissance : entretien.Foyer.Conjoint.EtatCivil.DateNaissance;
+
+        var typeUnivers = (TypeUniversDto?)prioriteUnivers?.TypeUnivers;
+        var besoinUnivers = (BesoinUniversDto?)prioriteUnivers?.BesoinUnivers;
+        var horizonUnivers = (HorizonPrioriteDto?)prioriteUnivers?.HorizonUnivers;
+        var age = dateNaissance.Value.CalculerAge();
+        var id = !isConjoint ? entretien.Foyer.ChefDeFoyer.AdherentId : entretien.Foyer.Conjoint.AdherentId;
+        var statutProfessionnel = !isConjoint ? entretien.Foyer.ChefDeFoyer.Activite.StatutProfessionnel : entretien.Foyer.Conjoint.Activite.StatutProfessionnel;
+        var equipements = !isConjoint ? entretien.Foyer.ChefDeFoyer.Equipements : entretien.Foyer.Conjoint.Equipements;
+        var capaciteTotaleAuTitreDesVersementsReguliers = !isConjoint ? entretien.Foyer.ChefDeFoyer.ExperienceFinanciere.GetCapaciteTotaleVersementsReguliers() : entretien.Foyer.Conjoint.ExperienceFinanciere.GetCapaciteTotaleVersementsReguliers();
+        var isImposable = !isConjoint ? entretien.Foyer.ChefDeFoyer.Charges.IsImposable : entretien.Foyer.Conjoint.Charges.IsImposable;
+        var ageDeDepartEnRetraite = !isConjoint ? entretien.Foyer.ChefDeFoyer.Activite.AgeDepartRetraite : entretien.Foyer.Conjoint.Activite.AgeDepartRetraite;
+        var regimeSocial = !isConjoint ? entretien.Foyer.ChefDeFoyer.Activite.RegimeSocial : entretien.Foyer.Conjoint.Activite.RegimeSocial;
+        var statutDActivite = !isConjoint ? entretien.Foyer.ChefDeFoyer.Activite.StatutActivite : entretien.Foyer.Conjoint.Activite.StatutActivite;
+        var profilExperienceFinancière = !isConjoint ? entretien.Foyer.ChefDeFoyer.ExperienceFinanciere.Profil : entretien.Foyer.Conjoint.ExperienceFinanciere.Profil;
+        var priorites = !isConjoint ? entretien.Foyer.ChefDeFoyer.Bilan.Priorites : entretien.Foyer.Conjoint.Bilan.Priorites;
+        var isPreconisable = true;
+        var messageErreurReasons = new List<string>();
+
+        if (!_eligibiliteService.IsAgeValide(dateNaissance.Value))
+        {
+            isPreconisable = false;
+            messageErreurReasons.Add("l'âge");
+        }
+
+        if (!_eligibiliteService.IsRegleCumulValid(cleProduit, equipements))
+        {
+            isPreconisable = false;
+            messageErreurReasons.Add("la règle de non cumul");
+        }
+
+        if (!isLancementOavActive)
+        {
+            if (horizonUnivers.HasValue)
+            {
+                if (!_eligibiliteService.IsProfilExperienceFinanciereValide(
+                    profilExperienceFinancière,
+                    horizonUnivers,
+                    cleProduit
+                ))
+                {
+                    messageErreurReasons.Add("le profil d'expérience financière");
+                    isPreconisable = false;
+                }
+            }
+        }
+
+        if (isLancementOavActive && !isQuatriemeCocheCochee)
+        {
+            var familles = GetFamilleDeProduits();
+            if (!familles.Produits.Any(produit => _eligibiliteService.IsPreconise(produit.Cle, priorites)))
+            {
+                messageErreurReasons.Add("la préconisation");
+                isPreconisable = false;
+            }
+        }
+
+        messageErreurReasons = messageErreurReasons.Distinct().ToList();
+        var reasonsToString = string.Join(messageErreurReasons.Count == 2 ? " et " : ", ", messageErreurReasons);
+        return new StatutProduitDto
+        {
+            IsPréconisable = isPreconisable,
+            MessageDErreur = reasonsToString.Any() ? $"{reasonsToString.Capitalize()} du client ne {(messageErreurReasons.Count > 1 ? "permettent" : "permet")} pas la préconisation de ce produit." : string.Empty
+        };
+    }
+
     public TestClass1(string arg1, string arg2)
     {
         // some comment
@@ -40,6 +109,9 @@ public class TestClass1<T>
         string variable4 = "4";
 #endif
 
+        void Test(string parameter1, string parameter2, string parameter3, string parameter4, string parameter5)
+        {
+        }
 
 
 #pragma warning disable 4014

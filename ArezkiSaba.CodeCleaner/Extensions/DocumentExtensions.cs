@@ -428,9 +428,9 @@ public static class DocumentExtensions
     {
         var excludedTypes = new List<Type>
         {
-            typeof(LocalFunctionStatementSyntax),
-            typeof(SimpleLambdaExpressionSyntax),
-            typeof(ParenthesizedLambdaExpressionSyntax)
+            ////typeof(LocalFunctionStatementSyntax),
+            ////typeof(SimpleLambdaExpressionSyntax),
+            ////typeof(ParenthesizedLambdaExpressionSyntax)
         };
 
         var documentEditor = await DocumentEditor.CreateAsync(document);
