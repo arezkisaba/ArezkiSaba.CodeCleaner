@@ -190,20 +190,22 @@ public class TestClass2 : TestClass1<int>
         var variable2 = new[] {
         };
 
-        var array = new[]
+        var variable3 = new[]
         {
             new string(['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a'], 0, 0),
             new string(['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b'], 0, 0)
         };
 
-        var items = new[]
+        var variable4 = new[]
         {
             "1",
             "2",
             "3"
         };
 
-        var variable1 = new List<string> { "item1", "item2", "item3", "item4", "item5", "item6", "item7", "item8", "item9", "item10" };
+        var variable5 = new List<string> { "item1", "item2", "item3", "item4", "item5", "item6", "item7", "item8", "item9", "item10" };
+
+        var variable6 = Json(new { areQuotitesValides = await AreQuotitesValidesAsync(saisieBulletinSouscription.Beneficiaires), beneficiaires = saisieBulletinSouscription.Beneficiaires.BeneficiairesAClauseNominative.Select(ReflectionHelper.CreateFrom<BeneficiaireModel, BeneficiaireDto, IBeneficiaireModel>).ToList(), descriptionClauseBeneficiaire = saisieBulletinSouscription.Beneficiaires.GetDescriptionClauseBeneficiaire(), });
     }
 
     public TestClass2(int parameter1, int parameter2)

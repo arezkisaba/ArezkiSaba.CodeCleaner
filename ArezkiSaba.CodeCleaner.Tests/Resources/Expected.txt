@@ -224,12 +224,12 @@ public sealed class TestClass2 : TestClass1<int>
                 new PositionPdfDto(4, 380, 105, 140, 80)
             )
         };
-        
+
         var variable2 = new[]
         {
         };
 
-        var array = new[]
+        var variable3 = new[]
         {
             new string(
                 ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a'],
@@ -243,14 +243,14 @@ public sealed class TestClass2 : TestClass1<int>
             )
         };
 
-        var items = new[]
+        var variable4 = new[]
         {
             "1",
             "2",
             "3"
         };
-        
-        var variable1 = new List<string>
+
+        var variable5 = new List<string>
         {
             "item1",
             "item2",
@@ -263,6 +263,17 @@ public sealed class TestClass2 : TestClass1<int>
             "item9",
             "item10"
         };
+
+        var variable6 = Json(
+            new
+            {
+                areQuotitesValides = await AreQuotitesValidesAsync(saisieBulletinSouscription.Beneficiaires),
+                beneficiaires = saisieBulletinSouscription.Beneficiaires.BeneficiairesAClauseNominative.Select(
+                    ReflectionHelper.CreateFrom<BeneficiaireModel, BeneficiaireDto, IBeneficiaireModel>
+                ).ToList(),
+                descriptionClauseBeneficiaire = saisieBulletinSouscription.Beneficiaires.GetDescriptionClauseBeneficiaire()
+            }
+        );
     }
 
     public string Method1(

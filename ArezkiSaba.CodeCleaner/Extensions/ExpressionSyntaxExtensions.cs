@@ -111,6 +111,37 @@ public static class ExpressionSyntaxExtensions
         return expression;
     }
 
+    public static AnonymousObjectCreationExpressionSyntax WithEndOfLines(
+        this AnonymousObjectCreationExpressionSyntax expression,
+        IList<SyntaxTrivia> bracesLeadingTrivia)
+    {
+        if (expression.Initializers.Count == expression.Initializers.GetSeparators().Count())
+        {
+            expression = expression.RemoveLastComma();
+        }
+
+        var i = 0;
+        expression = expression.WithOpenBraceToken(expression.OpenBraceToken.WithLeadingTrivia(bracesLeadingTrivia).WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+        expression = expression.WithCloseBraceToken(expression.CloseBraceToken.WithLeadingTrivia(bracesLeadingTrivia));
+        expression = expression.ReplaceTokens(expression.Initializers.GetSeparators(), (separator, __) =>
+        {
+            return separator.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+        });
+
+        expression = expression.ReplaceNodes(expression.Initializers, (argument, __) =>
+        {
+            if (i == expression.Initializers.Count - 1)
+            {
+                argument = argument.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+            }
+
+            i++;
+            return argument;
+        });
+
+        return expression;
+    }
+
     public static int GetLength(
         this ExpressionSyntax expression)
     {
@@ -128,20 +159,16 @@ public static class ExpressionSyntaxExtensions
     private static InitializerExpressionSyntax RemoveLastComma(
         this InitializerExpressionSyntax initializer)
     {
-        // Get the elements and separators
         var elements = initializer.Expressions;
         var separators = initializer.Expressions.GetSeparators().ToList();
 
-        // If there are no separators, return the original initializer
         if (separators.Count == 0)
         {
             return initializer;
         }
 
-        // Remove the last separator
         separators.RemoveAt(separators.Count - 1);
 
-        // Create a new list of expressions interleaved with the modified separators
         var newExpressions = elements
             .Select((expr, index) => new { expr, index })
             .SelectMany(pair => pair.index < separators.Count
@@ -149,8 +176,28 @@ public static class ExpressionSyntaxExtensions
                 : new SyntaxNodeOrToken[] { pair.expr })
             .ToArray();
 
-        // Return the new initializer expression
         return SyntaxFactory.InitializerExpression(initializer.Kind(), SyntaxFactory.SeparatedList<ExpressionSyntax>(newExpressions));
+    }
+
+    private static AnonymousObjectCreationExpressionSyntax RemoveLastComma(
+        this AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression)
+    {
+        var initializers = anonymousObjectCreationExpression.Initializers;
+        var separators = anonymousObjectCreationExpression.Initializers.GetSeparators().ToList();
+
+        if (separators.Count == 0)
+        {
+            return anonymousObjectCreationExpression;
+        }
+
+        // Create a new list of initializers excluding the last separator
+        var newInitializers = SyntaxFactory.SeparatedList(
+            initializers.Take(initializers.Count),
+            separators.Take(separators.Count - 1)
+        );
+
+        // Return the new anonymous object creation expression
+        return anonymousObjectCreationExpression.WithInitializers(newInitializers);
     }
 
     #endregion

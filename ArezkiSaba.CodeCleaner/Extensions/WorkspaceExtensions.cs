@@ -25,6 +25,7 @@ public static class WorkspaceExtensions
             ((document, solution) => new FormatParametersOnDeclarations().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new FormatArgumentsOnExpressions().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new FormatExpressionsOnInitializers().StartAsync(document, solution), (project) => Task.FromResult(true)),
+            ((document, solution) => new FormatExpressionsOnAnonymousObjectCreation().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new RenameFields().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new RenameEventFields().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new RenameProperties().StartAsync(document, solution), (project) => Task.FromResult(true)),
