@@ -1,4 +1,5 @@
-﻿using ArezkiSaba.CodeCleaner.Models;
+﻿using ArezkiSaba.CodeCleaner.Extensions;
+using ArezkiSaba.CodeCleaner.Models;
 using ArezkiSaba.CodeCleaner.Rewriters;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -426,26 +427,12 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        var excludedTypes = new List<Type>
-        {
-            ////typeof(LocalFunctionStatementSyntax),
-            ////typeof(SimpleLambdaExpressionSyntax),
-            ////typeof(ParenthesizedLambdaExpressionSyntax)
-        };
-
         var documentEditor = await DocumentEditor.CreateAsync(document);
-        var declarations = documentEditor.GetDocumentEditorRoot().FindAllConstructorAndMethodDeclarations();
+        var declarations = documentEditor.GetDocumentEditorRoot().ChildNodes<BaseMethodDeclarationSyntax>(recursive: true);
         foreach (var declaration in declarations)
         {
             var baseLeadingTrivia = declaration.FindFirstLeadingTrivia();
             if (baseLeadingTrivia == null)
-            {
-                continue;
-            }
-
-            var hasExcludedType = declaration.DescendantNodes()
-                .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
-            if (hasExcludedType)
             {
                 continue;
             }
@@ -487,12 +474,6 @@ public static class DocumentExtensions
         this Document document,
         Solution solution)
     {
-        var excludedTypes = new List<Type>
-        {
-            ////typeof(SimpleLambdaExpressionSyntax),
-            ////typeof(ParenthesizedLambdaExpressionSyntax)
-        };
-
         bool isUpdated;
         DocumentEditor documentEditor;
 
@@ -500,36 +481,12 @@ public static class DocumentExtensions
         {
             isUpdated = false;
             documentEditor = await DocumentEditor.CreateAsync(document);
-            var expressions = documentEditor.OriginalRoot.FindAllInvocationAndCreationExpressions();
-
+            var expressions = documentEditor.OriginalRoot.ChildNodes<ExpressionSyntax>(recursive: true).Where(obj => obj.IsInvocationOrCreationExpression()).ToList();
             foreach (var expression in expressions)
             {
+                var imbricationLevel = GetImbricationLevel(expression);
                 var needLineBreak = expression.GetLength() > 100;
-
-                var hasExcludedType = expression.DescendantNodes()
-                    .Any(node => excludedTypes.Any(excludedType => node.GetType() == excludedType));
-                if (hasExcludedType)
-                {
-                    continue;
-                }
-
-                var imbricationLevel = 0;
                 var parentExpression = expression.Ancestors().Where(obj => obj.IsImbricationExpression()).FirstOrDefault();
-                if (parentExpression != null)
-                {
-                    var ancestors = expression.Ancestors().ToList();
-                    foreach (var ancestor in ancestors)
-                    {
-                        if (ancestor.IsImbricationExpression())
-                        {
-                            imbricationLevel++;
-                        }
-                        else if (ancestor is StatementSyntax)
-                        {
-                            break;
-                        }
-                    }
-                }
 
                 SyntaxTrivia? baseLeadingTrivia = null;
                 var parentStatement = expression.Ancestors().OfType<StatementSyntax>().FirstOrDefault();
@@ -551,17 +508,7 @@ public static class DocumentExtensions
                     {
                         if (needLineBreak)
                         {
-                            var leadingTrivias = new List<SyntaxTrivia>();
-                            if (baseLeadingTrivia != null)
-                            {
-                                leadingTrivias.Add(baseLeadingTrivia.Value);
-                            }
-
-                            for (var j = 0; j < imbricationLevel + 1; j++)
-                            {
-                                leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
-                            }
-
+                            var leadingTrivias = GetArgumentLeadingTrivia(baseLeadingTrivia, imbricationLevel);
                             argument = argument.WithLeadingTrivia(leadingTrivias).WithoutTrailingTrivia();
                         }
 
@@ -603,65 +550,144 @@ public static class DocumentExtensions
                     }
                 }
 
-                var initializerExpression = expression.FirstNode<InitializerExpressionSyntax>();
-                var assignmentExpressions = initializerExpression.Nodes<AssignmentExpressionSyntax>();
-                if (assignmentExpressions != null && assignmentExpressions.Any())
+                ////var initializerExpression = expression.FirstChildNode<InitializerExpressionSyntax>();
+                ////var assignmentExpressions = initializerExpression.ChildNodes<AssignmentExpressionSyntax>();
+                ////if (assignmentExpressions != null && assignmentExpressions.Any())
+                ////{
+                ////    var newInitializerExpression = initializerExpression.ReplaceNodes(assignmentExpressions, (assignmentExpression, __) =>
+                ////    {
+                ////        if (needLineBreak)
+                ////        {
+                ////            var leadingTrivias = new List<SyntaxTrivia>();
+                ////            if (baseLeadingTrivia != null)
+                ////            {
+                ////                leadingTrivias.Add(baseLeadingTrivia.Value);
+                ////            }
+
+                ////            for (var j = 0; j < imbricationLevel + 1; j++)
+                ////            {
+                ////                leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+                ////            }
+
+                ////            assignmentExpression = assignmentExpression.WithLeadingTrivia(leadingTrivias).WithoutTrailingTrivia();
+                ////        }
+
+                ////        return assignmentExpression;
+                ////    });
+
+                ////    if (needLineBreak)
+                ////    {
+                ////        var closeBraceLeadingTrivia = new List<SyntaxTrivia>();
+                ////        if (baseLeadingTrivia != null)
+                ////        {
+                ////            closeBraceLeadingTrivia.Add(baseLeadingTrivia.Value);
+                ////        }
+
+                ////        for (var j = 0; j < imbricationLevel; j++)
+                ////        {
+                ////            closeBraceLeadingTrivia.Add(SyntaxTriviaHelper.GetTab());
+                ////        }
+
+                ////        newInitializerExpression = newInitializerExpression.WithEndOfLines(closeBraceLeadingTrivia);
+                ////        var newExpression = (expression as ObjectCreationExpressionSyntax).WithInitializer(newInitializerExpression);
+
+                ////        var identifierNameLastToken = newExpression.FirstChildNode<IdentifierNameSyntax>().LastChildToken<SyntaxToken>(recursive: false);
+                ////        var argumentListLastToken = newExpression.FirstChildNode<ArgumentListSyntax>()?.LastChildToken<SyntaxToken>(recursive: false);
+                ////        if (argumentListLastToken != null)
+                ////        {
+                ////            newExpression = newExpression.ReplaceToken(argumentListLastToken.Value, argumentListLastToken.Value.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+                ////        }
+                ////        else
+                ////        {
+                ////            newExpression = newExpression.ReplaceToken(identifierNameLastToken, identifierNameLastToken.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+                ////        }
+
+                ////        if (!expression.IsEqualTo(newExpression))
+                ////        {
+                ////            documentEditor.ReplaceNode(expression, newExpression);
+                ////            document = documentEditor.GetChangedDocument();
+                ////            isUpdated = true;
+                ////            break;
+                ////        }
+                ////    }
+                ////}
+            }
+        } while (isUpdated);
+
+        document = documentEditor.GetChangedDocument();
+        return new RefactorOperationResult(
+            document,
+            document.Project,
+            document.Project.Solution
+        );
+    }
+
+    public static async Task<RefactorOperationResult> StartInitializerArgumentLineBreakerAsync(
+        this Document document,
+        Solution solution)
+    {
+        bool isUpdated;
+        DocumentEditor documentEditor;
+
+        do
+        {
+            isUpdated = false;
+            documentEditor = await DocumentEditor.CreateAsync(document);
+            var initializerExpressions = documentEditor.OriginalRoot.ChildNodes<InitializerExpressionSyntax>(recursive: true).ToList();
+
+            foreach (var initializerExpression in initializerExpressions)
+            {
+                var parentExpression = (ExpressionSyntax)initializerExpression.Parent; ////initializerExpression.Ancestors().Where(obj => obj.IsImbricationExpression()).Cast<ExpressionSyntax>().FirstOrDefault();
+                var imbricationLevel = GetImbricationLevel(parentExpression);
+                var needLineBreak = true;
+
+                SyntaxTrivia? baseLeadingTrivia = null;
+                var baseStatement = initializerExpression.Ancestors().OfType<StatementSyntax>().FirstOrDefault();
+                if (baseStatement != null)
                 {
-                    var newInitializerExpression = initializerExpression.ReplaceNodes(assignmentExpressions, (assignmentExpression, __) =>
-                    {
-                        if (needLineBreak)
-                        {
-                            var leadingTrivias = new List<SyntaxTrivia>();
-                            if (baseLeadingTrivia != null)
-                            {
-                                leadingTrivias.Add(baseLeadingTrivia.Value);
-                            }
+                    baseLeadingTrivia = baseStatement.FindFirstLeadingTrivia();
+                }
 
-                            for (var j = 0; j < imbricationLevel + 1; j++)
-                            {
-                                leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
-                            }
+                if (baseLeadingTrivia == null)
+                {
+                    continue;
+                }
 
-                            assignmentExpression = assignmentExpression.WithLeadingTrivia(leadingTrivias).WithoutTrailingTrivia();
-                        }
-
-                        return assignmentExpression;
-                    });
-
+                var newInitializerExpression = initializerExpression.ReplaceNodes(initializerExpression.Expressions, (childExpression, __) =>
+                {
                     if (needLineBreak)
                     {
-                        var closeBraceLeadingTrivia = new List<SyntaxTrivia>();
-                        if (baseLeadingTrivia != null)
-                        {
-                            closeBraceLeadingTrivia.Add(baseLeadingTrivia.Value);
-                        }
+                        var leadingTrivias = GetArgumentLeadingTrivia(baseLeadingTrivia, imbricationLevel);
+                        childExpression = childExpression.WithLeadingTrivia(leadingTrivias).WithoutTrailingTrivia();
+                    }
 
-                        for (var j = 0; j < imbricationLevel; j++)
-                        {
-                            closeBraceLeadingTrivia.Add(SyntaxTriviaHelper.GetTab());
-                        }
+                    return childExpression;
+                });
 
-                        newInitializerExpression = newInitializerExpression.WithEndOfLines(closeBraceLeadingTrivia);
-                        var newExpression = (expression as ObjectCreationExpressionSyntax).WithInitializer(newInitializerExpression);
+                if (needLineBreak)
+                {
+                    var bracesLeadingTrivia = GetCloseBraceLeadingTrivia(baseLeadingTrivia, imbricationLevel);
+                    newInitializerExpression = newInitializerExpression.WithEndOfLines(bracesLeadingTrivia);
+                    var newParentExpression = parentExpression.WithInitializer(newInitializerExpression);
+                    var itemBefore = newParentExpression.ItemBefore(newInitializerExpression);
+                    if (itemBefore.IsNode)
+                    {
+                        var targetNode = itemBefore.AsNode();
+                        var targetToken = targetNode.LastChildToken<SyntaxToken>(recursive: false);
+                        newParentExpression = newParentExpression.ReplaceToken(targetToken, targetToken.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+                    }
+                    else if (itemBefore.IsToken)
+                    {
+                        var targetToken = itemBefore.AsToken();
+                        newParentExpression = newParentExpression.ReplaceToken(targetToken, targetToken.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+                    }
 
-                        var identifierNameLastToken = newExpression.FirstNode<IdentifierNameSyntax>().LastToken<SyntaxToken>(recursive: false);
-                        var argumentListLastToken = newExpression.FirstNode<ArgumentListSyntax>()?.LastToken<SyntaxToken>(recursive: false);
-                        if (argumentListLastToken != null)
-                        {
-                            newExpression = newExpression.ReplaceToken(argumentListLastToken.Value, argumentListLastToken.Value.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
-                        }
-                        else
-                        {
-                            newExpression = newExpression.ReplaceToken(identifierNameLastToken, identifierNameLastToken.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
-                        }
-
-                        if (!expression.IsEqualTo(newExpression))
-                        {
-                            documentEditor.ReplaceNode(expression, newExpression);
-                            document = documentEditor.GetChangedDocument();
-                            isUpdated = true;
-                            break;
-                        }
+                    if (!parentExpression.IsEqualTo(newParentExpression))
+                    {
+                        documentEditor.ReplaceNode(parentExpression, newParentExpression);
+                        document = documentEditor.GetChangedDocument();
+                        isUpdated = true;
+                        break;
                     }
                 }
             }
@@ -673,6 +699,62 @@ public static class DocumentExtensions
             document.Project,
             document.Project.Solution
         );
+    }
+
+    private static int GetImbricationLevel(
+        ExpressionSyntax expression)
+    {
+        var imbricationLevel = 0;
+        var ancestors = expression.Ancestors().ToList();
+        foreach (var ancestor in ancestors)
+        {
+            if (ancestor.IsImbricationExpression())
+            {
+                imbricationLevel++;
+            }
+            else if (ancestor is StatementSyntax)
+            {
+                break;
+            }
+        }
+
+        return imbricationLevel;
+    }
+
+    private static IList<SyntaxTrivia> GetArgumentLeadingTrivia(
+        SyntaxTrivia? baseLeadingTrivia,
+        int imbricationLevel)
+    {
+        var leadingTrivias = new List<SyntaxTrivia>();
+        if (baseLeadingTrivia != null)
+        {
+            leadingTrivias.Add(baseLeadingTrivia.Value);
+        }
+
+        for (var j = 0; j < imbricationLevel + 1; j++)
+        {
+            leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+        }
+
+        return leadingTrivias;
+    }
+
+    private static IList<SyntaxTrivia> GetCloseBraceLeadingTrivia(
+            SyntaxTrivia? baseLeadingTrivia,
+            int imbricationLevel)
+    {
+        var closeBraceLeadingTrivia = new List<SyntaxTrivia>();
+        if (baseLeadingTrivia != null)
+        {
+            closeBraceLeadingTrivia.Add(baseLeadingTrivia.Value);
+        }
+
+        for (var j = 0; j < imbricationLevel; j++)
+        {
+            closeBraceLeadingTrivia.Add(SyntaxTriviaHelper.GetTab());
+        }
+
+        return closeBraceLeadingTrivia;
     }
 
     public static async Task<RefactorOperationResult> StartFieldRenamerAsync(
@@ -922,7 +1004,7 @@ public static class DocumentExtensions
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
-        var declarations = root.FindAllConstructorAndMethodDeclarations();
+        var declarations = root.ChildNodes<BaseMethodDeclarationSyntax>(recursive: true);
         foreach (var declaration in declarations)
         {
             var parameters = declaration.DescendantNodes().OfType<ParameterSyntax>().ToList();

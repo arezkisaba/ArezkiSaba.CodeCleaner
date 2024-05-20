@@ -37,9 +37,52 @@ public static class ExpressionSyntaxExtensions
         throw new NotImplementedException($"ExpressionSyntax type not found : {root.GetType()}");
     }
 
+    public static InitializerExpressionSyntax GetInitializer(
+        this ExpressionSyntax root)
+    {
+        if (root is BaseObjectCreationExpressionSyntax objectCreationExpression)
+        {
+            return objectCreationExpression.Initializer;
+        }
+        else if (root is ArrayCreationExpressionSyntax arrayCreationExpression)
+        {
+            return arrayCreationExpression.Initializer;
+        }
+
+        throw new NotImplementedException($"ExpressionSyntax type not found : {root.GetType()}");
+    }
+
+    public static ExpressionSyntax WithInitializer(
+        this ExpressionSyntax root,
+        InitializerExpressionSyntax initializerExpression)
+    {
+        if (root is BaseObjectCreationExpressionSyntax objectCreationExpression)
+        {
+            return objectCreationExpression.WithInitializer(initializerExpression);
+        }
+        else if (root is ImplicitArrayCreationExpressionSyntax implicitArrayCreationExpression)
+        {
+            return implicitArrayCreationExpression.WithInitializer(initializerExpression);
+        }
+        else if (root is ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAllocArrayCreationExpression)
+        {
+            return implicitStackAllocArrayCreationExpression.WithInitializer(initializerExpression);
+        }
+        else if (root is ArrayCreationExpressionSyntax arrayCreationExpression)
+        {
+            return arrayCreationExpression.WithInitializer(initializerExpression);
+        }
+        else if (root is StackAllocArrayCreationExpressionSyntax stackAllocArrayCreationExpression)
+        {
+            return stackAllocArrayCreationExpression.WithInitializer(initializerExpression);
+        }
+
+        throw new NotImplementedException($"ExpressionSyntax type not found : {root.GetType()}");
+    }
+
     public static InitializerExpressionSyntax WithEndOfLines(
         this InitializerExpressionSyntax expression,
-        IList<SyntaxTrivia> closeParenLeadingTrivia)
+        IList<SyntaxTrivia> bracesLeadingTrivia)
     {
         if (expression.Expressions.Count == expression.Expressions.GetSeparators().Count())
         {
@@ -47,8 +90,8 @@ public static class ExpressionSyntaxExtensions
         }
 
         var i = 0;
-        expression = expression.WithOpenBraceToken(expression.OpenBraceToken.WithLeadingTrivia(closeParenLeadingTrivia).WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
-        expression = expression.WithCloseBraceToken(expression.CloseBraceToken.WithLeadingTrivia(closeParenLeadingTrivia));
+        expression = expression.WithOpenBraceToken(expression.OpenBraceToken.WithLeadingTrivia(bracesLeadingTrivia).WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+        expression = expression.WithCloseBraceToken(expression.CloseBraceToken.WithLeadingTrivia(bracesLeadingTrivia));
         expression = expression.ReplaceTokens(expression.Expressions.GetSeparators(), (separator, __) =>
         {
             return separator.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());

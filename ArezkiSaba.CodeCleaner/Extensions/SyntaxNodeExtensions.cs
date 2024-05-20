@@ -13,7 +13,7 @@ public static class SyntaxNodeExtensions
         return root.FullSpan.Length == compareTo.FullSpan.Length;
     }
 
-    public static IEnumerable<T> Nodes<T>(
+    public static IEnumerable<T> ChildNodes<T>(
         this SyntaxNode root,
         bool recursive = false)
     {
@@ -32,10 +32,10 @@ public static class SyntaxNodeExtensions
             nodes = root.ChildNodes();
         }
 
-        return nodes.OfType<T>().ToList();
+        return nodes.OfType<T>();
     }
 
-    public static T FirstNode<T>(
+    public static T FirstChildNode<T>(
         this SyntaxNode root,
         bool recursive = false)
     {
@@ -57,7 +57,7 @@ public static class SyntaxNodeExtensions
         return nodes.OfType<T>().FirstOrDefault();
     }
 
-    public static T LastNode<T>(
+    public static T LastChildNode<T>(
         this SyntaxNode root,
         bool recursive = false)
     {
@@ -79,7 +79,7 @@ public static class SyntaxNodeExtensions
         return nodes.OfType<T>().LastOrDefault();
     }
 
-    public static IEnumerable<T> Tokens<T>(
+    public static IEnumerable<T> ChildTokens<T>(
         this SyntaxNode root,
         bool recursive = false)
     {
@@ -98,10 +98,10 @@ public static class SyntaxNodeExtensions
             nodes = root.ChildTokens();
         }
 
-        return nodes.OfType<T>().ToList();
+        return nodes.OfType<T>();
     }
 
-    public static T FirstToken<T>(
+    public static T FirstChildToken<T>(
         this SyntaxNode root,
         bool recursive = false)
     {
@@ -123,7 +123,7 @@ public static class SyntaxNodeExtensions
         return nodes.OfType<T>().FirstOrDefault();
     }
 
-    public static T LastToken<T>(
+    public static T LastChildToken<T>(
         this SyntaxNode root,
         bool recursive = false)
     {
@@ -145,28 +145,26 @@ public static class SyntaxNodeExtensions
         return nodes.OfType<T>().LastOrDefault();
     }
 
-    public static IList<MethodDeclarationSyntax> FindAllMethods(
-        this SyntaxNode root)
+    public static SyntaxNodeOrToken ItemBefore(
+        this SyntaxNode root,
+        SyntaxNodeOrToken syntaxItem)
     {
-        return root.DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
-    }
+        if (root == null)
+        {
+            return null;
+        }
 
-    public static IList<BaseMethodDeclarationSyntax> FindAllConstructorAndMethodDeclarations(
-        this SyntaxNode root)
-    {
-        return root.DescendantNodes().OfType<BaseMethodDeclarationSyntax>().ToList();
-    }
+        var items = root.ChildNodesAndTokens().ToList();
+        for (var i = 0; i < items.Count(); i++)
+        {
+            var item = items[i];
+            if (item.IsEquivalentTo(syntaxItem))
+            {
+                return items[i - 1];
+            }
+        }
 
-    public static IList<ExpressionSyntax> FindAllInvocationAndCreationExpressions(
-        this SyntaxNode root)
-    {
-        return root.DescendantNodes().Where(obj => obj.IsInvocationOrCreationExpression()).Cast<ExpressionSyntax>().ToList();
-    }
-
-    public static IList<ObjectCreationExpressionSyntax> FindAllInitializerExpressions(
-        this SyntaxNode root)
-    {
-        return root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().ToList();
+        return null;
     }
 
     public static bool IsInvocationOrCreationExpression(
