@@ -24,14 +24,14 @@ public static class WorkspaceExtensions
             ((document, solution) => document.StartMethodDeclarationParameterLineBreakerAsync(solution), (project) => Task.FromResult(true)),
             ((document, solution) => document.StartExpressionArgumentLineBreakerAsync(solution), (project) => Task.FromResult(true)),
             ((document, solution) => document.StartInitializerArgumentLineBreakerAsync(solution), (project) => Task.FromResult(true)),
-            ////((document, solution) => document.StartFieldRenamerAsync(solution), (project) => Task.FromResult(true)),
-            ////((document, solution) => document.StartEventFieldRenamerAsync(solution), (project) => Task.FromResult(true)),
-            ////((document, solution) => document.StartPropertyRenamerAsync(solution), (project) => Task.FromResult(true)),
-            ////((document, solution) => document.StartMethodRenamerAsync(solution), (project) => Task.FromResult(true)),
-            ////((document, solution) => document.StartLocalVariableRenamerAsync(solution), (project) => Task.FromResult(true)),
-            ////((document, solution) => document.StartParameterRenamerAsync(solution), (project) => Task.FromResult(true)),
-            ////((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution), (project) => Task.FromResult(true)),
-            ////((document, solution) => document.StartAsyncMethodRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartFieldRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartEventFieldRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartPropertyRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartMethodRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartLocalVariableRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartParameterRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartUnusedMethodParameterRenamerAsync(solution), (project) => Task.FromResult(true)),
+            ((document, solution) => document.StartAsyncMethodRenamerAsync(solution), (project) => Task.FromResult(true)),
             
 
 
