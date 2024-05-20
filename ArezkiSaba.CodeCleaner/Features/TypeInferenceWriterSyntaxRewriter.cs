@@ -2,13 +2,13 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ArezkiSaba.CodeCleaner.Rewriters;
+namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class TypeInferenceRewriter : CSharpSyntaxRewriter
+public sealed class TypeInferenceWriterSyntaxRewriter : CSharpSyntaxRewriter
 {
     private readonly SemanticModel _semanticModel;
 
-    public TypeInferenceRewriter(
+    public TypeInferenceWriterSyntaxRewriter(
         SemanticModel semanticModel)
     {
         _semanticModel = semanticModel;
@@ -19,7 +19,7 @@ public sealed class TypeInferenceRewriter : CSharpSyntaxRewriter
     {
         if (node.Declaration.Variables.Count > 1 ||
             node.Declaration.Variables[0].Initializer == null ||
-            (node.Declaration.Variables[0].Initializer.Value is LiteralExpressionSyntax literalExpressionSyntax && literalExpressionSyntax.Token.Value == null) ||
+            node.Declaration.Variables[0].Initializer.Value is LiteralExpressionSyntax literalExpressionSyntax && literalExpressionSyntax.Token.Value == null ||
             node.Modifiers.Any(obj => obj.IsKind(SyntaxKind.ConstKeyword)))
         {
             return node;

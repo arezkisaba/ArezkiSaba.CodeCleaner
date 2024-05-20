@@ -2,9 +2,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace ArezkiSaba.CodeCleaner.Rewriters;
+namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class RegionRemover : CSharpSyntaxRewriter
+public sealed class RegionRemoverSyntaxRewriter : CSharpSyntaxRewriter
 {
     public override bool VisitIntoStructuredTrivia
     {

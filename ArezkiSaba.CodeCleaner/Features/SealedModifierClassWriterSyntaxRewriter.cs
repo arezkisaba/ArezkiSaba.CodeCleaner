@@ -3,15 +3,15 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ArezkiSaba.CodeCleaner.Rewriters;
+namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class SealedModifierClassRewriter : CSharpSyntaxRewriter
+public sealed class SealedModifierClassWriterSyntaxRewriter : CSharpSyntaxRewriter
 {
     private readonly Solution _solution;
     private readonly SemanticModel _semanticModel;
     private readonly IList<BaseTypeSyntax> _allBaseTypes = [];
 
-    public SealedModifierClassRewriter(
+    public SealedModifierClassWriterSyntaxRewriter(
         Solution solution,
         SemanticModel semanticModel,
         IList<TypeDeclarationSyntax> allTypeDeclarations)

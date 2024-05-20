@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace ArezkiSaba.CodeCleaner.Rewriters;
+namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class DuplicatedEmptyLinesRemover : CSharpSyntaxRewriter
+public sealed class DuplicatedEmptyLinesRemoverSyntaxRewriter : CSharpSyntaxRewriter
 {
     public override bool VisitIntoStructuredTrivia
     {

@@ -4,14 +4,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace ArezkiSaba.CodeCleaner.Rewriters;
+namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
+public sealed class ReadonlyModifierFieldWriterSyntaxRewriter : CSharpSyntaxRewriter
 {
     private readonly Solution _solution;
     private readonly SemanticModel _semanticModel;
 
-    public ReadonlyModifierFieldRewriter(
+    public ReadonlyModifierFieldWriterSyntaxRewriter(
         Solution solution,
         SemanticModel semanticModel)
     {
@@ -57,7 +57,7 @@ public sealed class ReadonlyModifierFieldRewriter : CSharpSyntaxRewriter
     {
         if (!referenceLocations.Any())
         {
-           return true;
+            return true;
         }
 
         var canAddReadonlyModifier = true;
