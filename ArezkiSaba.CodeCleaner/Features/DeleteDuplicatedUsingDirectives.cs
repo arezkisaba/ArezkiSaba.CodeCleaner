@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class StartDuplicatedUsingDirectiveRemover
+public sealed class DeleteDuplicatedUsingDirectives
 {
     public async Task<RefactorOperationResult> StartAsync(
         Document document,

@@ -6,12 +6,12 @@ using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class ReadonlyModifierFieldWriterSyntaxRewriter : CSharpSyntaxRewriter
+public sealed class AddReadonlyModifierOnFieldsSyntaxRewriter : CSharpSyntaxRewriter
 {
     private readonly Solution _solution;
     private readonly SemanticModel _semanticModel;
 
-    public ReadonlyModifierFieldWriterSyntaxRewriter(
+    public AddReadonlyModifierOnFieldsSyntaxRewriter(
         Solution solution,
         SemanticModel semanticModel)
     {

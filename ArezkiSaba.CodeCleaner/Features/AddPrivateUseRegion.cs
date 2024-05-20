@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class StartRegionInserter
+public sealed class AddPrivateUseRegion
 {
     public async Task<RefactorOperationResult> StartAsync(
         Document document,
@@ -44,7 +44,7 @@ public sealed class StartRegionInserter
                 .WithTrailingTrivia(
                     SyntaxFactory.TriviaList(
                         SyntaxFactory.Whitespace(" "),
-                        SyntaxFactory.PreprocessingMessage("\"Private use\"")
+                        SyntaxFactory.PreprocessingMessage("Private use")
                     )
                 )
             ))

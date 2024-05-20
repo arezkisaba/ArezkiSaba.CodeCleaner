@@ -119,7 +119,7 @@ public class TestClass1<T>
         return Task.CompletedTask;
     }
 
-    #region "Private use"
+    #region Private use
 
     private void MapControllerRoute(
         string a,

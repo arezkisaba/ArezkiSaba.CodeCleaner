@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class StartUsingDirectiveSorter
+public sealed class SortUsingDirectives
 {
     public async Task<RefactorOperationResult> StartAsync(
         Document document,

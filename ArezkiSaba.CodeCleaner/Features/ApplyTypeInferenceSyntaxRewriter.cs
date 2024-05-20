@@ -4,11 +4,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class TypeInferenceWriterSyntaxRewriter : CSharpSyntaxRewriter
+public sealed class ApplyTypeInferenceSyntaxRewriter : CSharpSyntaxRewriter
 {
     private readonly SemanticModel _semanticModel;
 
-    public TypeInferenceWriterSyntaxRewriter(
+    public ApplyTypeInferenceSyntaxRewriter(
         SemanticModel semanticModel)
     {
         _semanticModel = semanticModel;

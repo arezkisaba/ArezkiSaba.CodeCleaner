@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class StartExpressionArgumentLineBreaker
+public sealed class FormatArgumentsOnExpressions
 {
     public async Task<RefactorOperationResult> StartAsync(
         Document document,

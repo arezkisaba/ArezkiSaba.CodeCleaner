@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class StartMethodDeclarationParameterLineBreaker
+public sealed class FormatParametersOnDeclarations
 {
     public async Task<RefactorOperationResult> StartAsync(
         Document document,

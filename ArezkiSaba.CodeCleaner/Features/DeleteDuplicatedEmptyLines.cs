@@ -3,17 +3,15 @@ using Microsoft.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class TypeInferenceWriter
+public sealed class DeleteDuplicatedEmptyLines
 {
     public async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {
         var root = await document.GetSyntaxRootAsync();
-        var semanticModel = await document.GetSemanticModelAsync();
         document = document.WithSyntaxRoot(
-            new TypeInferenceWriterSyntaxRewriter(
-                semanticModel
+            new DeleteDuplicatedEmptyLinesSyntaxRewriter(
             ).Visit(root)
         );
         return new RefactorOperationResult(

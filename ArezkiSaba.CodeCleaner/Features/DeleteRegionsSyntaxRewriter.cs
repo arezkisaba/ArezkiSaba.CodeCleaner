@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class RegionRemoverSyntaxRewriter : CSharpSyntaxRewriter
+public sealed class DeleteRegionsSyntaxRewriter : CSharpSyntaxRewriter
 {
     public override bool VisitIntoStructuredTrivia
     {

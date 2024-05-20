@@ -6,16 +6,25 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class StartEventFieldRenamer
+public sealed class RenameProperties
 {
     public async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {
+        if (document.Name.Contains("ViewModel"))
+        {
+            return new RefactorOperationResult(
+                document,
+                document.Project,
+                solution
+            );
+        }
+
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
-        var declarations = root.DescendantNodes().OfType<EventFieldDeclarationSyntax>().ToList();
+        var declarations = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().ToList();
         foreach (var declaration in declarations)
         {
             var name = declaration.GetName();
@@ -24,12 +33,9 @@ public sealed class StartEventFieldRenamer
                 continue;
             }
 
-            foreach (var variable in declaration.Declaration.Variables)
-            {
-                var symbol = semanticModel.GetDeclaredSymbol(variable);
-                var newName = symbol.Name.ToPascalCase();
-                solution = await solution.RenameSymbolAsync(symbol, name, newName);
-            }
+            var symbol = semanticModel.GetDeclaredSymbol(declaration);
+            var newName = symbol.Name.ToPascalCase();
+            solution = await solution.RenameSymbolAsync(symbol, name, newName);
         }
 
         return new RefactorOperationResult(

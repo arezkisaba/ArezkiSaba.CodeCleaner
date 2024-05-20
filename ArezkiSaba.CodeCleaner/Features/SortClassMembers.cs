@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class ReorderClassMembers
+public sealed class SortClassMembers
 {
     public async Task<RefactorOperationResult> StartAsync(
         Document document,

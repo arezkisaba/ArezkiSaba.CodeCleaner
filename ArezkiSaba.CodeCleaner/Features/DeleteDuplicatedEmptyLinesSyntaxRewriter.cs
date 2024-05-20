@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class DuplicatedEmptyLinesRemoverSyntaxRewriter : CSharpSyntaxRewriter
+public sealed class DeleteDuplicatedEmptyLinesSyntaxRewriter : CSharpSyntaxRewriter
 {
     public override bool VisitIntoStructuredTrivia
     {

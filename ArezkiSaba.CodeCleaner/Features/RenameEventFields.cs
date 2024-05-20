@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class StartLocalVariableRenamer
+public sealed class RenameEventFields
 {
     public async Task<RefactorOperationResult> StartAsync(
         Document document,
@@ -15,19 +15,20 @@ public sealed class StartLocalVariableRenamer
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
-        var declarations = root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToList();
-        foreach (var localDeclaration in declarations)
+        var declarations = root.DescendantNodes().OfType<EventFieldDeclarationSyntax>().ToList();
+        foreach (var declaration in declarations)
         {
-            foreach (var declaration in localDeclaration.Declaration.Variables)
+            var name = declaration.GetName();
+            if (string.IsNullOrWhiteSpace(name) || char.IsUpper(name[0]))
             {
-                var symbol = semanticModel.GetDeclaredSymbol(declaration);
-                if (char.IsLower(symbol.Name[0]))
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                var newName = symbol.Name.ToCamelCase();
-                solution = await solution.RenameSymbolAsync(symbol, symbol.Name, newName);
+            foreach (var variable in declaration.Declaration.Variables)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(variable);
+                var newName = symbol.Name.ToPascalCase();
+                solution = await solution.RenameSymbolAsync(symbol, name, newName);
             }
         }
 
