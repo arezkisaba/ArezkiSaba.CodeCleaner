@@ -80,25 +80,29 @@ public class TestClass1<T>
         }
     }
 
-    public void OnSomeEventCallback(
+    public async void OnSomeEventCallbackAsync(
         object _,
         EventArgs __)
     {
+#define VRAI
+
+#if VRAI
         var variable1 = "1";
         var variable2 = "2";
         var variable3 = "3";
         var variable4 = "4";
+#endif
 
+#pragma warning disable 4014
         HandleOnSomeEventCallbackAsync(
             variable1: variable1,
             variable2: variable2,
             variable3: variable3,
             variable4: variable4
         );
+#pragma warning restore 4014
 
-        MapControllerRoute(
-            a: "1",
-            b: "2");
+        MapControllerRoute(a: "1", b: "2");
     }
 
     public Task SomeAsyncMethodAsync()

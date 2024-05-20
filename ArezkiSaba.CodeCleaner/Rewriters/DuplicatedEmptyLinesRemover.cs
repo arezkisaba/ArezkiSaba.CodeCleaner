@@ -11,16 +11,28 @@ public sealed class DuplicatedEmptyLinesRemover : CSharpSyntaxRewriter
     }
 
     public override SyntaxTriviaList VisitList(
-        SyntaxTriviaList list)
+        SyntaxTriviaList triviaList)
     {
-        list = base.VisitList(list);
+        var newTriviaList = new List<SyntaxTrivia>();
+        var lastWasEndOfLine = false;
 
-        var lineBreaksAtBeginning = list.TakeWhile(t => t.IsKind(SyntaxKind.EndOfLineTrivia)).Count();
-        if (lineBreaksAtBeginning > 1)
+        foreach (var trivia in triviaList)
         {
-            list = SyntaxFactory.TriviaList(list.Skip(lineBreaksAtBeginning - 1));
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                if (!lastWasEndOfLine)
+                {
+                    newTriviaList.Add(trivia);
+                    lastWasEndOfLine = true;
+                }
+            }
+            else
+            {
+                newTriviaList.Add(trivia);
+                lastWasEndOfLine = false;
+            }
         }
 
-        return list;
+        return SyntaxFactory.TriviaList(newTriviaList);
     }
 }

@@ -40,6 +40,8 @@ public class TestClass1<T>
         string variable4 = "4";
 #endif
 
+
+
 #pragma warning disable 4014
         _handleOnSomeEventCallback(
                                         variable1: variable1,

@@ -37,11 +37,11 @@ public static class MemberDeclarationExtensions
             return FormatParametersByDefault(newDeclaration, parameterList);
         });
 
-        ////var argumentLists = newDeclaration.DescendantNodes().OfType<ArgumentListSyntax>().ToList();
-        ////newDeclaration = newDeclaration.ReplaceNodes(argumentLists, (argumentList, __) =>
-        ////{
-        ////    return FormatArgumentsByDefault(argumentList);
-        ////});
+        var argumentLists = newDeclaration.DescendantNodes().OfType<ArgumentListSyntax>().ToList();
+        newDeclaration = newDeclaration.ReplaceNodes(argumentLists, (argumentList, __) =>
+        {
+            return FormatArgumentsByDefault(argumentList);
+        });
 
         var constructorInitializers = newDeclaration.DescendantNodes().OfType<ConstructorInitializerSyntax>().ToList();
         newDeclaration = newDeclaration.ReplaceNodes(constructorInitializers, (constructorInitializer, __) =>
