@@ -57,6 +57,28 @@ public static class SyntaxNodeExtensions
         return nodes.OfType<T>().FirstOrDefault();
     }
 
+    public static T LastNode<T>(
+        this SyntaxNode root,
+        bool recursive = false)
+    {
+        if (root == null)
+        {
+            return default;
+        }
+
+        IEnumerable<SyntaxNode> nodes = null;
+        if (recursive)
+        {
+            nodes = root.DescendantNodes();
+        }
+        else
+        {
+            nodes = root.ChildNodes();
+        }
+
+        return nodes.OfType<T>().LastOrDefault();
+    }
+
     public static IEnumerable<T> Tokens<T>(
         this SyntaxNode root,
         bool recursive = false)
@@ -99,6 +121,28 @@ public static class SyntaxNodeExtensions
         }
 
         return nodes.OfType<T>().FirstOrDefault();
+    }
+
+    public static T LastToken<T>(
+        this SyntaxNode root,
+        bool recursive = false)
+    {
+        if (root == null)
+        {
+            return default;
+        }
+
+        IEnumerable<SyntaxToken> nodes = null;
+        if (recursive)
+        {
+            nodes = root.DescendantTokens();
+        }
+        else
+        {
+            nodes = root.ChildTokens();
+        }
+
+        return nodes.OfType<T>().LastOrDefault();
     }
 
     public static IList<MethodDeclarationSyntax> FindAllMethods(

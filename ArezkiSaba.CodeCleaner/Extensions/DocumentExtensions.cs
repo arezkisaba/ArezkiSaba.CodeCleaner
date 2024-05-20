@@ -489,9 +489,8 @@ public static class DocumentExtensions
     {
         var excludedTypes = new List<Type>
         {
-            typeof(LocalFunctionStatementSyntax),
-            typeof(SimpleLambdaExpressionSyntax),
-            typeof(ParenthesizedLambdaExpressionSyntax)
+            ////typeof(SimpleLambdaExpressionSyntax),
+            ////typeof(ParenthesizedLambdaExpressionSyntax)
         };
 
         bool isUpdated;
@@ -631,8 +630,17 @@ public static class DocumentExtensions
 
                             newInitializerExpression = newInitializerExpression.WithEndOfLines(closeBraceLeadingTrivia);
                             var newExpression = (expression as ObjectCreationExpressionSyntax).WithInitializer(newInitializerExpression);
-                            var token = newExpression.FirstNode<IdentifierNameSyntax>().FirstToken<SyntaxToken>(recursive: false);
-                            newExpression = newExpression.ReplaceToken(token, token.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+
+                            var identifierNameLastToken = newExpression.FirstNode<IdentifierNameSyntax>().LastToken<SyntaxToken>(recursive: false);
+                            var argumentListLastToken = newExpression.FirstNode<ArgumentListSyntax>()?.LastToken<SyntaxToken>(recursive: false);
+                            if (argumentListLastToken != null)
+                            {
+                                newExpression = newExpression.ReplaceToken(argumentListLastToken.Value, argumentListLastToken.Value.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+                            }
+                            else
+                            {
+                                newExpression = newExpression.ReplaceToken(identifierNameLastToken, identifierNameLastToken.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+                            }
 
                             if (!expression.IsEqualTo(newExpression))
                             {
