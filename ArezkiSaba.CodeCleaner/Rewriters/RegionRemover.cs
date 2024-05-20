@@ -1,8 +1,6 @@
 ﻿using ArezkiSaba.CodeCleaner.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Diagnostics.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Rewriters;
 

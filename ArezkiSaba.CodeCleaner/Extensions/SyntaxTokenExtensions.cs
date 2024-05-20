@@ -1,10 +1,16 @@
 ﻿using Microsoft.CodeAnalysis;
-using Newtonsoft.Json.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class SyntaxTokenExtensions
 {
+    public static bool IsEqualTo(
+        this SyntaxToken root,
+        SyntaxToken compareTo)
+    {
+        return root.FullSpan.Length == compareTo.FullSpan.Length;
+    }
+
     public static SyntaxToken RemoveTrivias(
         this SyntaxToken root,
         IEnumerable<SyntaxTrivia> triviasToRemove)

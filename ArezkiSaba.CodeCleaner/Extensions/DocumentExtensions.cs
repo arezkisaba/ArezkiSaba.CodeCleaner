@@ -3,18 +3,11 @@ using ArezkiSaba.CodeCleaner.Rewriters;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.VisualBasic;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Drawing.Text;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Xml.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -280,29 +273,22 @@ public static class DocumentExtensions
                 if (token.IsKind(SyntaxKind.OpenBraceToken))
                 {
                     var targetToken = tokens[i + 1];
-                    var leadingTrivias = new List<SyntaxTrivia>();
+                    IEnumerable<SyntaxTrivia> leadingTrivias = null;
 
-                    for (var j = 0; j < targetToken.LeadingTrivia.Count; j++)
+                    if (targetToken.LeadingTrivia.All(obj => obj.IsKind(SyntaxKind.EndOfLineTrivia) || obj.IsKind(SyntaxKind.WhitespaceTrivia)))
                     {
-                        var leadingTrivia = targetToken.LeadingTrivia[j];
-                        if (!leadingTrivia.IsKind(SyntaxKind.EndOfLineTrivia) &&
-                            !leadingTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) &&
-                            !leadingTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-                        {
-                            leadingTrivias.Add(leadingTrivia);
-
-                            if (leadingTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                            {
-                                leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
-                            }
-                        }
+                        leadingTrivias = targetToken.LeadingTrivia.Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+                    }
+                    else
+                    {
+                        leadingTrivias = targetToken.LeadingTrivia.AsEnumerable();
                     }
 
                     var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivias);
                     var node = targetToken.Parent;
                     var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
 
-                    if (targetToken.LeadingTrivia.Count != targetTokenUpdated.LeadingTrivia.Count)
+                    if (!targetToken.IsEqualTo(targetTokenUpdated))
                     {
                         documentEditor.ReplaceNode(node, nodeUpdated);
                         document = documentEditor.GetChangedDocument();
@@ -327,28 +313,22 @@ public static class DocumentExtensions
                 if (token.IsKind(SyntaxKind.CloseBraceToken))
                 {
                     var targetToken = token;
-                    var leadingTrivias = new List<SyntaxTrivia>();
-                    for (var j = 0; j < targetToken.LeadingTrivia.Count; j++)
-                    {
-                        var leadingTrivia = targetToken.LeadingTrivia[j];
-                        if (!leadingTrivia.IsKind(SyntaxKind.EndOfLineTrivia) &&
-                            !leadingTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) &&
-                            !leadingTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-                        {
-                            leadingTrivias.Add(leadingTrivia);
+                    IEnumerable<SyntaxTrivia> leadingTrivias = null;
 
-                            if (leadingTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                            {
-                                leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
-                            }
-                        }
+                    if (targetToken.LeadingTrivia.All(obj => obj.IsKind(SyntaxKind.EndOfLineTrivia) || obj.IsKind(SyntaxKind.WhitespaceTrivia)))
+                    {
+                        leadingTrivias = targetToken.LeadingTrivia.Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+                    }
+                    else
+                    {
+                        leadingTrivias = targetToken.LeadingTrivia.AsEnumerable();
                     }
 
                     var targetTokenUpdated = targetToken.WithLeadingTrivia(leadingTrivias);
                     var node = targetToken.Parent;
                     var nodeUpdated = node.ReplaceToken(targetToken, targetTokenUpdated);
 
-                    if (targetToken.LeadingTrivia.Count != targetTokenUpdated.LeadingTrivia.Count)
+                    if (!targetToken.IsEqualTo(targetTokenUpdated))
                     {
                         documentEditor.ReplaceNode(node, nodeUpdated);
                         document = documentEditor.GetChangedDocument();
@@ -514,7 +494,6 @@ public static class DocumentExtensions
             typeof(ParenthesizedLambdaExpressionSyntax)
         };
 
-
         bool isUpdated;
         DocumentEditor documentEditor;
 
@@ -602,7 +581,7 @@ public static class DocumentExtensions
 
                             newArgumentList = newArgumentList.WithEndOfLines(closeParenLeadingTrivia);
                             var newExpression = expression.WithArgumentList(newArgumentList);
-                            if (expression.FullSpan.Length != newExpression.FullSpan.Length)
+                            if (!expression.IsEqualTo(newExpression))
                             {
                                 documentEditor.ReplaceNode(expression, newExpression);
                                 document = documentEditor.GetChangedDocument();
@@ -650,13 +629,12 @@ public static class DocumentExtensions
                                 closeBraceLeadingTrivia.Add(SyntaxTriviaHelper.GetTab());
                             }
 
-
                             newInitializerExpression = newInitializerExpression.WithEndOfLines(closeBraceLeadingTrivia);
                             var newExpression = (expression as ObjectCreationExpressionSyntax).WithInitializer(newInitializerExpression);
                             var token = newExpression.FirstNode<IdentifierNameSyntax>().FirstToken<SyntaxToken>(recursive: false);
                             newExpression = newExpression.ReplaceToken(token, token.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
 
-                            if (expression.FullSpan.Length != newExpression.FullSpan.Length)
+                            if (!expression.IsEqualTo(newExpression))
                             {
                                 documentEditor.ReplaceNode(expression, newExpression);
                                 document = documentEditor.GetChangedDocument();

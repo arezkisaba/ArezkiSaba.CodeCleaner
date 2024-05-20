@@ -6,6 +6,13 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class SyntaxNodeExtensions
 {
+    public static bool IsEqualTo(
+        this SyntaxNode root,
+        SyntaxNode compareTo)
+    {
+        return root.FullSpan.Length == compareTo.FullSpan.Length;
+    }
+
     public static IEnumerable<T> Nodes<T>(
         this SyntaxNode root,
         bool recursive = false)

@@ -27,21 +27,25 @@ public class TestClass1<T>
 
 
 
-    public void OnSomeEventCallback(
+    public async void OnSomeEventCallback(
                     object sender,
             EventArgs e)
     {
+#define VRAI
 
-
+#if VRAI
         string variable1 = "1";
         string variable2 = "2";
         string variable3 = "3";
         string variable4 = "4";
+#endif
 
+#pragma warning disable 4014
         _handleOnSomeEventCallback(
                                         variable1: variable1,
             variable2: variable2,
             variable3: variable3, variable4: variable4);
+#pragma warning restore 4014
 
 
         MapControllerRoute(
