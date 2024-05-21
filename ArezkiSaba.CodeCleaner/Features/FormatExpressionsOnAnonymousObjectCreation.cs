@@ -38,8 +38,6 @@ public sealed class FormatExpressionsOnAnonymousObjectCreation
                     continue;
                 }
 
-                var dfsdfsdf = anonymousObjectCreationExpression.Initializers;
-
                 var needLineBreak = true;
                 var newAnonymousObjectCreationExpression = anonymousObjectCreationExpression.ReplaceNodes(anonymousObjectCreationExpression.Initializers, (childinitializer, __) =>
                 {
