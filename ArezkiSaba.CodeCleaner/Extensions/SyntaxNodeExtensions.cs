@@ -145,6 +145,31 @@ public static class SyntaxNodeExtensions
         return nodes.OfType<T>().LastOrDefault();
     }
 
+    public static SyntaxNodeOrToken ItemAfter(
+        this SyntaxNode root,
+        SyntaxNodeOrToken syntaxItem)
+    {
+        if (root == null)
+        {
+            return null;
+        }
+
+        var items = root.ChildNodesAndTokens().ToList();
+        for (var i = 0; i < items.Count(); i++)
+        {
+            var item = items[i];
+            if (item.IsEquivalentTo(syntaxItem))
+            {
+                if (i + 1 < items.Count() - 1)
+                {
+                    return items[i + 1];
+                }
+            }
+        }
+
+        return null;
+    }
+
     public static SyntaxNodeOrToken ItemBefore(
         this SyntaxNode root,
         SyntaxNodeOrToken syntaxItem)

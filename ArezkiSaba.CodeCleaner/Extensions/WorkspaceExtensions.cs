@@ -22,6 +22,7 @@ public static class WorkspaceExtensions
             ((document, solution) => new DeleteDuplicatedUsingDirectives().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new DeleteEmptyLinesAroundBraces().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new AddPrivateUseRegion().StartAsync(document, solution), (project) => Task.FromResult(true)),
+            ////((document, solution) => new FormatSimpleMemberExpressions().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new FormatExpressionsOnInitializers().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new FormatArgumentsOnExpressions().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new FormatExpressionsOnAnonymousObjectCreation().StartAsync(document, solution), (project) => Task.FromResult(true)),

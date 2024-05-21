@@ -16,12 +16,6 @@ public static class SyntaxTriviaHelper
             if (ancestor.IsImbricationExpression())
             {
                 imbricationLevel++;
-
-                ////var memberAccessExpression = ancestor.FirstChildNode<MemberAccessExpressionSyntax>();
-                ////if (memberAccessExpression != null)
-                ////{
-                ////    imbricationLevel++;
-                ////}
             }
             else if (ancestor is StatementSyntax)
             {
