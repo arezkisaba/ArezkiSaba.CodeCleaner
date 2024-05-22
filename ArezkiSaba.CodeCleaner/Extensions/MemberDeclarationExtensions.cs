@@ -73,14 +73,18 @@ public static class MemberDeclarationExtensions
 
         if (newDeclaration.HasBaseOrThisInitializer())
         {
+            var firstLeadingTrivia = newDeclaration.FindFirstLeadingTrivia();
+            var trailingTrivias = new List<SyntaxTrivia>();
+            trailingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+            if (firstLeadingTrivia != null)
+            {
+                trailingTrivias.Add(newDeclaration.FindFirstLeadingTrivia().Value);
+            }
+
+            trailingTrivias.Add(SyntaxTriviaHelper.GetTab());
+
             newParametersList = newParametersList.WithCloseParenToken(
-                newParametersList.CloseParenToken.WithoutLeadingTrivias().WithTrailingTrivia(
-                    SyntaxFactory.TriviaList(
-                        SyntaxTriviaHelper.GetEndOfLine(),
-                        newDeclaration.FindFirstLeadingTrivia().Value,
-                        SyntaxTriviaHelper.GetTab()
-                    )
-                )
+                newParametersList.CloseParenToken.WithoutLeadingTrivias().WithTrailingTrivia(trailingTrivias)
             );
         }
         else if (!newDeclaration.HasDeclaration())

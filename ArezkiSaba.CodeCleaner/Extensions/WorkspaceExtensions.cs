@@ -35,6 +35,7 @@ public static class WorkspaceExtensions
             ((document, solution) => new RenameParameters().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new RenameUnusedMethodParameters().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new RenameAsyncMethod().StartAsync(document, solution), (project) => Task.FromResult(true)),
+            ////((document, solution) => new FormatCode().StartAsync(document, solution), (project) => Task.FromResult(true))
             
 
 

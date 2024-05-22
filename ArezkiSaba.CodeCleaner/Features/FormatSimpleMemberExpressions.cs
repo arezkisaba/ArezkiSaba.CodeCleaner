@@ -28,7 +28,7 @@ public sealed class FormatSimpleMemberExpressions
                 .ToList();
             foreach (var simpleMemberAccessExpression in simpleMemberAccessExpressions)
             {
-                var itemAfter = simpleMemberAccessExpression.FirstChildToken<SyntaxToken>();
+                var itemAfter = simpleMemberAccessExpression.FirstChildToken();
                 if (!itemAfter.IsKind(SyntaxKind.DotToken))
                 {
                     continue;

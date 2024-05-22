@@ -79,29 +79,29 @@ public static class SyntaxNodeExtensions
         return nodes.OfType<T>().LastOrDefault();
     }
 
-    public static IEnumerable<T> ChildTokens<T>(
+    public static IEnumerable<SyntaxToken> ChildTokens(
         this SyntaxNode root,
         bool recursive = false)
     {
         if (root == null)
         {
-            return Enumerable.Empty<T>();
+            return Enumerable.Empty<SyntaxToken>();
         }
 
-        IEnumerable<SyntaxToken> nodes = null;
+        IEnumerable<SyntaxToken> tokens = null;
         if (recursive)
         {
-            nodes = root.DescendantTokens();
+            tokens = root.DescendantTokens();
         }
         else
         {
-            nodes = root.ChildTokens();
+            tokens = root.ChildTokens();
         }
 
-        return nodes.OfType<T>();
+        return tokens;
     }
 
-    public static T FirstChildToken<T>(
+    public static SyntaxToken FirstChildToken(
         this SyntaxNode root,
         bool recursive = false)
     {
@@ -110,20 +110,20 @@ public static class SyntaxNodeExtensions
             return default;
         }
 
-        IEnumerable<SyntaxToken> nodes = null;
+        IEnumerable<SyntaxToken> tokens = null;
         if (recursive)
         {
-            nodes = root.DescendantTokens();
+            tokens = root.DescendantTokens();
         }
         else
         {
-            nodes = root.ChildTokens();
+            tokens = root.ChildTokens();
         }
 
-        return nodes.OfType<T>().FirstOrDefault();
+        return tokens.FirstOrDefault();
     }
 
-    public static T LastChildToken<T>(
+    public static SyntaxToken LastChildToken(
         this SyntaxNode root,
         bool recursive = false)
     {
@@ -132,17 +132,17 @@ public static class SyntaxNodeExtensions
             return default;
         }
 
-        IEnumerable<SyntaxToken> nodes = null;
+        IEnumerable<SyntaxToken> tokens = null;
         if (recursive)
         {
-            nodes = root.DescendantTokens();
+            tokens = root.DescendantTokens();
         }
         else
         {
-            nodes = root.ChildTokens();
+            tokens = root.ChildTokens();
         }
 
-        return nodes.OfType<T>().LastOrDefault();
+        return tokens.LastOrDefault();
     }
 
     public static SyntaxNodeOrToken ItemAfter(
@@ -190,6 +190,18 @@ public static class SyntaxNodeExtensions
         }
 
         return null;
+    }
+
+    public static IList<SyntaxTrivia> GetIndentationTrivias(
+        this SyntaxNode root,
+        bool recursive = false)
+    {
+        if (root == null)
+        {
+            return Enumerable.Empty<SyntaxTrivia>().ToList();
+        }
+
+        return root.GetLeadingTrivia().Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
     }
 
     public static bool IsInvocationOrCreationExpression(

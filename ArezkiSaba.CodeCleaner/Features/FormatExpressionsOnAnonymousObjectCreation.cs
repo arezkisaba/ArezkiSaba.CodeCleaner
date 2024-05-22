@@ -60,7 +60,7 @@ public sealed class FormatExpressionsOnAnonymousObjectCreation
                     if (itemBefore.IsNode)
                     {
                         var targetNode = itemBefore.AsNode();
-                        var targetToken = targetNode.LastChildToken<SyntaxToken>(recursive: true);
+                        var targetToken = targetNode.LastChildToken(recursive: true);
                         newAnonymousObjectCreationExpression = newAnonymousObjectCreationExpression.ReplaceToken(targetToken, targetToken.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
                     }
                     else if (itemBefore.IsToken)
