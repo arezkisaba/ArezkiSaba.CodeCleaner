@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Reflection.Metadata;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -192,18 +193,26 @@ public static class SyntaxNodeExtensions
         return null;
     }
 
-    public static SyntaxNode AddTabLeadingTriviasBasedOnParent(
+    public static SyntaxNode WriteIndentationTrivia(
         this SyntaxNode node,
         SyntaxNode parentNode)
     {
         var childToken = node.FirstChildToken(recursive: true);
-        var newChildNode = node.ReplaceToken(
-            childToken,
-            childToken.WithLeadingTrivia(
-                SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount: 1)
-            )
-        );
-        return newChildNode;
+        return node.ReplaceToken(childToken, childToken.WithIndentationTrivia(parentNode));
+    }
+
+    public static T WriteIndentationTrivia<T>(
+        this SyntaxNode node,
+        SyntaxNode parentNode) where T : class
+    {
+        return node.WriteIndentationTrivia(parentNode) as T;
+    }
+
+    public static SyntaxNode WithIndentationTrivia(
+        this SyntaxNode node,
+        SyntaxNode parentNode)
+    {
+        return node.WithLeadingTrivia(SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount: 1));
     }
 
     public static bool IsInvocationOrCreationExpression(

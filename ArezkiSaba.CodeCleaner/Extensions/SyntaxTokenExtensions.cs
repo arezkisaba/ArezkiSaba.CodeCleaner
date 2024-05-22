@@ -11,6 +11,13 @@ public static class SyntaxTokenExtensions
         return root.FullSpan.Length == compareTo.FullSpan.Length;
     }
 
+    public static SyntaxToken WithIndentationTrivia(
+        this SyntaxToken node,
+        SyntaxNode parentNode)
+    {
+        return node.WithLeadingTrivia(SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount: 1));
+    }
+
     public static SyntaxToken WithEndOfLineTrivia(
         this SyntaxToken root)
     {

@@ -12,8 +12,8 @@ public static class BaseMethodDeclarationExtensions
         SyntaxNode parentNode)
     {
         var newParameterList = parameterList;
-        newParameterList = newParameterList.ReplaceNodes(parameterList.Parameters, (parameter, __) => parameter.WithLeadingTrivia(SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount: 1)));
         newParameterList = newParameterList.WithOpenParenToken(newParameterList.OpenParenToken.WithEndOfLineTrivia());
+        newParameterList = newParameterList.ReplaceNodes(newParameterList.Parameters, (parameter, __) => parameter.WithIndentationTrivia(parentNode));
         newParameterList = newParameterList.ReplaceTokens(newParameterList.Parameters.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia());
         newParameterList = newParameterList.WithCloseParenToken(newParameterList.CloseParenToken.WithoutLeadingTrivia());
         return baseMethodDeclaration.WithParameterList(newParameterList);

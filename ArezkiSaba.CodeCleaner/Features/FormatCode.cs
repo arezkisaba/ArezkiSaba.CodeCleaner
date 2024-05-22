@@ -57,7 +57,7 @@ public sealed class FormatCode
                     {
                         if (childNode is BaseMethodDeclarationSyntax)
                         {
-                            var newChildNode = childNode.AddTabLeadingTriviasBasedOnParent(parentNode);
+                            var newChildNode = childNode.WriteIndentationTrivia(parentNode);
                             if (!childNode.IsEqualTo(newChildNode))
                             {
                                 documentEditor.ReplaceNode(childNode, newChildNode);

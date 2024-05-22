@@ -11,7 +11,7 @@ public static class ConstructorDeclarationExtensions
         ConstructorInitializerSyntax constructorInitializer,
         SyntaxNode parentNode)
     {
-        var newConstructorInitializer = constructorInitializer.AddTabLeadingTriviasBasedOnParent(parentNode) as ConstructorInitializerSyntax;
+        var newConstructorInitializer = constructorInitializer.WriteIndentationTrivia<ConstructorInitializerSyntax>(parentNode);
         return constructorDeclaration
             .WithParameterList(constructorDeclaration.ParameterList.WithEndOfLineTriviaAfterCloseParen())
             .WithInitializer(newConstructorInitializer);
