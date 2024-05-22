@@ -88,10 +88,13 @@ public sealed class FormatCode
                                 return (documentEditor.GetChangedDocument(), true);
                             }
                         }
+                    }
 
-                        if (childNode is BlockSyntax block)
+                    if (parentNode is BlockSyntax)
+                    {
+                        if (childNode is StatementSyntax statementSyntax)
                         {
-                            var newChildNode = block.AddTabLeadingTriviasOnBracesBasedOnParent(parentNode);
+                            var newChildNode = childNode.WriteIndentationTrivia(parentNode);
                             if (!childNode.IsEqualTo(newChildNode))
                             {
                                 documentEditor.ReplaceNode(childNode, newChildNode);
@@ -100,23 +103,13 @@ public sealed class FormatCode
                         }
                     }
 
-                    if (parentNode is BlockSyntax)
+                    if (childNode is BlockSyntax block)
                     {
-                        if (childNode is StatementSyntax statementSyntax)
+                        var newChildNode = block.AddTabLeadingTriviasOnBracesBasedOnParent(parentNode);
+                        if (!childNode.IsEqualTo(newChildNode))
                         {
-                            var childToken = childNode.FirstChildToken(recursive: true);
-                            var newChildNode = childNode.ReplaceToken(
-                                childToken,
-                                childToken.WithLeadingTrivia(
-                                    SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount: 1)
-                                )
-                            );
-
-                            if (!childNode.IsEqualTo(newChildNode))
-                            {
-                                documentEditor.ReplaceNode(childNode, newChildNode);
-                                return (documentEditor.GetChangedDocument(), true);
-                            }
+                            documentEditor.ReplaceNode(childNode, newChildNode);
+                            return (documentEditor.GetChangedDocument(), true);
                         }
                     }
 
