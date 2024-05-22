@@ -68,8 +68,58 @@ public sealed class FormatCode
                         }
                     }
 
-                    if (parentNode is MemberDeclarationSyntax)
+                    if (parentNode is BaseMethodDeclarationSyntax baseMethodDeclaration)
                     {
+                        if (childNode is ParameterListSyntax parameterList)
+                        {
+                            var needLineBreak = true;
+                            var newParameterList = parameterList.ReplaceNodes(parameterList.Parameters, (parameter, __) =>
+                            {
+                                if (needLineBreak)
+                                {
+                                    parameter = parameter.WithLeadingTrivia(GetLeadingTriviasBasedOn(parentNode, indentCount: 1)).WithoutTrailingTrivia();
+                                }
+
+                                return parameter;
+                            });
+
+                            var i = 0;
+                            newParameterList = newParameterList.WithOpenParenToken(newParameterList.OpenParenToken.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()));
+                            newParameterList = newParameterList.ReplaceTokens(newParameterList.Parameters.GetSeparators(), (separator, __) =>
+                            {
+                                return separator.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+                            });
+                            newParameterList = newParameterList.WithCloseParenToken(newParameterList.CloseParenToken.WithoutLeadingTrivias());
+
+                            var newBaseMethodDeclaration = baseMethodDeclaration.WithParameterList(newParameterList);
+                            if (!baseMethodDeclaration.IsEqualTo(newBaseMethodDeclaration))
+                            {
+                                documentEditor.ReplaceNode(baseMethodDeclaration, newBaseMethodDeclaration);
+                                return (documentEditor.GetChangedDocument(), true);
+                            }
+                        }
+
+                        if (childNode is ConstructorInitializerSyntax constructorInitializer)
+                        {
+                            var newParametersList = baseMethodDeclaration.ParameterList.WithCloseParenToken(
+                                baseMethodDeclaration.ParameterList.CloseParenToken.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine())
+                            );
+                            var newBaseMethodDeclaration = baseMethodDeclaration.WithParameterList(newParametersList);
+                            if (!baseMethodDeclaration.IsEqualTo(newBaseMethodDeclaration))
+                            {
+                                documentEditor.ReplaceNode(baseMethodDeclaration, newBaseMethodDeclaration);
+                                return (documentEditor.GetChangedDocument(), true);
+                            }
+
+                            var childToken = childNode.FirstChildToken(recursive: true);
+                            var newChildNode = childNode.ReplaceToken(childToken, childToken.WithLeadingTrivia(GetLeadingTriviasBasedOn(parentNode, indentCount: 1)));
+                            if (!childNode.IsEqualTo(newChildNode))
+                            {
+                                documentEditor.ReplaceNode(childNode, newChildNode);
+                                return (documentEditor.GetChangedDocument(), true);
+                            }
+                        }
+
                         if (childNode is BlockSyntax)
                         {
                             var childTokens = childNode.ChildTokens();
@@ -93,7 +143,7 @@ public sealed class FormatCode
 
                     if (parentNode is BlockSyntax)
                     {
-                        if (childNode is StatementSyntax)
+                        if (childNode is StatementSyntax statementSyntax)
                         {
                             var childToken = childNode.FirstChildToken(recursive: true);
                             var newChildNode = childNode.ReplaceToken(childToken, childToken.WithLeadingTrivia(GetLeadingTriviasBasedOn(parentNode, indentCount: 1)));
@@ -103,23 +153,6 @@ public sealed class FormatCode
                                 documentEditor.ReplaceNode(childNode, newChildNode);
                                 return (documentEditor.GetChangedDocument(), true);
                             }
-
-                            ////var childTokens = childNode.ChildTokens();
-                            ////var newChildNode = childNode.ReplaceTokens(childTokens, (childToken, __) =>
-                            ////{
-                            ////    if (childToken.IsKind(SyntaxKind.OpenBraceToken) || childToken.IsKind(SyntaxKind.CloseBraceToken))
-                            ////    {
-                            ////        return childToken.WithLeadingTrivia(parentNode.GetLeadingTrivia());
-                            ////    }
-
-                            ////    return childToken;
-                            ////});
-
-                            ////if (!childNode.IsEqualTo(newChildNode))
-                            ////{
-                            ////    documentEditor.ReplaceNode(childNode, newChildNode);
-                            ////    return (documentEditor.GetChangedDocument(), true);
-                            ////}
                         }
                     }
 
@@ -138,9 +171,15 @@ public sealed class FormatCode
 
     public static IList<SyntaxTrivia> GetLeadingTriviasBasedOn(
         SyntaxNode nodeBase,
-        int indentCount = 0)
+        int indentCount = 0,
+        bool addLeadingEndOfLine = false)
     {
         var leadingTrivias = new List<SyntaxTrivia>();
+        if (addLeadingEndOfLine)
+        {
+            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+        }
+
         leadingTrivias.AddRange(nodeBase.GetIndentationTrivias());
 
         for (var j = 0; j < indentCount; j++)

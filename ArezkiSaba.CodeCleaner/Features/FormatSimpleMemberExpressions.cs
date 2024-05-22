@@ -3,9 +3,7 @@ using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Editing;
-using System.Linq.Expressions;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
