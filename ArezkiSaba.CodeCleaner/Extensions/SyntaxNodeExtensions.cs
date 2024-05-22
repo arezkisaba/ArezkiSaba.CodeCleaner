@@ -192,16 +192,18 @@ public static class SyntaxNodeExtensions
         return null;
     }
 
-    public static IList<SyntaxTrivia> GetIndentationTrivias(
-        this SyntaxNode root,
-        bool recursive = false)
+    public static SyntaxNode AddTabLeadingTriviasBasedOnParent(
+        this SyntaxNode node,
+        SyntaxNode parentNode)
     {
-        if (root == null)
-        {
-            return Enumerable.Empty<SyntaxTrivia>().ToList();
-        }
-
-        return root.GetLeadingTrivia().Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+        var childToken = node.FirstChildToken(recursive: true);
+        var newChildNode = node.ReplaceToken(
+            childToken,
+            childToken.WithLeadingTrivia(
+                SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount: 1)
+            )
+        );
+        return newChildNode;
     }
 
     public static bool IsInvocationOrCreationExpression(

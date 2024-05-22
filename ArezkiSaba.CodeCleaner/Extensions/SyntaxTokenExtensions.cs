@@ -11,6 +11,12 @@ public static class SyntaxTokenExtensions
         return root.FullSpan.Length == compareTo.FullSpan.Length;
     }
 
+    public static SyntaxToken WithEndOfLineTrivia(
+        this SyntaxToken root)
+    {
+        return root.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+    }
+
     public static SyntaxToken RemoveTrivias(
         this SyntaxToken root,
         IEnumerable<SyntaxTrivia> triviasToRemove)
@@ -19,21 +25,21 @@ public static class SyntaxTokenExtensions
         return root.WithLeadingTrivia(newTrivias);
     }
 
-    public static SyntaxToken WithoutLeadingTrivias(
+    public static SyntaxToken WithoutLeadingTrivia(
         this SyntaxToken root)
     {
         return root.WithLeadingTrivia();
     }
 
-    public static SyntaxToken WithoutTrailingTrivias(
+    public static SyntaxToken WithoutTrailingTrivia(
         this SyntaxToken root)
     {
         return root.WithTrailingTrivia();
     }
 
-    public static SyntaxToken WithoutTrivias(
+    public static SyntaxToken WithoutTrivia(
         this SyntaxToken root)
     {
-        return root.WithoutLeadingTrivias().WithoutTrailingTrivias();
+        return root.WithoutLeadingTrivia().WithoutTrailingTrivia();
     }
 }
