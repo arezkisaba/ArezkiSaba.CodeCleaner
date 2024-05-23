@@ -15,7 +15,7 @@ public static class SyntaxNodeExtensions
 
     public static IEnumerable<T> ChildNodes<T>(
         this SyntaxNode root,
-        bool recursive = false)
+        bool recursive = false) where T : SyntaxNode
     {
         if (root == null)
         {
@@ -37,7 +37,7 @@ public static class SyntaxNodeExtensions
 
     public static T FirstParentNode<T>(
         this SyntaxNode root,
-        bool recursive = false)
+        bool recursive = false) where T : SyntaxNode
     {
         if (root == null)
         {
@@ -59,7 +59,7 @@ public static class SyntaxNodeExtensions
 
     public static T FirstChildNode<T>(
         this SyntaxNode root,
-        bool recursive = false)
+        bool recursive = false) where T : SyntaxNode
     {
         if (root == null)
         {
@@ -81,7 +81,7 @@ public static class SyntaxNodeExtensions
 
     public static T LastChildNode<T>(
         this SyntaxNode root,
-        bool recursive = false)
+        bool recursive = false) where T : SyntaxNode
     {
         if (root == null)
         {
@@ -247,6 +247,7 @@ public static class SyntaxNodeExtensions
         this SyntaxNode root)
     {
         return root.IsInvocationOrCreationExpression() ||
+            root is AnonymousObjectCreationExpressionSyntax ||
             root is ImplicitObjectCreationExpressionSyntax ||
             root is ArrayCreationExpressionSyntax ||
             root is ImplicitArrayCreationExpressionSyntax ||

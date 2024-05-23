@@ -3,6 +3,7 @@ using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using System.Linq.Expressions;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
@@ -75,6 +76,16 @@ public sealed class FormatCode
                     if (result.Updated)
                     {
                         return result;
+                    }
+
+                    if (childNode is AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression)
+                    {
+                        var newAnonymousObjectCreationExpression = anonymousObjectCreationExpression.Format();
+                        if (!anonymousObjectCreationExpression.IsEqualTo(newAnonymousObjectCreationExpression))
+                        {
+                            documentEditor.ReplaceNode(anonymousObjectCreationExpression, newAnonymousObjectCreationExpression);
+                            return (documentEditor.GetChangedDocument(), true);
+                        }
                     }
 
                     if (childNode is IfStatementSyntax ifStatement)

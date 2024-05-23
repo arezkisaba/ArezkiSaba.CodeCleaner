@@ -19,6 +19,14 @@ public static class SyntaxTokenExtensions
         return node.WithLeadingTrivia(SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount));
     }
 
+    public static SyntaxToken WithIndentationTrivia(
+        this SyntaxToken node,
+        SyntaxToken parentToken,
+        int indentCount = 1)
+    {
+        return node.WithLeadingTrivia(SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentToken, indentCount));
+    }
+
     public static SyntaxToken WithEndOfLineTrivia(
         this SyntaxToken root)
     {

@@ -22,6 +22,22 @@ public static class SyntaxTriviaHelper
         return leadingTrivias;
     }
 
+    public static IList<SyntaxTrivia> GetLeadingTriviasBasedOn(
+        SyntaxToken nodeBase,
+        int indentCount = 0)
+    {
+        var leadingTrivias = new List<SyntaxTrivia>();
+        var indentationTrivias = nodeBase.LeadingTrivia.Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+        leadingTrivias.AddRange(indentationTrivias);
+
+        for (var j = 0; j < indentCount; j++)
+        {
+            leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+        }
+
+        return leadingTrivias;
+    }
+
     public static int GetImbricationLevel(
         ExpressionSyntax expression,
         bool isSpecialCase = false)
