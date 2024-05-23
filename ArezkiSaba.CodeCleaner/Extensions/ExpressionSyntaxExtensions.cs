@@ -60,7 +60,7 @@ public static class ExpressionSyntaxExtensions
         int indentCount,
         bool isSpecialCase)
     {
-        var needLineBreak = parentNode.GetLength() >= 100;
+        var needLineBreak = expression.GetLength() >= 100;
         if (!argumentList.Arguments.Any() || !needLineBreak)
         {
             return expression;
@@ -70,17 +70,21 @@ public static class ExpressionSyntaxExtensions
         argumentList = argumentList.WithOpenParenToken(
             argumentList.OpenParenToken.WithEndOfLineTrivia()
         );
-        argumentList = argumentList.ReplaceNodes(argumentList.Arguments, (childArgument, __) =>
-        {
-            if (i == argumentList.Arguments.Count - 1)
-            {
-                childArgument = childArgument.WithEndOfLineTrivia<ArgumentSyntax>();
-            }
 
-            i++;
-            return childArgument.WithIndentationTrivia(parentNode, indentCount + 1);
-        });
-        argumentList = argumentList.ReplaceTokens(argumentList.Arguments.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia());
+        if (needLineBreak)
+        {
+            argumentList = argumentList.ReplaceNodes(argumentList.Arguments, (childArgument, __) =>
+            {
+                if (i == argumentList.Arguments.Count - 1)
+                {
+                    childArgument = childArgument.WithEndOfLineTrivia<ArgumentSyntax>();
+                }
+
+                i++;
+                return childArgument.WithIndentationTrivia(parentNode, indentCount + 1);
+            });
+            argumentList = argumentList.ReplaceTokens(argumentList.Arguments.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia());
+        }
 
         var newCloseParentToken = argumentList.CloseParenToken.WithIndentationTrivia(parentNode, indentCount);
         if (isSpecialCase)
@@ -98,12 +102,8 @@ public static class ExpressionSyntaxExtensions
         SyntaxNode parentNode,
         int indentCount)
     {
+        var needLineBreak = true;
         var newInitializerExpression = initializerExpression;
-        if (!newInitializerExpression.Expressions.Any())
-        {
-            return expression;
-        }
-
         if (newInitializerExpression.Expressions.Count == newInitializerExpression.Expressions.GetSeparators().Count())
         {
             newInitializerExpression = newInitializerExpression.RemoveLastComma();
@@ -115,7 +115,10 @@ public static class ExpressionSyntaxExtensions
                 .WithIndentationTrivia(parentNode, indentCount)
                 .WithEndOfLineTrivia()
         );
-        newInitializerExpression = newInitializerExpression.ReplaceNodes(newInitializerExpression.Expressions, (childExpression, __) =>
+
+        if (needLineBreak)
+        {
+            newInitializerExpression = newInitializerExpression.ReplaceNodes(newInitializerExpression.Expressions, (childExpression, __) =>
         {
             if (i == newInitializerExpression.Expressions.Count - 1)
             {
@@ -125,9 +128,11 @@ public static class ExpressionSyntaxExtensions
             i++;
             return childExpression.WithIndentationTrivia(parentNode, indentCount + 1);
         });
-        newInitializerExpression = newInitializerExpression.ReplaceTokens(
-            newInitializerExpression.Expressions.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia()
-        );
+            newInitializerExpression = newInitializerExpression.ReplaceTokens(
+                newInitializerExpression.Expressions.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia()
+            );
+        }
+
         newInitializerExpression = newInitializerExpression.WithCloseBraceToken(
             newInitializerExpression.CloseBraceToken
                 .WithIndentationTrivia(parentNode, indentCount)
@@ -141,12 +146,8 @@ public static class ExpressionSyntaxExtensions
     public static AnonymousObjectCreationExpressionSyntax Format(
         this AnonymousObjectCreationExpressionSyntax expression)
     {
+        var needLineBreak = true;
         var newExpression = expression;
-        if (!newExpression.Initializers.Any())
-        {
-            return expression;
-        }
-
         if (newExpression.Initializers.Count == newExpression.Initializers.GetSeparators().Count())
         {
             newExpression = newExpression.RemoveLastComma();
@@ -158,19 +159,24 @@ public static class ExpressionSyntaxExtensions
                 .WithIndentationTrivia(newExpression, indentCount: 0)
                 .WithEndOfLineTrivia()
         );
-        newExpression = newExpression.ReplaceNodes(newExpression.Initializers, (childExpression, __) =>
-        {
-            if (i == newExpression.Initializers.Count - 1)
-            {
-                childExpression = childExpression.WithEndOfLineTrivia<AnonymousObjectMemberDeclaratorSyntax>();
-            }
 
-            i++;
-            return childExpression.WithIndentationTrivia(newExpression, indentCount: 1);
-        });
-        newExpression = newExpression.ReplaceTokens(
-            newExpression.Initializers.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia()
-        );
+        if (needLineBreak)
+        {
+            newExpression = newExpression.ReplaceNodes(newExpression.Initializers, (childExpression, __) =>
+            {
+                if (i == newExpression.Initializers.Count - 1)
+                {
+                    childExpression = childExpression.WithEndOfLineTrivia<AnonymousObjectMemberDeclaratorSyntax>();
+                }
+
+                i++;
+                return childExpression.WithIndentationTrivia(newExpression, indentCount: 1);
+            });
+            newExpression = newExpression.ReplaceTokens(
+                newExpression.Initializers.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia()
+            );
+        }
+
         newExpression = newExpression.WithCloseBraceToken(
             newExpression.CloseBraceToken
                 .WithIndentationTrivia(newExpression, indentCount: 0)

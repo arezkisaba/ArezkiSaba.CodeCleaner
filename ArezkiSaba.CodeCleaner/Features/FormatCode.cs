@@ -78,6 +78,16 @@ public sealed class FormatCode
                         return result;
                     }
 
+                    if (parentNode is AccessorDeclarationSyntax accessorDeclaration)
+                    {
+                        var newAccessorDeclaration = accessorDeclaration.Format();
+                        if (!accessorDeclaration.IsEqualTo(newAccessorDeclaration))
+                        {
+                            documentEditor.ReplaceNode(accessorDeclaration, newAccessorDeclaration);
+                            return (documentEditor.GetChangedDocument(), true);
+                        }
+                    }
+
                     if (childNode is AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression)
                     {
                         var newAnonymousObjectCreationExpression = anonymousObjectCreationExpression.Format();
@@ -150,7 +160,7 @@ public sealed class FormatCode
         {
             if (childNode is BaseMethodDeclarationSyntax)
             {
-                var newChildNode = childNode.WithIndentationTrivia(parentNode);
+                var newChildNode = childNode.WithIndentationTrivia(parentNode, keepOtherTrivias: true);
                 if (!childNode.IsEqualTo(newChildNode))
                 {
                     documentEditor.ReplaceNode(childNode, newChildNode);
@@ -171,7 +181,7 @@ public sealed class FormatCode
         {
             if (childNode is ParameterListSyntax parameterList)
             {
-                var newBaseMethodDeclaration = baseMethodDeclaration.WithParameterList(parameterList.FormatParameterList(parentNode));
+                var newBaseMethodDeclaration = baseMethodDeclaration.WithParameterList(parameterList.Format(parentNode));
                 if (!baseMethodDeclaration.IsEqualTo(newBaseMethodDeclaration))
                 {
                     documentEditor.ReplaceNode(baseMethodDeclaration, newBaseMethodDeclaration);
@@ -182,7 +192,7 @@ public sealed class FormatCode
             if (childNode is ConstructorInitializerSyntax constructorInitializer &&
                 baseMethodDeclaration is ConstructorDeclarationSyntax constructorDeclaration)
             {
-                var newConstructorDeclaration = constructorDeclaration.FormatInitializer(constructorInitializer, parentNode);
+                var newConstructorDeclaration = constructorDeclaration.Format(constructorInitializer, parentNode);
                 if (!constructorDeclaration.IsEqualTo(newConstructorDeclaration))
                 {
                     documentEditor.ReplaceNode(constructorDeclaration, newConstructorDeclaration);
@@ -241,7 +251,7 @@ public sealed class FormatCode
         {
             if (childNode is StatementSyntax statementSyntax)
             {
-                var newChildNode = childNode.WithIndentationTrivia(parentNode);
+                var newChildNode = childNode.WithIndentationTrivia(parentNode, keepOtherTrivias: true);
                 if (!childNode.IsEqualTo(newChildNode))
                 {
                     documentEditor.ReplaceNode(childNode, newChildNode);

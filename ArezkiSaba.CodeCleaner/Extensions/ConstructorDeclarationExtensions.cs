@@ -5,7 +5,7 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class ConstructorDeclarationExtensions
 {
-    public static ConstructorDeclarationSyntax FormatInitializer(
+    public static ConstructorDeclarationSyntax Format(
         this ConstructorDeclarationSyntax constructorDeclaration,
         ConstructorInitializerSyntax constructorInitializer,
         SyntaxNode parentNode)

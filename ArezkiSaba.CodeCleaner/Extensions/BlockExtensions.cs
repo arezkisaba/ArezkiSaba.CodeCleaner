@@ -16,9 +16,7 @@ public static class BlockExtensions
             if (childToken.IsKind(SyntaxKind.OpenBraceToken) || childToken.IsKind(SyntaxKind.CloseBraceToken))
             {
                 return childToken
-                    .WithLeadingTrivia(
-                        SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode)
-                    )
+                    .WithIndentationTrivia(parentNode, indentCount: 0, keepOtherTrivias: true)
                     .WithEndOfLineTrivia();
             }
 

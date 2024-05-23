@@ -11,7 +11,7 @@ public static class SyntaxTriviaHelper
         int indentCount = 0)
     {
         var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivias = nodeBase.GetLeadingTrivia().Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+        var indentationTrivias = nodeBase.GetLeadingTrivia().Reverse().TakeWhile(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
         leadingTrivias.AddRange(indentationTrivias);
 
         for (var j = 0; j < indentCount; j++)

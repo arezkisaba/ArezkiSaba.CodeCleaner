@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -169,22 +170,32 @@ public static class SyntaxNodeExtensions
 
     public static SyntaxNodeOrToken ItemAfter(
         this SyntaxNode root,
-        SyntaxNodeOrToken syntaxItem)
+        SyntaxNodeOrToken syntaxItem,
+        bool recursive = false)
     {
         if (root == null)
         {
             return null;
         }
 
-        var items = root.ChildNodesAndTokens().ToList();
+        IEnumerable<SyntaxNodeOrToken> items = null;
+        if (recursive)
+        {
+            items = root.DescendantNodesAndTokens();
+        }
+        else
+        {
+            items = root.ChildNodesAndTokens();
+        }
+
         for (var i = 0; i < items.Count(); i++)
         {
-            var item = items[i];
+            var item = items.ElementAt(i);
             if (item.IsEquivalentTo(syntaxItem))
             {
                 if (i + 1 < items.Count() - 1)
                 {
-                    return items[i + 1];
+                    return items.ElementAt(i + 1);
                 }
             }
         }
@@ -194,38 +205,78 @@ public static class SyntaxNodeExtensions
 
     public static SyntaxNodeOrToken ItemBefore(
         this SyntaxNode root,
-        SyntaxNodeOrToken syntaxItem)
+        SyntaxNodeOrToken syntaxItem,
+        bool recursive = false)
     {
         if (root == null)
         {
             return null;
         }
 
-        var items = root.ChildNodesAndTokens().ToList();
+        IEnumerable<SyntaxNodeOrToken> items = null;
+        if (recursive)
+        {
+            items = root.DescendantNodesAndTokens();
+        }
+        else
+        {
+            items = root.ChildNodesAndTokens();
+        }
+
         for (var i = 0; i < items.Count(); i++)
         {
-            var item = items[i];
+            var item = items.ElementAt(i);
             if (item.IsEquivalentTo(syntaxItem))
             {
-                return items[i - 1];
+                return items.ElementAt(i - 1);
             }
         }
 
         return null;
     }
 
+    public static SyntaxNode WithEndOfLineTrivia(
+        this SyntaxNode node)
+    {
+        return node.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+    }
+
     public static T WithEndOfLineTrivia<T>(
         this SyntaxNode node) where T: class
     {
-        return node.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()) as T;
+        return node.WithEndOfLineTrivia() as T;
     }
 
     public static SyntaxNode WithIndentationTrivia(
         this SyntaxNode node,
         SyntaxNode parentNode,
-        int indentCount = 1)
+        int indentCount = 1,
+        bool keepOtherTrivias = false)
     {
-        return node.WithLeadingTrivia(SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount));
+        var leadingTrivias = new List<SyntaxTrivia>();
+        var indentationTrivia = SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount);
+
+        if (keepOtherTrivias)
+        {
+            leadingTrivias.AddRange(node.GetLeadingTrivia().Where(obj => !obj.IsKind(SyntaxKind.WhitespaceTrivia)));
+        }
+
+        leadingTrivias.AddRange(indentationTrivia);
+
+        var newTriviaList = new List<SyntaxTrivia>();
+        foreach (var trivia in leadingTrivias)
+        {
+            if (keepOtherTrivias &&
+                !trivia.IsKind(SyntaxKind.EndOfLineTrivia) &&
+                !trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                newTriviaList.AddRange(indentationTrivia);
+            }
+
+            newTriviaList.Add(trivia);
+        }
+
+        return node.WithLeadingTrivia(newTriviaList);
     }
 
     public static T WithIndentationTrivia<T>(
