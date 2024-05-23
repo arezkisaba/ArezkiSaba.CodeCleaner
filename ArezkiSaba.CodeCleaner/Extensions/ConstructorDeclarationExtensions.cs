@@ -10,7 +10,7 @@ public static class ConstructorDeclarationExtensions
         ConstructorInitializerSyntax constructorInitializer,
         SyntaxNode parentNode)
     {
-        var newConstructorInitializer = constructorInitializer.WriteIndentationTrivia<ConstructorInitializerSyntax>(parentNode);
+        var newConstructorInitializer = constructorInitializer.WithIndentationTrivia<ConstructorInitializerSyntax>(parentNode);
         return constructorDeclaration
             .WithParameterList(constructorDeclaration.ParameterList.WithEndOfLineTriviaAfterCloseParen())
             .WithInitializer(newConstructorInitializer);

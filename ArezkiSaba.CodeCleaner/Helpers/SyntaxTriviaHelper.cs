@@ -23,19 +23,24 @@ public static class SyntaxTriviaHelper
     }
 
     public static int GetImbricationLevel(
-        ExpressionSyntax expression)
+        ExpressionSyntax expression,
+        bool isSpecialCase = false)
     {
         var imbricationLevel = 0;
-        var ancestors = expression.Ancestors().ToList();
-        foreach (var ancestor in ancestors)
+
+        if (!isSpecialCase)
         {
-            if (ancestor.IsImbricationExpression())
+            var ancestors = expression.Ancestors().ToList();
+            foreach (var ancestor in ancestors)
             {
-                imbricationLevel++;
-            }
-            else if (ancestor is StatementSyntax)
-            {
-                break;
+                if (ancestor.IsImbricationExpression())
+                {
+                    imbricationLevel++;
+                }
+                else if (ancestor is StatementSyntax)
+                {
+                    break;
+                }
             }
         }
 
@@ -58,24 +63,6 @@ public static class SyntaxTriviaHelper
         }
 
         return leadingTrivias;
-    }
-
-    public static IList<SyntaxTrivia> GetCloseBraceOrParenLeadingTrivia(
-        SyntaxTrivia? baseLeadingTrivia,
-        int imbricationLevel)
-    {
-        var closeBraceLeadingTrivia = new List<SyntaxTrivia>();
-        if (baseLeadingTrivia != null)
-        {
-            closeBraceLeadingTrivia.Add(baseLeadingTrivia.Value);
-        }
-
-        for (var j = 0; j < imbricationLevel; j++)
-        {
-            closeBraceLeadingTrivia.Add(SyntaxTriviaHelper.GetTab());
-        }
-
-        return closeBraceLeadingTrivia;
     }
 
     public static SyntaxTrivia GetEndOfLine()

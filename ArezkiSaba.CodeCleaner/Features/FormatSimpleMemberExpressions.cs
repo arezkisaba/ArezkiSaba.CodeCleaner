@@ -20,64 +20,73 @@ public sealed class FormatSimpleMemberExpressions
         {
             isUpdated = false;
             documentEditor = await DocumentEditor.CreateAsync(document);
-            var simpleMemberAccessExpressions = documentEditor.OriginalRoot
-                .ChildNodes<MemberAccessExpressionSyntax>(recursive: true)
-                .Where(obj => obj.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            var invocationExpressions = documentEditor.OriginalRoot
+                .ChildNodes<InvocationExpressionSyntax>(recursive: true)
+                .Where(obj => obj.Parent is MemberAccessExpressionSyntax)
                 .ToList();
-            foreach (var simpleMemberAccessExpression in simpleMemberAccessExpressions)
+            foreach (var invocationExpression in invocationExpressions)
             {
-                var itemAfter = simpleMemberAccessExpression.FirstChildToken();
-                if (!itemAfter.IsKind(SyntaxKind.DotToken))
+                var newInvocationExpression = invocationExpression.WithEndOfLineTrivia<InvocationExpressionSyntax>();
+                if (!invocationExpression.IsEqualTo(newInvocationExpression))
                 {
-                    continue;
+                    documentEditor.ReplaceNode(invocationExpression, newInvocationExpression);
+                    document = documentEditor.GetChangedDocument();
+                    isUpdated = true;
+                    break;
                 }
 
-                var imbricationLevel = 0;
-                var parentExpression = simpleMemberAccessExpression.Ancestors()
-                    .Where(obj => obj.IsKind(SyntaxKind.ExpressionStatement) || obj.IsKind(SyntaxKind.Argument))
-                    .FirstOrDefault();
-                SyntaxTrivia? baseLeadingTrivia = null;
-                if (parentExpression != null)
-                {
-                    baseLeadingTrivia = parentExpression.FindFirstLeadingTrivia();
-                }
+                ////var itemAfter = invocationExpression.FirstChildToken();
+                ////if (!itemAfter.IsKind(SyntaxKind.DotToken))
+                ////{
+                ////    continue;
+                ////}
 
-                if (baseLeadingTrivia == null)
-                {
-                    continue;
-                }
+                ////var imbricationLevel = 0;
+                ////var parentExpression = invocationExpression.Ancestors()
+                ////    .Where(obj => obj.IsKind(SyntaxKind.ExpressionStatement) || obj.IsKind(SyntaxKind.Argument))
+                ////    .FirstOrDefault();
+                ////SyntaxTrivia? baseLeadingTrivia = null;
+                ////if (parentExpression != null)
+                ////{
+                ////    baseLeadingTrivia = parentExpression.FindFirstLeadingTrivia();
+                ////}
 
-                var leadingTrivias = SyntaxTriviaHelper.GetArgumentLeadingTrivia(baseLeadingTrivia, imbricationLevel);
-                var newInvocationExpression = simpleMemberAccessExpression.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
-                var newDotToken = itemAfter.WithLeadingTrivia(leadingTrivias);
+                ////if (baseLeadingTrivia == null)
+                ////{
+                ////    continue;
+                ////}
 
-                var needLineBreak = true;
-                if (needLineBreak)
-                {
-                    if (!simpleMemberAccessExpression.IsEqualTo(newInvocationExpression))
-                    {
-                        documentEditor.ReplaceNode(simpleMemberAccessExpression, newInvocationExpression);
-                        document = documentEditor.GetChangedDocument();
-                        isUpdated = true;
-                    }
+                ////var leadingTrivias = SyntaxTriviaHelper.GetArgumentLeadingTrivia(baseLeadingTrivia, imbricationLevel);
+                ////var newInvocationExpression = invocationExpression.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+                ////var newDotToken = itemAfter.WithLeadingTrivia(leadingTrivias);
 
-                    ////var nodeParent = itemAfter.Parent;
-                    ////if (nodeParent != null)
-                    ////{
-                    ////    if (!itemAfter.IsEqualTo(newDotToken))
-                    ////    {
-                    ////        var newNodeParent = nodeParent.ReplaceToken(itemAfter, newDotToken);
-                    ////        documentEditor.ReplaceNode(nodeParent, newNodeParent);
-                    ////        document = documentEditor.GetChangedDocument();
-                    ////        isUpdated = true;
-                    ////    }
-                    ////}
+                ////var needLineBreak = true;
+                ////if (needLineBreak)
+                ////{
+                ////    if (!invocationExpression.IsEqualTo(newInvocationExpression))
+                ////    {
+                ////        documentEditor.ReplaceNode(invocationExpression, newInvocationExpression);
+                ////        document = documentEditor.GetChangedDocument();
+                ////        isUpdated = true;
+                ////    }
 
-                    if (isUpdated)
-                    {
-                        break;
-                    }
-                }
+                ////    ////var nodeParent = itemAfter.Parent;
+                ////    ////if (nodeParent != null)
+                ////    ////{
+                ////    ////    if (!itemAfter.IsEqualTo(newDotToken))
+                ////    ////    {
+                ////    ////        var newNodeParent = nodeParent.ReplaceToken(itemAfter, newDotToken);
+                ////    ////        documentEditor.ReplaceNode(nodeParent, newNodeParent);
+                ////    ////        document = documentEditor.GetChangedDocument();
+                ////    ////        isUpdated = true;
+                ////    ////    }
+                ////    ////}
+
+                ////    if (isUpdated)
+                ////    {
+                ////        break;
+                ////    }
+                ////}
             }
         } while (isUpdated);
 

@@ -3,7 +3,6 @@ using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using System.Linq.Expressions;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
@@ -140,7 +139,7 @@ public sealed class FormatCode
         {
             if (childNode is BaseMethodDeclarationSyntax)
             {
-                var newChildNode = childNode.WriteIndentationTrivia(parentNode);
+                var newChildNode = childNode.WithIndentationTrivia(parentNode);
                 if (!childNode.IsEqualTo(newChildNode))
                 {
                     documentEditor.ReplaceNode(childNode, newChildNode);
@@ -191,11 +190,14 @@ public sealed class FormatCode
     {
         if (parentNode is ExpressionSyntax expression)
         {
+            var parentMemberAccessExpression = expression.Parent as MemberAccessExpressionSyntax;
+            var isSpecialCase = parentMemberAccessExpression != null;
+
             if (childNode is ArgumentListSyntax argumentList)
             {
                 var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression);
-                var newExpression = expression.WithArgumentList(argumentList.Format(parentStatement, imbricationLevel));
+                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression, isSpecialCase);
+                var newExpression = expression.Format(argumentList, parentStatement, imbricationLevel, isSpecialCase);
                 if (!expression.IsEqualTo(newExpression))
                 {
                     documentEditor.ReplaceNode(expression, newExpression);
@@ -205,8 +207,9 @@ public sealed class FormatCode
 
             if (childNode is InitializerExpressionSyntax initializerExpression)
             {
+                var parentStatement = expression.FirstParentNode<StatementSyntax>();
                 var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression);
-                var newExpression = expression.Format(initializerExpression, imbricationLevel);
+                var newExpression = expression.Format(initializerExpression, parentStatement, imbricationLevel);
                 if (!expression.IsEqualTo(newExpression))
                 {
                     documentEditor.ReplaceNode(expression, newExpression);
@@ -227,7 +230,7 @@ public sealed class FormatCode
         {
             if (childNode is StatementSyntax statementSyntax)
             {
-                var newChildNode = childNode.WriteIndentationTrivia(parentNode);
+                var newChildNode = childNode.WithIndentationTrivia(parentNode);
                 if (!childNode.IsEqualTo(newChildNode))
                 {
                     documentEditor.ReplaceNode(childNode, newChildNode);

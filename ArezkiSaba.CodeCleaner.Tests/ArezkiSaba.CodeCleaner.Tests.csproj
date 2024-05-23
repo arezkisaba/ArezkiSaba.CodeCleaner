@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 		<Compile Remove="Resources\Source.cs" />
+		<Compile Remove="Resources\SourceForSyntaxVisualizer.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -31,6 +32,9 @@
 
 	<ItemGroup>
 		<EmbeddedResource Include="Resources\Expected.txt" />
+		<EmbeddedResource Include="Resources\SourceForSyntaxVisualizer.cs">
+		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
 		<EmbeddedResource Include="Resources\Source.cs">
 		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</EmbeddedResource>
