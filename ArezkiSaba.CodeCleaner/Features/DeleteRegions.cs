@@ -3,9 +3,11 @@ using Microsoft.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class DeleteRegions
+public sealed class DeleteRegions : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(DeleteRegions);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

@@ -3,9 +3,11 @@ using Microsoft.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class AddReadonlyModifierOnFields
+public sealed class AddReadonlyModifierOnFields : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(AddReadonlyModifierOnFields);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

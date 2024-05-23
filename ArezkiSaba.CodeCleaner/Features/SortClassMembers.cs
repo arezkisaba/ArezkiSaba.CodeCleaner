@@ -7,9 +7,11 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class SortClassMembers
+public sealed class SortClassMembers : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(SortClassMembers);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

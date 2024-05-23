@@ -7,9 +7,11 @@ using System.Linq.Expressions;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class FormatCode
+public sealed class FormatCode : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(FormatCode);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

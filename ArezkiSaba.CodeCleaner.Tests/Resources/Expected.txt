@@ -47,6 +47,13 @@ public class TestClass1<T>
         }
     }
 
+    private string _canDoSomethingElseAgain;
+    public string CanDoSomethingElseAgain
+    {
+        get => _canDoSomethingElseAgain;
+        set => _canDoSomethingElseAgain = value;
+    }
+
     private TestClass1()
     {
         _readonlyStringField1 = "some useless value";

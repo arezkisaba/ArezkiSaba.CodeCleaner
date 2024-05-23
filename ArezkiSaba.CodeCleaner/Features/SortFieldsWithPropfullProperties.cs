@@ -8,9 +8,11 @@ using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class SortFieldsWithPropfullProperties
+public sealed class SortFieldsWithPropfullProperties : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(SortFieldsWithPropfullProperties);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

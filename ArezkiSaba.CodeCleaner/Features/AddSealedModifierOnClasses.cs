@@ -4,9 +4,11 @@ using Microsoft.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class AddSealedModifierOnClasses
+public sealed class AddSealedModifierOnClasses : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(AddSealedModifierOnClasses);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

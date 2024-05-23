@@ -6,9 +6,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class RenameMethods
+public sealed class RenameMethods : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(RenameMethods);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

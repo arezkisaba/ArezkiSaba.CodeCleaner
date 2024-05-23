@@ -24,19 +24,34 @@ public class TestClass1<T>
     private bool _canDoSomething;
     public bool CanDoSomething
     {
-        get         {
-            return _canDoSomething;         }
-        set         {
-            _canDoSomething = value;         }
+        get
+        {
+            return _canDoSomething;
+        }
+        set
+        {
+            _canDoSomething = value;
+        }
     }
 
     private bool _canDoSomethingElse;
     public bool CanDoSomethingElse
     {
-        get         {
-            return _canDoSomethingElse;         }
-        set         {
-            _canDoSomethingElse = value;         }
+        get
+        {
+            return _canDoSomethingElse;
+        }
+        set
+        {
+            _canDoSomethingElse = value;
+        }
+    }
+
+    private string _canDoSomethingElseAgain;
+    public string CanDoSomethingElseAgain
+    {
+        get => _canDoSomethingElseAgain;
+        set => _canDoSomethingElseAgain = value;
     }
 
     private TestClass1()
@@ -88,27 +103,25 @@ public class TestClass1<T>
         object sender,
         EventArgs e)
     {
-        #define VRAI
-
-        #if VRAI
+#if true
         var variable1 = "1";
         var variable2 = "2";
         var variable3 = "3";
         var variable4 = "4";
-        #endif
+#endif
 
         void Test(string parameter1, string parameter2, string parameter3, string parameter4, string parameter5)
         {
         }
 
-        #pragma warning disable 4014
+#pragma warning disable 4014
         HandleOnSomeEventCallbackAsync(
             variable1: variable1,
             variable2: variable2,
             variable3: variable3,
             variable4: variable4
         );
-        #pragma warning restore 4014
+#pragma warning restore 4014
 
         MapControllerRoute(a: "1", b: "2");
     }
@@ -147,6 +160,7 @@ public sealed class TestClass2 : TestClass1<int>
     public TestClass2(
         int parameter1,
         int parameter2)
+        : this(parameter1, parameter2)
     {
         var variable1 = Method1(
             Method1(
@@ -184,6 +198,7 @@ public sealed class TestClass2 : TestClass1<int>
     private TestClass2(
         int parameter1,
         int parameter2)
+        : base()
     {
         var result = new List<GarantieDto>();
         result.Add(

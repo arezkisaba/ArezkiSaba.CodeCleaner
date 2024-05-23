@@ -6,9 +6,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class RenameEventFields
+public sealed class RenameEventFields : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(RenameEventFields);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

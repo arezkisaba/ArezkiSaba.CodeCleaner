@@ -8,9 +8,11 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class AddPrivateUseRegion
+public sealed class AddPrivateUseRegion : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(AddPrivateUseRegion);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

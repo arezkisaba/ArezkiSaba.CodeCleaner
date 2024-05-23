@@ -28,6 +28,14 @@ public class TestClass1<T>
 
 
 
+    private string _canDoSomethingElseAgain;
+    public string CanDoSomethingElseAgain
+    {
+        get => _canDoSomethingElseAgain;
+        set => _canDoSomethingElseAgain = value;
+    }
+
+
     public async void OnSomeEventCallback(
                     object sender,
             EventArgs e)

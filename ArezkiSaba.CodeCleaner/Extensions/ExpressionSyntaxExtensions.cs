@@ -61,7 +61,7 @@ public static class ExpressionSyntaxExtensions
         bool isSpecialCase)
     {
         var needLineBreak = expression.GetLength() >= 100;
-        if (!argumentList.Arguments.Any() || !needLineBreak)
+        if (!argumentList.Arguments.Any() || !needLineBreak || parentNode == null)
         {
             return expression;
         }
@@ -103,6 +103,11 @@ public static class ExpressionSyntaxExtensions
         int indentCount)
     {
         var needLineBreak = true;
+        if (parentNode == null)
+        {
+            return expression;
+        }
+
         var newInitializerExpression = initializerExpression;
         if (newInitializerExpression.Expressions.Count == newInitializerExpression.Expressions.GetSeparators().Count())
         {

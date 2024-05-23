@@ -80,6 +80,13 @@ public static class SyntaxNodeExtensions
         return nodes.OfType<T>().FirstOrDefault();
     }
 
+    public static bool HasChildNode<T>(
+        this SyntaxNode root,
+        bool recursive = false) where T : SyntaxNode
+    {
+        return root.FirstChildNode<T>(recursive) != null;
+    }
+
     public static T LastChildNode<T>(
         this SyntaxNode root,
         bool recursive = false) where T : SyntaxNode

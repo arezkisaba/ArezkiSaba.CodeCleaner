@@ -9,31 +9,31 @@ public static class WorkspaceExtensions
     public static async Task<Workspace> RefactorAsync(
         this Workspace workspace)
     {
-        var funcs = new List<(Func<Document, Solution, Task<RefactorOperationResult>> func, Func<Project, Task<bool>> predicate)>
+        var funcs = new List<(RefactorOperationBase, Func<Project, Task<bool>> predicate)>
         {
-            ((document, solution) => new DeleteRegions().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new ApplyTypeInference().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new AddReadonlyModifierOnFields().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new AddSealedModifierOnClasses().StartAsync(document, solution), async (project) => await project.IsNonNugetProjectAsync()),
-            ((document, solution) => new DeleteDuplicatedEmptyLines().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new SortClassMembers().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new SortFieldsWithPropfullProperties().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new SortUsingDirectives().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new AddPrivateUseRegion().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new DeleteDuplicatedUsingDirectives().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new DeleteEmptyLinesAroundBraces().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new RenameFields().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new RenameEventFields().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new RenameProperties().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new RenameMethods().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new RenameLocalVariables().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new RenameParameters().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new RenameUnusedMethodParameters().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new RenameAsyncMethod().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new FormatCode().StartAsync(document, solution), (project) => Task.FromResult(true)),
+            (new DeleteRegions(), (project) => Task.FromResult(true)),
+            (new ApplyTypeInference(), (project) => Task.FromResult(true)),
+            (new AddReadonlyModifierOnFields(), (project) => Task.FromResult(true)),
+            (new AddSealedModifierOnClasses(), async (project) => await project.IsNonNugetProjectAsync()),
+            (new DeleteDuplicatedEmptyLines(), (project) => Task.FromResult(true)),
+            (new SortClassMembers(), (project) => Task.FromResult(true)),
+            (new SortFieldsWithPropfullProperties(), (project) => Task.FromResult(true)),
+            (new SortUsingDirectives(), (project) => Task.FromResult(true)),
+            (new AddPrivateUseRegion(), (project) => Task.FromResult(true)),
+            (new DeleteDuplicatedUsingDirectives(), (project) => Task.FromResult(true)),
+            (new DeleteEmptyLinesAroundBraces(), (project) => Task.FromResult(true)),
+            (new RenameFields(), (project) => Task.FromResult(true)),
+            (new RenameEventFields(), (project) => Task.FromResult(true)),
+            (new RenameProperties(), (project) => Task.FromResult(true)),
+            (new RenameMethods(), (project) => Task.FromResult(true)),
+            (new RenameLocalVariables(), (project) => Task.FromResult(true)),
+            (new RenameParameters(), (project) => Task.FromResult(true)),
+            (new RenameUnusedMethodParameters(), (project) => Task.FromResult(true)),
+            (new RenameAsyncMethod(), (project) => Task.FromResult(true)),
+            (new FormatCode(), (project) => Task.FromResult(true)),
 
 
-            ////((document, solution) => document.FormatAsync(solution), (project) => Task.FromResult(true))
+            ////(document.FormatAsync(solution), (project) => Task.FromResult(true))
         };
 
         var currentSolution = workspace.CurrentSolution;
@@ -49,7 +49,7 @@ public static class WorkspaceExtensions
                     continue;
                 }
 
-                foreach (var (func, predicate) in funcs)
+                foreach (var (refactorOperation, predicate) in funcs)
                 {
                     var canExecuteFunc = await predicate(currentProject);
                     if (!canExecuteFunc)
@@ -57,10 +57,18 @@ public static class WorkspaceExtensions
                         continue;
                     }
 
-                    var result = await func(currentDocument, currentSolution);
+                    ////Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    ////ClearCurrentConsoleLine();
+                    ////Console.WriteLine($"Executing module {refactorOperation.Name} on {currentDocument.Name}...");
+
+                    var result = await refactorOperation.StartAsync(currentDocument, currentSolution);
                     currentDocument = result.Document;
                     currentProject = result.Project;
                     currentSolution = result.Solution;
+
+                    ////Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    ////ClearCurrentConsoleLine();
+                    ////Console.WriteLine($"Module {refactorOperation.Name} executed on {currentDocument.Name}");
                 }
             }
         }
@@ -85,6 +93,14 @@ public static class WorkspaceExtensions
             {
             }
         }
+    }
+
+    public static void ClearCurrentConsoleLine()
+    {
+        int currentLineCursor = Console.CursorTop;
+        Console.SetCursorPosition(0, Console.CursorTop);
+        Console.Write(new string(' ', Console.WindowWidth));
+        Console.SetCursorPosition(0, currentLineCursor);
     }
 
     #endregion

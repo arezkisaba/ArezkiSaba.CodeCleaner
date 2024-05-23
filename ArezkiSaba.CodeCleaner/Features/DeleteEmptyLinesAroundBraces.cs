@@ -6,9 +6,11 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class DeleteEmptyLinesAroundBraces
+public sealed class DeleteEmptyLinesAroundBraces : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(DeleteEmptyLinesAroundBraces);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

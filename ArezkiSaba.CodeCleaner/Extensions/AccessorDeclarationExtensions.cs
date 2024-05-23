@@ -8,6 +8,11 @@ public static class AccessorDeclarationExtensions
     public static AccessorDeclarationSyntax Format(
         this AccessorDeclarationSyntax accessorDeclaration)
     {
+        if (!accessorDeclaration.HasChildNode<BlockSyntax>())
+        {
+            return accessorDeclaration;
+        }
+
         var newAccessorDeclaration = accessorDeclaration;
         var lastTokenBeforeCloseBrace = accessorDeclaration.ItemBefore(
             newAccessorDeclaration.LastChildToken(recursive: true),

@@ -3,9 +3,11 @@ using Microsoft.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class ApplyTypeInference
+public sealed class ApplyTypeInference : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(ApplyTypeInference);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

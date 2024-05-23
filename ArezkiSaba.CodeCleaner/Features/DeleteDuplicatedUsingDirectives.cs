@@ -5,9 +5,11 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class DeleteDuplicatedUsingDirectives
+public sealed class DeleteDuplicatedUsingDirectives : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(DeleteDuplicatedUsingDirectives);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {

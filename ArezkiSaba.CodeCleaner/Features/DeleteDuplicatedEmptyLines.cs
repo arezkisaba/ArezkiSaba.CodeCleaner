@@ -3,9 +3,11 @@ using Microsoft.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class DeleteDuplicatedEmptyLines
+public sealed class DeleteDuplicatedEmptyLines : RefactorOperationBase
 {
-    public async Task<RefactorOperationResult> StartAsync(
+    public override string Name => nameof(DeleteDuplicatedEmptyLines);
+
+    public override async Task<RefactorOperationResult> StartAsync(
         Document document,
         Solution solution)
     {
