@@ -1,9 +1,9 @@
 ﻿using ArezkiSaba.CodeCleaner.Extensions;
 using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using System.Linq.Expressions;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
@@ -48,58 +48,63 @@ public sealed class FormatCode
         {
             foreach (var child in children)
             {
+                (Document Document, bool Updated) result;
                 if (child.IsNode)
                 {
                     var childNode = child.AsNode();
                     var newIndentLevel = indentLevel;
 
-                    if (parentNode is TypeDeclarationSyntax)
+                    result = HandleParentNodeAsTypeDeclarationSyntax(documentEditor, parentNode, childNode);
+                    if (result.Updated)
                     {
-                        if (childNode is BaseMethodDeclarationSyntax)
+                        return result;
+                    }
+
+                    result = HandleParentNodeAsBaseMethodDeclarationSyntax(documentEditor, parentNode, childNode);
+                    if (result.Updated)
+                    {
+                        return result;
+                    }
+
+                    result = HandleParentNodeAsExpressionSyntax(documentEditor, parentNode, childNode);
+                    if (result.Updated)
+                    {
+                        return result;
+                    }
+
+                    result = HandleParentNodeAsBlockSyntax(documentEditor, parentNode, childNode);
+                    if (result.Updated)
+                    {
+                        return result;
+                    }
+
+                    if (childNode is IfStatementSyntax ifStatement)
+                    {
+                        var newIfStatement = ifStatement.AddBracesBasedOnParent(parentNode);
+                        if (!ifStatement.IsEqualTo(newIfStatement))
                         {
-                            var newChildNode = childNode.WriteIndentationTrivia(parentNode);
-                            if (!childNode.IsEqualTo(newChildNode))
-                            {
-                                documentEditor.ReplaceNode(childNode, newChildNode);
-                                return (documentEditor.GetChangedDocument(), true);
-                            }
+                            documentEditor.ReplaceNode(ifStatement, newIfStatement);
+                            return (documentEditor.GetChangedDocument(), true);
                         }
                     }
 
-                    if (parentNode is BaseMethodDeclarationSyntax baseMethodDeclaration)
+                    if (childNode is ForStatementSyntax forStatement)
                     {
-                        if (childNode is ParameterListSyntax parameterList)
+                        var newForStatement = forStatement.AddBracesBasedOnParent(parentNode);
+                        if (!forStatement.IsEqualTo(newForStatement))
                         {
-                            var newBaseMethodDeclaration = baseMethodDeclaration.FormatParameters(parameterList, parentNode);
-                            if (!baseMethodDeclaration.IsEqualTo(newBaseMethodDeclaration))
-                            {
-                                documentEditor.ReplaceNode(baseMethodDeclaration, newBaseMethodDeclaration);
-                                return (documentEditor.GetChangedDocument(), true);
-                            }
-                        }
-
-                        if (childNode is ConstructorInitializerSyntax constructorInitializer &&
-                            baseMethodDeclaration is ConstructorDeclarationSyntax constructorDeclaration)
-                        {
-                            var newConstructorDeclaration = constructorDeclaration.FormatInitializer(constructorInitializer, parentNode);
-                            if (!constructorDeclaration.IsEqualTo(newConstructorDeclaration))
-                            {
-                                documentEditor.ReplaceNode(constructorDeclaration, newConstructorDeclaration);
-                                return (documentEditor.GetChangedDocument(), true);
-                            }
+                            documentEditor.ReplaceNode(forStatement, newForStatement);
+                            return (documentEditor.GetChangedDocument(), true);
                         }
                     }
 
-                    if (parentNode is BlockSyntax)
+                    if (childNode is WhileStatementSyntax whileStatement)
                     {
-                        if (childNode is StatementSyntax statementSyntax)
+                        var newWhileStatement = whileStatement.AddBracesBasedOnParent(parentNode);
+                        if (!whileStatement.IsEqualTo(newWhileStatement))
                         {
-                            var newChildNode = childNode.WriteIndentationTrivia(parentNode);
-                            if (!childNode.IsEqualTo(newChildNode))
-                            {
-                                documentEditor.ReplaceNode(childNode, newChildNode);
-                                return (documentEditor.GetChangedDocument(), true);
-                            }
+                            documentEditor.ReplaceNode(whileStatement, newWhileStatement);
+                            return (documentEditor.GetChangedDocument(), true);
                         }
                     }
 
@@ -114,7 +119,7 @@ public sealed class FormatCode
                     }
 
                     // recursive method
-                    var result = FormatCodeInternal(documentEditor, child.AsNode(), newIndentLevel);
+                    result = FormatCodeInternal(documentEditor, child.AsNode(), newIndentLevel);
                     if (result.Updated)
                     {
                         return result;
@@ -124,6 +129,134 @@ public sealed class FormatCode
         }
 
         return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleParentNodeAsTypeDeclarationSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode parentNode,
+        SyntaxNode childNode)
+    {
+        if (parentNode is TypeDeclarationSyntax)
+        {
+            if (childNode is BaseMethodDeclarationSyntax)
+            {
+                var newChildNode = childNode.WriteIndentationTrivia(parentNode);
+                if (!childNode.IsEqualTo(newChildNode))
+                {
+                    documentEditor.ReplaceNode(childNode, newChildNode);
+                    return (documentEditor.GetChangedDocument(), true);
+                }
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleParentNodeAsBaseMethodDeclarationSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode parentNode,
+        SyntaxNode childNode)
+    {
+        if (parentNode is BaseMethodDeclarationSyntax baseMethodDeclaration)
+        {
+            if (childNode is ParameterListSyntax parameterList)
+            {
+                var newBaseMethodDeclaration = baseMethodDeclaration.WithParameterList(parameterList.FormatParameterList(parentNode));
+                if (!baseMethodDeclaration.IsEqualTo(newBaseMethodDeclaration))
+                {
+                    documentEditor.ReplaceNode(baseMethodDeclaration, newBaseMethodDeclaration);
+                    return (documentEditor.GetChangedDocument(), true);
+                }
+            }
+
+            if (childNode is ConstructorInitializerSyntax constructorInitializer &&
+                baseMethodDeclaration is ConstructorDeclarationSyntax constructorDeclaration)
+            {
+                var newConstructorDeclaration = constructorDeclaration.FormatInitializer(constructorInitializer, parentNode);
+                if (!constructorDeclaration.IsEqualTo(newConstructorDeclaration))
+                {
+                    documentEditor.ReplaceNode(constructorDeclaration, newConstructorDeclaration);
+                    return (documentEditor.GetChangedDocument(), true);
+                }
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleParentNodeAsExpressionSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode parentNode,
+        SyntaxNode childNode)
+    {
+        if (parentNode is ExpressionSyntax expression)
+        {
+            if (childNode is ArgumentListSyntax argumentList)
+            {
+                var parentStatement = expression.FirstParentNode<StatementSyntax>();
+                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression);
+                var newExpression = expression.WithArgumentList(argumentList.Format(parentStatement, imbricationLevel));
+                if (!expression.IsEqualTo(newExpression))
+                {
+                    documentEditor.ReplaceNode(expression, newExpression);
+                    return (documentEditor.GetChangedDocument(), true);
+                }
+            }
+
+            if (childNode is InitializerExpressionSyntax initializerExpression)
+            {
+                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression);
+                var newExpression = expression.Format(initializerExpression, imbricationLevel);
+                if (!expression.IsEqualTo(newExpression))
+                {
+                    documentEditor.ReplaceNode(expression, newExpression);
+                    return (documentEditor.GetChangedDocument(), true);
+                }
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleParentNodeAsBlockSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode parentNode,
+        SyntaxNode childNode)
+    {
+        if (parentNode is BlockSyntax)
+        {
+            if (childNode is StatementSyntax statementSyntax)
+            {
+                var newChildNode = childNode.WriteIndentationTrivia(parentNode);
+                if (!childNode.IsEqualTo(newChildNode))
+                {
+                    documentEditor.ReplaceNode(childNode, newChildNode);
+                    return (documentEditor.GetChangedDocument(), true);
+                }
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static int GetImbricationLevel(
+        ExpressionSyntax expression)
+    {
+        var imbricationLevel = 0;
+        var ancestors = expression.Ancestors().ToList();
+        foreach (var ancestor in ancestors)
+        {
+            if (ancestor.IsImbricationExpression())
+            {
+                imbricationLevel++;
+            }
+            else if (ancestor is StatementSyntax)
+            {
+                break;
+            }
+        }
+
+        return imbricationLevel;
     }
 
     #endregion

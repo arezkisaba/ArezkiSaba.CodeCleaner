@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Reflection.Metadata;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -34,6 +33,28 @@ public static class SyntaxNodeExtensions
         }
 
         return nodes.OfType<T>();
+    }
+
+    public static T FirstParentNode<T>(
+        this SyntaxNode root,
+        bool recursive = false)
+    {
+        if (root == null)
+        {
+            return default;
+        }
+
+        IEnumerable<SyntaxNode> nodes = null;
+        if (recursive)
+        {
+            nodes = root.Ancestors();
+        }
+        else
+        {
+            nodes = root.Ancestors();
+        }
+
+        return nodes.OfType<T>().FirstOrDefault();
     }
 
     public static T FirstChildNode<T>(
@@ -199,6 +220,18 @@ public static class SyntaxNodeExtensions
     {
         var childToken = node.FirstChildToken(recursive: true);
         return node.ReplaceToken(childToken, childToken.WithIndentationTrivia(parentNode));
+    }
+
+    public static T WithEndOfLineTrivia<T>(
+        this SyntaxNode root) where T: class
+    {
+        return root.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine()) as T;
+    }
+
+    public static SyntaxNode WithEndOfLineTrivia(
+        this SyntaxNode root)
+    {
+        return root.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
     }
 
     public static T WriteIndentationTrivia<T>(
