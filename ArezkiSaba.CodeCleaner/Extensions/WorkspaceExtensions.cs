@@ -19,8 +19,6 @@ public static class WorkspaceExtensions
             ((document, solution) => new SortClassMembers().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new SortFieldsWithPropfullProperties().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new SortUsingDirectives().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new DeleteDuplicatedUsingDirectives().StartAsync(document, solution), (project) => Task.FromResult(true)),
-            ((document, solution) => new DeleteEmptyLinesAroundBraces().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new AddPrivateUseRegion().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new RenameFields().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new RenameEventFields().StartAsync(document, solution), (project) => Task.FromResult(true)),
@@ -31,6 +29,8 @@ public static class WorkspaceExtensions
             ((document, solution) => new RenameUnusedMethodParameters().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new RenameAsyncMethod().StartAsync(document, solution), (project) => Task.FromResult(true)),
             ((document, solution) => new FormatCode().StartAsync(document, solution), (project) => Task.FromResult(true)),
+            ((document, solution) => new DeleteDuplicatedUsingDirectives().StartAsync(document, solution), (project) => Task.FromResult(true)),
+            ((document, solution) => new DeleteEmptyLinesAroundBraces().StartAsync(document, solution), (project) => Task.FromResult(true)),
 
 
             ////((document, solution) => document.FormatAsync(solution), (project) => Task.FromResult(true))

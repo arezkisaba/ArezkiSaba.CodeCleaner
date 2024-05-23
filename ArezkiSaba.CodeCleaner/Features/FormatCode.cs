@@ -66,6 +66,12 @@ public sealed class FormatCode
                         return result;
                     }
 
+                    result = HandleParentNodeAsAccessorDeclarationSyntax(documentEditor, parentNode, childNode);
+                    if (result.Updated)
+                    {
+                        return result;
+                    }
+
                     result = HandleParentNodeAsExpressionSyntax(documentEditor, parentNode, childNode);
                     if (result.Updated)
                     {
@@ -76,16 +82,6 @@ public sealed class FormatCode
                     if (result.Updated)
                     {
                         return result;
-                    }
-
-                    if (parentNode is AccessorDeclarationSyntax accessorDeclaration)
-                    {
-                        var newAccessorDeclaration = accessorDeclaration.Format();
-                        if (!accessorDeclaration.IsEqualTo(newAccessorDeclaration))
-                        {
-                            documentEditor.ReplaceNode(accessorDeclaration, newAccessorDeclaration);
-                            return (documentEditor.GetChangedDocument(), true);
-                        }
                     }
 
                     if (childNode is AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression)
@@ -130,10 +126,10 @@ public sealed class FormatCode
 
                     if (childNode is BlockSyntax block)
                     {
-                        var newChildNode = block.AddTabLeadingTriviasOnBracesBasedOnParent(parentNode);
-                        if (!childNode.IsEqualTo(newChildNode))
+                        var newBlock = block.AddTabLeadingTriviasOnBracesBasedOnParent(parentNode);
+                        if (!block.IsEqualTo(newBlock))
                         {
-                            documentEditor.ReplaceNode(childNode, newChildNode);
+                            documentEditor.ReplaceNode(block, newBlock);
                             return (documentEditor.GetChangedDocument(), true);
                         }
                     }
@@ -198,6 +194,24 @@ public sealed class FormatCode
                     documentEditor.ReplaceNode(constructorDeclaration, newConstructorDeclaration);
                     return (documentEditor.GetChangedDocument(), true);
                 }
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleParentNodeAsAccessorDeclarationSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode parentNode,
+        SyntaxNode childNode)
+    {
+        if (parentNode is AccessorDeclarationSyntax accessorDeclaration)
+        {
+            var newAccessorDeclaration = accessorDeclaration.Format();
+            if (!accessorDeclaration.IsEqualTo(newAccessorDeclaration))
+            {
+                documentEditor.ReplaceNode(accessorDeclaration, newAccessorDeclaration);
+                return (documentEditor.GetChangedDocument(), true);
             }
         }
 

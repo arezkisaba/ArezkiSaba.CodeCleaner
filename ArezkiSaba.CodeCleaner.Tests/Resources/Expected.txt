@@ -24,15 +24,27 @@ public class TestClass1<T>
     private bool _canDoSomething;
     public bool CanDoSomething
     {
-        get { return _canDoSomething; }
-        set { _canDoSomething = value; }
+        get
+        {
+            return _canDoSomething;
+        }
+        set
+        {
+            _canDoSomething = value;
+        }
     }
 
     private bool _canDoSomethingElse;
     public bool CanDoSomethingElse
     {
-        get { return _canDoSomethingElse; }
-        set { _canDoSomethingElse = value; }
+        get
+        {
+            return _canDoSomethingElse;
+        }
+        set
+        {
+            _canDoSomethingElse = value;
+        }
     }
 
     private TestClass1()
@@ -84,9 +96,7 @@ public class TestClass1<T>
         object sender,
         EventArgs e)
     {
-#define VRAI
-
-#if VRAI
+#if true
         var variable1 = "1";
         var variable2 = "2";
         var variable3 = "3";
@@ -168,7 +178,7 @@ public sealed class TestClass2 : TestClass1<int>
                 new DummyClass(
                     "DummyClassParameter1",
                     "DummyClassParameter2",
-                    "DummyClassParameter3"
+                    "DummyClassParameter3",
                     "DummyClassParameter4"
                 ),
                 "3333333333333333333333333333333",
@@ -340,7 +350,7 @@ public sealed class TestClass2 : TestClass1<int>
                 new DummyClass(
                     "DummyClassParameter1",
                     "DummyClassParameter2",
-                    "DummyClassParameter3"
+                    "DummyClassParameter3",
                     "DummyClassParameter4"
                 ),
                 "3333333333333333333333333333333",

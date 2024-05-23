@@ -33,8 +33,9 @@ public static class SyntaxTokenExtensions
         foreach (var trivia in leadingTrivias)
         {
             if (keepOtherTrivias &&
-                !trivia.IsKind(SyntaxKind.EndOfLineTrivia) &&
-                !trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) ||
+                trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) ||
+                trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)))
             {
                 newTriviaList.AddRange(indentationTrivia);
             }

@@ -3,6 +3,7 @@ using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
@@ -23,56 +24,40 @@ public sealed class AddPrivateUseRegion
         }
 
         var documentEditor = await DocumentEditor.CreateAsync(document);
-        var declarations = documentEditor.OriginalRoot.DescendantNodes().OfType<MethodDeclarationSyntax>()
-            .Where(obj => obj.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
-            .ToList();
-
-        if (!declarations.Any())
+        var classDeclarations = documentEditor.OriginalRoot.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
+        foreach (var classDeclaration in classDeclarations)
         {
-            return new RefactorOperationResult(
-                document,
-                document.Project,
-                document.Project.Solution
-            );
-        }
+            var methodDeclarations = classDeclaration.ChildNodes().OfType<MethodDeclarationSyntax>()
+                .Where(obj => obj.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
+                .ToList();
+            if (!methodDeclarations.Any())
+            {
+                continue;
+            }
 
-        var firstDeclaration = declarations.First();
-        var lastDeclaration = declarations.Last();
+            var firstDeclaration = methodDeclarations.First();
+            var firstPrivateMethodLeadingTrivias = new List<SyntaxTrivia>
+            {
+                SyntaxTriviaHelper.GetEndOfLine(),
+                SyntaxTriviaHelper.GetTab(),
+                SyntaxTriviaHelper.GetRegion("Private use"),
+                SyntaxTriviaHelper.GetEndOfLine(),
+                SyntaxTriviaHelper.GetEndOfLine()
+            };
+            var newFirstDeclaration = firstDeclaration.WithLeadingTrivia(firstPrivateMethodLeadingTrivias);
+            var newMembers = classDeclaration.Members.Replace(firstDeclaration, newFirstDeclaration);
 
-        var leadingTrivia = firstDeclaration.GetLeadingTrivia()
-            .Add(SyntaxFactory.Trivia(SyntaxFactory.RegionDirectiveTrivia(true)
-                .WithTrailingTrivia(
-                    SyntaxFactory.TriviaList(
-                        SyntaxFactory.Whitespace(" "),
-                        SyntaxFactory.PreprocessingMessage("Private use")
-                    )
-                )
-            ))
-            .Add(SyntaxTriviaHelper.GetEndOfLine())
-            .Add(SyntaxTriviaHelper.GetEndOfLine())
-            .Add(SyntaxTriviaHelper.GetTab());
-        var trailingTrivia = lastDeclaration.GetTrailingTrivia()
-            .Add(SyntaxTriviaHelper.GetEndOfLine())
-            .Add(SyntaxTriviaHelper.GetTab())
-            .Add(SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)))
-            .Add(SyntaxTriviaHelper.GetEndOfLine());
-
-        if (ReferenceEquals(firstDeclaration, lastDeclaration))
-        {
-            documentEditor.ReplaceNode(firstDeclaration, firstDeclaration
-                .WithLeadingTrivia(leadingTrivia)
-                .WithTrailingTrivia(trailingTrivia)
-            );
-        }
-        else
-        {
+            var closeBraceLeadingTrivia = new List<SyntaxTrivia>
+            {
+                SyntaxTriviaHelper.GetEndOfLine(),
+                SyntaxTriviaHelper.GetTab(),
+                SyntaxTriviaHelper.GetEndRegion(),
+                SyntaxTriviaHelper.GetEndOfLine()
+            };
+            var newCloseBrace = classDeclaration.CloseBraceToken.WithLeadingTrivia(closeBraceLeadingTrivia);
             documentEditor.ReplaceNode(
-                firstDeclaration,
-                firstDeclaration.WithLeadingTrivia(leadingTrivia)
-            );
-            documentEditor.ReplaceNode(
-                lastDeclaration,
-                lastDeclaration.WithTrailingTrivia(trailingTrivia)
+                classDeclaration,
+                classDeclaration.WithMembers(newMembers).WithCloseBraceToken(newCloseBrace)
             );
         }
 

@@ -32,14 +32,12 @@ public class TestClass1<T>
                     object sender,
             EventArgs e)
     {
-        #define VRAI
-
-        #if VRAI
+#if true
         string variable1 = "1";
         string variable2 = "2";
         string variable3 = "3";
         string variable4 = "4";
-        #endif
+#endif
 
         void Test(string parameter1, string parameter2, string parameter3, string parameter4, string parameter5)
         {

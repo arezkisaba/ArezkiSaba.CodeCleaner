@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Drawing;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -94,5 +95,26 @@ public static class SyntaxTriviaHelper
     public static SyntaxTrivia GetWhitespace()
     {
         return SyntaxFactory.Whitespace(" ");
+    }
+
+    public static SyntaxTrivia GetRegion(
+        string name)
+    {
+        return SyntaxFactory.Trivia(
+            SyntaxFactory.RegionDirectiveTrivia(true)
+                .WithTrailingTrivia(
+                    SyntaxFactory.TriviaList(
+                        SyntaxFactory.Whitespace(" "),
+                        SyntaxFactory.PreprocessingMessage(name)
+                    )
+                )
+            );
+    }
+
+    public static SyntaxTrivia GetEndRegion()
+    {
+        return SyntaxFactory.Trivia(
+            SyntaxFactory.EndRegionDirectiveTrivia(true)
+        );
     }
 }

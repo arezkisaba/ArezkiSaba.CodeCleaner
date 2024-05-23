@@ -24,27 +24,19 @@ public class TestClass1<T>
     private bool _canDoSomething;
     public bool CanDoSomething
     {
-        get
-        {
-            return _canDoSomething;
-        }
-        set
-        {
-            _canDoSomething = value;
-        }
+        get         {
+            return _canDoSomething;         }
+        set         {
+            _canDoSomething = value;         }
     }
 
     private bool _canDoSomethingElse;
     public bool CanDoSomethingElse
     {
-        get
-        {
-            return _canDoSomethingElse;
-        }
-        set
-        {
-            _canDoSomethingElse = value;
-        }
+        get         {
+            return _canDoSomethingElse;         }
+        set         {
+            _canDoSomethingElse = value;         }
     }
 
     private TestClass1()
@@ -96,27 +88,27 @@ public class TestClass1<T>
         object sender,
         EventArgs e)
     {
-#define VRAI
+        #define VRAI
 
-#if VRAI
+        #if VRAI
         var variable1 = "1";
         var variable2 = "2";
         var variable3 = "3";
         var variable4 = "4";
-#endif
+        #endif
 
         void Test(string parameter1, string parameter2, string parameter3, string parameter4, string parameter5)
         {
         }
 
-#pragma warning disable 4014
+        #pragma warning disable 4014
         HandleOnSomeEventCallbackAsync(
             variable1: variable1,
             variable2: variable2,
             variable3: variable3,
             variable4: variable4
         );
-#pragma warning restore 4014
+        #pragma warning restore 4014
 
         MapControllerRoute(a: "1", b: "2");
     }
@@ -146,6 +138,8 @@ public class TestClass1<T>
     private static void SomePrivateStaticMethod()
     {
     }
+
+    #endregion
 }
 
 public sealed class TestClass2 : TestClass1<int>
