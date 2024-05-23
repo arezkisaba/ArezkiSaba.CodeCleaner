@@ -188,7 +188,7 @@ public sealed class FormatCode
             if (childNode is ConstructorInitializerSyntax constructorInitializer &&
                 baseMethodDeclaration is ConstructorDeclarationSyntax constructorDeclaration)
             {
-                var newConstructorDeclaration = constructorDeclaration.Format(constructorInitializer, parentNode);
+                var newConstructorDeclaration = constructorDeclaration.Format(constructorInitializer, constructorDeclaration);
                 if (!constructorDeclaration.IsEqualTo(newConstructorDeclaration))
                 {
                     documentEditor.ReplaceNode(constructorDeclaration, newConstructorDeclaration);

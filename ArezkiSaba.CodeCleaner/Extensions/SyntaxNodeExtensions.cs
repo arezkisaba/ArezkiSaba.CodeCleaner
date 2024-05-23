@@ -285,7 +285,7 @@ public static class SyntaxNodeExtensions
         SyntaxNode parentNode,
         int indentCount = 1) where T : SyntaxNode
     {
-        return WithIndentationTrivia(parentNode, parentNode, indentCount) as T;
+        return node.WithIndentationTrivia(parentNode, indentCount) as T;
     }
 
     public static bool IsInvocationOrCreationExpression(
