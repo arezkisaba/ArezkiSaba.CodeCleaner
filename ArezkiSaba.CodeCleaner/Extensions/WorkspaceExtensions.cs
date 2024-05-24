@@ -1,5 +1,4 @@
 ﻿using ArezkiSaba.CodeCleaner.Features;
-using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;

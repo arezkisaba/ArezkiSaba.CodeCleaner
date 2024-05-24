@@ -1,9 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
-using System.Reflection.Metadata;
-using Newtonsoft.Json.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -61,19 +58,29 @@ public static class ExpressionSyntaxExtensions
         bool isSpecialCase)
     {
         var needLineBreak = expression.GetLength() >= 100;
-        if (!argumentList.Arguments.Any() || !needLineBreak || parentNode == null)
+        if (!argumentList.Arguments.Any() || parentNode == null)
         {
             return expression;
         }
 
         var i = 0;
-        argumentList = argumentList.WithOpenParenToken(
-            argumentList.OpenParenToken.WithEndOfLineTrivia()
-        );
 
         if (needLineBreak)
         {
-            argumentList = argumentList.ReplaceNodes(argumentList.Arguments, (childArgument, __) =>
+            argumentList = argumentList.WithOpenParenToken(
+                argumentList.OpenParenToken.WithEndOfLineTrivia()
+            );
+        }
+        else
+        {
+            argumentList = argumentList.WithOpenParenToken(
+                argumentList.OpenParenToken.WithoutTrivia()
+            );
+        }
+
+        argumentList = argumentList.ReplaceNodes(argumentList.Arguments, (childArgument, __) =>
+        {
+            if (needLineBreak)
             {
                 if (i == argumentList.Arguments.Count - 1)
                 {
@@ -81,18 +88,47 @@ public static class ExpressionSyntaxExtensions
                 }
 
                 i++;
-                return childArgument.WithIndentationTrivia(parentNode, indentCount + 1);
-            });
-            argumentList = argumentList.ReplaceTokens(argumentList.Arguments.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia());
-        }
+                childArgument = childArgument.WithIndentationTrivia<ArgumentSyntax>(parentNode, indentCount + 1);
+            }
+            else
+            {
+                childArgument = childArgument.WithoutTrivia();
+            }
 
-        var newCloseParentToken = argumentList.CloseParenToken.WithIndentationTrivia(parentNode, indentCount);
-        if (isSpecialCase)
+            return childArgument;
+        });
+        argumentList = argumentList.ReplaceTokens(argumentList.Arguments.GetSeparators(), (childSeparator, __) =>
         {
-            newCloseParentToken = newCloseParentToken.WithoutTrailingTrivia();
+            if (needLineBreak)
+            {
+                childSeparator = childSeparator.WithEndOfLineTrivia();
+            }
+            else
+            {
+                childSeparator = childSeparator.WithTrailingTrivia(
+                    SyntaxTriviaHelper.GetWhitespace()
+                );
+            }
+
+            return childSeparator;
+        });
+
+        if (needLineBreak)
+        {
+            var newCloseParentToken = argumentList.CloseParenToken.WithIndentationTrivia(parentNode, indentCount);
+            if (isSpecialCase)
+            {
+                newCloseParentToken = newCloseParentToken.WithoutTrailingTrivia();
+            }
+
+            argumentList = argumentList.WithCloseParenToken(newCloseParentToken);
+        }
+        else
+        {
+            var newCloseParentToken = argumentList.CloseParenToken.WithoutTrailingTrivia();
+            argumentList = argumentList.WithCloseParenToken(newCloseParentToken);
         }
 
-        argumentList = argumentList.WithCloseParenToken(newCloseParentToken);
         return expression.WithArgumentList(argumentList);
     }
 

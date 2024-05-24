@@ -27,7 +27,6 @@ public class TestClass1<T>
     private string _readonlyStringField1;
 
 
-
     private string _canDoSomethingElseAgain;
     public string CanDoSomethingElseAgain
     {

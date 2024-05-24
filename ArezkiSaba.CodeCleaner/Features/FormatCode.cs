@@ -3,7 +3,6 @@ using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using System.Linq.Expressions;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
@@ -86,54 +85,34 @@ public sealed class FormatCode : RefactorOperationBase
                         return result;
                     }
 
-                    if (childNode is AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression)
+                    result = HandleChildNodeAsAnonymousObjectCreationExpressionSyntax(documentEditor, childNode);
+                    if (result.Updated)
                     {
-                        var newAnonymousObjectCreationExpression = anonymousObjectCreationExpression.Format();
-                        if (!anonymousObjectCreationExpression.IsEqualTo(newAnonymousObjectCreationExpression))
-                        {
-                            documentEditor.ReplaceNode(anonymousObjectCreationExpression, newAnonymousObjectCreationExpression);
-                            return (documentEditor.GetChangedDocument(), true);
-                        }
+                        return result;
                     }
 
-                    if (childNode is IfStatementSyntax ifStatement)
+                    result = HandleChildNodeAsIfStatementSyntax(documentEditor, parentNode, childNode);
+                    if (result.Updated)
                     {
-                        var newIfStatement = ifStatement.AddBracesBasedOnParent(parentNode);
-                        if (!ifStatement.IsEqualTo(newIfStatement))
-                        {
-                            documentEditor.ReplaceNode(ifStatement, newIfStatement);
-                            return (documentEditor.GetChangedDocument(), true);
-                        }
+                        return result;
                     }
 
-                    if (childNode is ForStatementSyntax forStatement)
+                    result = HandleChildNodeAsForStatementSyntax(documentEditor, parentNode, childNode);
+                    if (result.Updated)
                     {
-                        var newForStatement = forStatement.AddBracesBasedOnParent(parentNode);
-                        if (!forStatement.IsEqualTo(newForStatement))
-                        {
-                            documentEditor.ReplaceNode(forStatement, newForStatement);
-                            return (documentEditor.GetChangedDocument(), true);
-                        }
+                        return result;
                     }
 
-                    if (childNode is WhileStatementSyntax whileStatement)
+                    result = HandleChildNodeAsWhileStatementSyntax(documentEditor, parentNode, childNode);
+                    if (result.Updated)
                     {
-                        var newWhileStatement = whileStatement.AddBracesBasedOnParent(parentNode);
-                        if (!whileStatement.IsEqualTo(newWhileStatement))
-                        {
-                            documentEditor.ReplaceNode(whileStatement, newWhileStatement);
-                            return (documentEditor.GetChangedDocument(), true);
-                        }
+                        return result;
                     }
 
-                    if (childNode is BlockSyntax block)
+                    result = HandleChildNodeAsBlockSyntax(documentEditor, parentNode, childNode);
+                    if (result.Updated)
                     {
-                        var newBlock = block.AddTabLeadingTriviasOnBracesBasedOnParent(parentNode);
-                        if (!block.IsEqualTo(newBlock))
-                        {
-                            documentEditor.ReplaceNode(block, newBlock);
-                            return (documentEditor.GetChangedDocument(), true);
-                        }
+                        return result;
                     }
 
                     // recursive method
@@ -273,6 +252,95 @@ public sealed class FormatCode : RefactorOperationBase
                     documentEditor.ReplaceNode(childNode, newChildNode);
                     return (documentEditor.GetChangedDocument(), true);
                 }
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleChildNodeAsAnonymousObjectCreationExpressionSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode childNode)
+    {
+        if (childNode is AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression)
+        {
+            var newAnonymousObjectCreationExpression = anonymousObjectCreationExpression.Format();
+            if (!anonymousObjectCreationExpression.IsEqualTo(newAnonymousObjectCreationExpression))
+            {
+                documentEditor.ReplaceNode(anonymousObjectCreationExpression, newAnonymousObjectCreationExpression);
+                return (documentEditor.GetChangedDocument(), true);
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleChildNodeAsIfStatementSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode parentNode,
+        SyntaxNode childNode)
+    {
+        if (childNode is IfStatementSyntax ifStatement)
+        {
+            var newIfStatement = ifStatement.AddBracesBasedOnParent(parentNode);
+            if (!ifStatement.IsEqualTo(newIfStatement))
+            {
+                documentEditor.ReplaceNode(ifStatement, newIfStatement);
+                return (documentEditor.GetChangedDocument(), true);
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleChildNodeAsForStatementSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode parentNode,
+        SyntaxNode childNode)
+    {
+        if (childNode is ForStatementSyntax forStatement)
+        {
+            var newForStatement = forStatement.AddBracesBasedOnParent(parentNode);
+            if (!forStatement.IsEqualTo(newForStatement))
+            {
+                documentEditor.ReplaceNode(forStatement, newForStatement);
+                return (documentEditor.GetChangedDocument(), true);
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleChildNodeAsWhileStatementSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode parentNode,
+        SyntaxNode childNode)
+    {
+        if (childNode is WhileStatementSyntax whileStatement)
+        {
+            var newWhileStatement = whileStatement.AddBracesBasedOnParent(parentNode);
+            if (!whileStatement.IsEqualTo(newWhileStatement))
+            {
+                documentEditor.ReplaceNode(whileStatement, newWhileStatement);
+                return (documentEditor.GetChangedDocument(), true);
+            }
+        }
+
+        return (documentEditor.GetChangedDocument(), false);
+    }
+
+    private static (Document Document, bool Updated) HandleChildNodeAsBlockSyntax(
+        DocumentEditor documentEditor,
+        SyntaxNode parentNode,
+        SyntaxNode childNode)
+    {
+        if (childNode is BlockSyntax block)
+        {
+            var newBlock = block.AddTabLeadingTriviasOnBracesBasedOnParent(parentNode);
+            if (!block.IsEqualTo(newBlock))
+            {
+                documentEditor.ReplaceNode(block, newBlock);
+                return (documentEditor.GetChangedDocument(), true);
             }
         }
 

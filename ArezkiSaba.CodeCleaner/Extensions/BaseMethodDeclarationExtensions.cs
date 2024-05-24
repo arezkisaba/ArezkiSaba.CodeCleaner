@@ -18,7 +18,6 @@ public static class BaseMethodDeclarationExtensions
             parameterList = parameterList.ReplaceTokens(parameterList.Parameters.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia());
         }
 
-        parameterList = parameterList.WithCloseParenToken(parameterList.CloseParenToken.WithoutLeadingTrivia());
-        return parameterList;
+        return parameterList.WithCloseParenToken(parameterList.CloseParenToken.WithoutLeadingTrivia());
     }
 }

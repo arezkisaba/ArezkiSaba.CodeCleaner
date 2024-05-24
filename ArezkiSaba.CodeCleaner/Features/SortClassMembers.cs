@@ -129,7 +129,6 @@ public sealed class SortClassMembers : RefactorOperationBase
                 leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
 
                 return obj
-                    .FormatByDefault()
                     .WithLeadingTrivia(
                         SyntaxFactory.TriviaList(leadingTrivias)
                     )
