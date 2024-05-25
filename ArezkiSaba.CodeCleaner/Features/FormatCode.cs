@@ -209,9 +209,9 @@ public sealed class FormatCode : RefactorOperationBase
     {
         if (parentNode is ExpressionSyntax expression)
         {
-            var parentMemberAccessExpression = expression.Parent as MemberAccessExpressionSyntax;
-            var isSpecialCase = parentMemberAccessExpression != null;
-            if (isSpecialCase)
+            var hasParentMemberAccessExpression = expression.Parent is MemberAccessExpressionSyntax;
+            var hasChildMemberAccessExpression = expression.HasChildNode<MemberAccessExpressionSyntax>();
+            if (hasParentMemberAccessExpression || hasChildMemberAccessExpression)
             {
                 return (documentEditor.GetChangedDocument(), false);
             }
@@ -219,8 +219,8 @@ public sealed class FormatCode : RefactorOperationBase
             if (childNode is ArgumentListSyntax argumentList)
             {
                 var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression, isSpecialCase);
-                var newExpression = expression.Format(argumentList, parentStatement, imbricationLevel, isSpecialCase);
+                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression);
+                var newExpression = expression.Format(argumentList, parentStatement, imbricationLevel);
                 if (!expression.IsEqualTo(newExpression))
                 {
                     documentEditor.ReplaceNode(expression, newExpression);

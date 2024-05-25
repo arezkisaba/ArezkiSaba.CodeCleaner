@@ -39,24 +39,19 @@ public static class SyntaxTriviaHelper
     }
 
     public static int GetImbricationLevel(
-        ExpressionSyntax expression,
-        bool isSpecialCase = false)
+        ExpressionSyntax expression)
     {
         var imbricationLevel = 0;
-
-        if (!isSpecialCase)
+        var ancestors = expression.Ancestors().ToList();
+        foreach (var ancestor in ancestors)
         {
-            var ancestors = expression.Ancestors().ToList();
-            foreach (var ancestor in ancestors)
+            if (ancestor.IsImbricationExpression())
             {
-                if (ancestor.IsImbricationExpression())
-                {
-                    imbricationLevel++;
-                }
-                else if (ancestor is StatementSyntax)
-                {
-                    break;
-                }
+                imbricationLevel++;
+            }
+            else if (ancestor is StatementSyntax)
+            {
+                break;
             }
         }
 

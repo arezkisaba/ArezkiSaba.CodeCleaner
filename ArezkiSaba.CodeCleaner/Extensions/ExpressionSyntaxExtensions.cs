@@ -54,8 +54,7 @@ public static class ExpressionSyntaxExtensions
         this ExpressionSyntax expression,
         ArgumentListSyntax argumentList,
         SyntaxNode parentNode,
-        int indentCount,
-        bool isSpecialCase)
+        int indentCount)
     {
         var needLineBreak = expression.GetLength() >= 100;
         if (!argumentList.Arguments.Any() || parentNode == null)

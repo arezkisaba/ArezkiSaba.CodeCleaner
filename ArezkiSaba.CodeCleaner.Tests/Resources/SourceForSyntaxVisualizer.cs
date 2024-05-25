@@ -70,6 +70,10 @@ public class TestClass1<T>
         _readonlyStringField1 = arg1;
         _readonlyStringField2 = arg2;
         _nonReadonlyBooleanField = true;
+        RuleFor(bs => bs.Beneficiaires).SetAaaaaaaaaaaaaaaaaaaaaaaaaaaaa("argument1", Alleeeeeez().Vous().Faire().Foutre()).SetBbbbbbbbbbbbbbbbbbbbbbbbbbbb(
+            "argument4",
+            "argument5"
+        );
     }
 
     public static TestClass1 SomePublicFactoryMethod()
@@ -193,7 +197,6 @@ public sealed class TestClass2 : TestClass1<int>
                 "3333333333333333333333333333333"
             ),
             "1111111111111111111111111111111111111"
-
         );
     }
 
@@ -243,7 +246,6 @@ public sealed class TestClass2 : TestClass1<int>
 
         var variable2 = new[]
         {
-
         };
 
         var variable3 = new[]
@@ -290,7 +292,6 @@ public sealed class TestClass2 : TestClass1<int>
                 Parameter2 = "4",
                 Parameter2 = "5"
             }
-
         );
 
         var variable7 = Json(
@@ -302,7 +303,6 @@ public sealed class TestClass2 : TestClass1<int>
                 Parameter2 = "4",
                 Parameter2 = "5"
             }
-
         );
 
         var variable8 = Json(
