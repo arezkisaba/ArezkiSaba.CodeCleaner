@@ -3,11 +3,14 @@ using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Text;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
 public sealed class FormatCode : RefactorOperationBase
 {
+    private List<KeyValuePair<string, SyntaxNode>> _updateHistory = new();
+
     public override string Name => nameof(FormatCode);
 
     public override async Task<RefactorOperationResult> StartAsync(
@@ -34,7 +37,7 @@ public sealed class FormatCode : RefactorOperationBase
 
     #region Private use
 
-    private static (Document Document, bool Updated) FormatCodeInternal(
+    private (Document Document, bool Updated) FormatCodeInternal(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         int indentLevel = 0)
@@ -128,7 +131,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleParentNodeAsTypeDeclarationSyntax(
+    private (Document Document, bool Updated) HandleParentNodeAsTypeDeclarationSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         SyntaxNode childNode)
@@ -149,7 +152,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleParentNodeAsBaseMethodDeclarationSyntax(
+    private (Document Document, bool Updated) HandleParentNodeAsBaseMethodDeclarationSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         SyntaxNode childNode)
@@ -181,7 +184,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleParentNodeAsAccessorDeclarationSyntax(
+    private (Document Document, bool Updated) HandleParentNodeAsAccessorDeclarationSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         SyntaxNode childNode)
@@ -199,7 +202,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleParentNodeAsExpressionSyntax(
+    private (Document Document, bool Updated) HandleParentNodeAsExpressionSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         SyntaxNode childNode)
@@ -208,6 +211,10 @@ public sealed class FormatCode : RefactorOperationBase
         {
             var parentMemberAccessExpression = expression.Parent as MemberAccessExpressionSyntax;
             var isSpecialCase = parentMemberAccessExpression != null;
+            if (isSpecialCase)
+            {
+                return (documentEditor.GetChangedDocument(), false);
+            }
 
             if (childNode is ArgumentListSyntax argumentList)
             {
@@ -237,7 +244,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleParentNodeAsBlockSyntax(
+    private (Document Document, bool Updated) HandleParentNodeAsBlockSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         SyntaxNode childNode)
@@ -258,7 +265,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleChildNodeAsAnonymousObjectCreationExpressionSyntax(
+    private (Document Document, bool Updated) HandleChildNodeAsAnonymousObjectCreationExpressionSyntax(
         DocumentEditor documentEditor,
         SyntaxNode childNode)
     {
@@ -275,7 +282,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleChildNodeAsIfStatementSyntax(
+    private (Document Document, bool Updated) HandleChildNodeAsIfStatementSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         SyntaxNode childNode)
@@ -293,7 +300,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleChildNodeAsForStatementSyntax(
+    private (Document Document, bool Updated) HandleChildNodeAsForStatementSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         SyntaxNode childNode)
@@ -311,7 +318,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleChildNodeAsWhileStatementSyntax(
+    private (Document Document, bool Updated) HandleChildNodeAsWhileStatementSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         SyntaxNode childNode)
@@ -329,7 +336,7 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private static (Document Document, bool Updated) HandleChildNodeAsBlockSyntax(
+    private (Document Document, bool Updated) HandleChildNodeAsBlockSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
         SyntaxNode childNode)

@@ -16,7 +16,8 @@ public static class SyntaxTokenExtensions
         this SyntaxToken token,
         SyntaxNode parentNode,
         int indentCount = 1,
-        bool keepOtherTrivias = false)
+        bool keepOtherTrivias = false,
+        bool mustAddLineBreakBefore = false)
     {
         var leadingTrivias = new List<SyntaxTrivia>();
         var indentationTrivia = SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount);
@@ -24,6 +25,11 @@ public static class SyntaxTokenExtensions
         if (keepOtherTrivias)
         {
             leadingTrivias.AddRange(token.LeadingTrivia.Where(obj => !obj.IsKind(SyntaxKind.WhitespaceTrivia)));
+        }
+        
+        if (mustAddLineBreakBefore)
+        {
+            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
         }
 
         leadingTrivias.AddRange(indentationTrivia);

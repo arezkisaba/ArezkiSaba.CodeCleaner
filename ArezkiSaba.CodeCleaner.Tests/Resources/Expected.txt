@@ -14,6 +14,7 @@ public class TestClass1<T>
     private const string SomeConstField = "SOME CONST VALUE";
     private static string SomeStaticField;
     private readonly string _readonlyStringField1;
+    private readonly string _readonlyStringField2;
     private bool _nonReadonlyBooleanField;
 
     public event EventHandler SomeEventTriggered;
@@ -57,7 +58,7 @@ public class TestClass1<T>
     private TestClass1()
     {
         _readonlyStringField1 = "some useless value";
-        readonlyStringField2 = "some useless value";
+        _readonlyStringField2 = "some useless value";
         _nonReadonlyBooleanField = false;
     }
 
@@ -67,7 +68,7 @@ public class TestClass1<T>
     {
         // some comment
         _readonlyStringField1 = arg1;
-        readonlyStringField2 = arg2;
+        _readonlyStringField2 = arg2;
         _nonReadonlyBooleanField = true;
     }
 

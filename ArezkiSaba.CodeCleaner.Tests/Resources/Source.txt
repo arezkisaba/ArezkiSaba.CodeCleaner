@@ -33,6 +33,8 @@ public class TestClass1<T>
         get => _canDoSomethingElseAgain;
         set => _canDoSomethingElseAgain = value;
     }
+    
+    private string readonlyStringField2;
 
 
     public async void OnSomeEventCallback(
