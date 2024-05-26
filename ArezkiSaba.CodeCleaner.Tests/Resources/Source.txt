@@ -35,7 +35,11 @@ public class TestClass1<T>
     }
     
     private string readonlyStringField2;
-
+    
+    public IList<string> Items { get; } = [
+                    "Item1",
+                "Item2",
+            "Item3"     ];
 
     public async void OnSomeEventCallback(
                     object sender,

@@ -44,6 +44,7 @@ public static class WorkspaceExtensions
         funcs.Add((new RenameUnusedMethodParameters(), (project) => Task.FromResult(true)));
         funcs.Add((new RenameAsyncMethod(), (project) => Task.FromResult(true)));
         funcs.Add((new FormatCode(), (project) => Task.FromResult(true)));
+        funcs.Add((new FormatEqualsValueClause(), (project) => Task.FromResult(true)));
         funcs.Add((new FormatAnonymousObjectCreationExpression(), (project) => Task.FromResult(true)));
         funcs.Add((new FormatInitializerExpression(), (project) => Task.FromResult(true)));
         funcs.Add((new FormatArgumentList(), (project) => Task.FromResult(true)));

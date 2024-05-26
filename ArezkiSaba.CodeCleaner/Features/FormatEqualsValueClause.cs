@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class FormatInitializerExpression : RefactorOperationBase
+public sealed class FormatEqualsValueClause : RefactorOperationBase
 {
     public override string Name => nameof(FormatInitializerExpression);
 
@@ -22,21 +22,19 @@ public sealed class FormatInitializerExpression : RefactorOperationBase
             isUpdated = false;
             documentEditor = await DocumentEditor.CreateAsync(document);
 
-            var expressions = documentEditor.OriginalRoot.DescendantNodes().OfType<ExpressionSyntax>().ToList();
-            foreach (var expression in expressions)
+            var equalsValueClauses = documentEditor.OriginalRoot.DescendantNodes().OfType<EqualsValueClauseSyntax>().ToList();
+            foreach (var equalsValueClause in equalsValueClauses)
             {
-                var initializerExpression = expression.FirstChildNode<InitializerExpressionSyntax>();
-                if (initializerExpression == null)
+                if (equalsValueClause.Parent is not PropertyDeclarationSyntax parent)
                 {
                     continue;
                 }
 
-                var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = expression.GetImbricationLevel();
-                var newExpression = expression.Format(initializerExpression, parentStatement, imbricationLevel);
-                if (!expression.IsEqualTo(newExpression))
+                var imbricationLevel = equalsValueClause.GetImbricationLevel();
+                var newExpression = equalsValueClause.Format(parent, imbricationLevel);
+                if (!equalsValueClause.IsEqualTo(newExpression))
                 {
-                    documentEditor.ReplaceNode(expression, newExpression);
+                    documentEditor.ReplaceNode(equalsValueClause, newExpression);
                     document = documentEditor.GetChangedDocument();
                     isUpdated = true;
                     break;

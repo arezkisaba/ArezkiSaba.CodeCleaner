@@ -32,7 +32,7 @@ public sealed class FormatArgumentList : RefactorOperationBase
                 }
 
                 var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression);
+                var imbricationLevel = expression.GetImbricationLevel();
                 var newExpression = expression.Format(argumentList, parentStatement, imbricationLevel);
                 if (!expression.IsEqualTo(newExpression))
                 {

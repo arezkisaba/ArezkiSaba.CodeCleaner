@@ -26,7 +26,7 @@ public sealed class FormatAnonymousObjectCreationExpression : RefactorOperationB
             foreach (var expression in expressions)
             {
                 var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression);
+                var imbricationLevel = expression.GetImbricationLevel();
                 var newExpression = expression.Format(parentStatement, imbricationLevel);
                 if (!expression.IsEqualTo(newExpression))
                 {

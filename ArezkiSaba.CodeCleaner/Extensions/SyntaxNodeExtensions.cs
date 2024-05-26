@@ -300,6 +300,26 @@ public static class SyntaxNodeExtensions
         return node.WithIndentationTrivia(parentNode, indentCount) as T;
     }
 
+    public static int GetImbricationLevel(
+        this SyntaxNode node)
+    {
+        var imbricationLevel = 0;
+        var ancestors = node.Ancestors().ToList();
+        foreach (var ancestor in ancestors)
+        {
+            if (ancestor.IsImbricationExpression())
+            {
+                imbricationLevel++;
+            }
+            else if (ancestor is StatementSyntax)
+            {
+                break;
+            }
+        }
+
+        return imbricationLevel;
+    }
+
     public static bool IsInvocationOrCreationExpression(
         this SyntaxNode root)
     {
