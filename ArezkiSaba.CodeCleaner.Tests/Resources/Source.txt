@@ -21,7 +21,6 @@ public class TestClass1<T>
         _readonlyStringField1 = arg1;
         readonlyStringField2 = arg2;
         nonReadonlyBooleanField = true;
-                RuleFor(bs => bs.Beneficiaires).SetAaaaaaaaaaaaaaaaaaaaaaaaaaaaa("argument1", Alleeeeeez().Vous().Faire().Foutre()).SetBbbbbbbbbbbbbbbbbbbbbbbbbbbb("argument4", "argument5");
 
     }
 

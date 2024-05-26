@@ -30,6 +30,9 @@ public static class WorkspaceExtensions
             (new RenameUnusedMethodParameters(), (project) => Task.FromResult(true)),
             (new RenameAsyncMethod(), (project) => Task.FromResult(true)),
             (new FormatCode(), (project) => Task.FromResult(true)),
+            (new FormatAnonymousObjectCreationExpression(), (project) => Task.FromResult(true)),
+            (new FormatInitializerExpression(), (project) => Task.FromResult(true)),
+            (new FormatArgumentList(), (project) => Task.FromResult(true)),
 
 
             ////(document.FormatAsync(solution), (project) => Task.FromResult(true))

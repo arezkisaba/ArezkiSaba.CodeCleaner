@@ -53,11 +53,11 @@ public static class ExpressionSyntaxExtensions
     public static ExpressionSyntax Format(
         this ExpressionSyntax expression,
         ArgumentListSyntax argumentList,
-        SyntaxNode parentNode,
+        StatementSyntax parentStatement,
         int indentCount)
     {
         var needLineBreak = expression.GetLength() >= 100;
-        if (!argumentList.Arguments.Any() || parentNode == null)
+        if (!argumentList.Arguments.Any() || parentStatement == null)
         {
             return expression;
         }
@@ -66,38 +66,67 @@ public static class ExpressionSyntaxExtensions
         if (needLineBreak)
         {
             newArgumentList = newArgumentList.WithOpenParenToken(
-                newArgumentList.OpenParenToken.WithoutLeadingTrivia().WithEndOfLineTrivia()
+                newArgumentList.OpenParenToken
+                    .WithoutLeadingTrivia()
+                    .WithEndOfLineTrivia()
             );
             newArgumentList = newArgumentList.ReplaceNodes(newArgumentList.Arguments, (childArgument, __) =>
             {
                 return childArgument
-                    .WithIndentationTrivia<ArgumentSyntax>(parentNode, indentCount + 1)
+                    .WithIndentationTrivia<ArgumentSyntax>(parentStatement, indentCount + 1)
+                    .WithoutTrailingTrivia()
+                ;
+            });
+            newArgumentList = newArgumentList.ReplaceTokens(newArgumentList.Arguments.GetSeparators(), (childSeparator, __) =>
+            {
+                return childSeparator
+                    .WithoutLeadingTrivia()
+                    .WithEndOfLineTrivia();
+            });
+
+            var closeParentToken = newArgumentList.CloseParenToken
+                .WithIndentationTrivia(
+                    parentStatement,
+                    indentCount,
+                    mustAddLineBreakBefore: true
+                );
+
+            var directParentExpression = argumentList.FirstParentNode<ExpressionSyntax>();
+            if (directParentExpression != null)
+            {
+                var syntaxTokenAfter = directParentExpression.Parent.ItemAfter(directParentExpression);
+                if (syntaxTokenAfter.IsKind(SyntaxKind.CommaToken) || syntaxTokenAfter.IsKind(SyntaxKind.SemicolonToken))
+                {
+                    closeParentToken = closeParentToken.WithoutTrailingTrivia();
+                }
+            }
+
+            newArgumentList = newArgumentList.WithCloseParenToken(closeParentToken);
+        }
+        else
+        {
+            newArgumentList = newArgumentList.WithOpenParenToken(
+                newArgumentList.OpenParenToken
+                    .WithoutLeadingTrivia()
+                    .WithoutTrailingTrivia()
+            );
+            newArgumentList = newArgumentList.ReplaceNodes(newArgumentList.Arguments, (childArgument, __) =>
+            {
+                return childArgument
+                    .WithoutLeadingTrivia()
                     .WithoutTrailingTrivia();
             });
             newArgumentList = newArgumentList.ReplaceTokens(newArgumentList.Arguments.GetSeparators(), (childSeparator, __) =>
             {
-                return childSeparator.WithEndOfLineTrivia();
+                return childSeparator
+                    .WithoutLeadingTrivia()
+                    .WithTrailingTrivia(SyntaxTriviaHelper.GetWhitespace());
             });
             newArgumentList = newArgumentList.WithCloseParenToken(
-                newArgumentList.CloseParenToken.WithIndentationTrivia(
-                    parentNode,
-                    indentCount,
-                    mustAddLineBreakBefore: true
-                )
+                newArgumentList.CloseParenToken
+                    .WithoutLeadingTrivia()
+                    .WithoutTrailingTrivia()
             );
-        }
-        else
-        {
-            newArgumentList = newArgumentList.WithOpenParenToken( newArgumentList.OpenParenToken.WithoutTrivia());
-            newArgumentList = newArgumentList.ReplaceNodes(newArgumentList.Arguments, (childArgument, __) =>
-            {
-                return childArgument.WithoutLeadingTrivia().WithoutTrailingTrivia();
-            });
-            newArgumentList = newArgumentList.ReplaceTokens(newArgumentList.Arguments.GetSeparators(), (childSeparator, __) =>
-            {
-                return childSeparator.WithoutLeadingTrivia().WithTrailingTrivia(SyntaxTriviaHelper.GetWhitespace());
-            });
-            newArgumentList = newArgumentList.WithCloseParenToken(newArgumentList.CloseParenToken.WithoutTrivia());
         }
 
         return expression.WithArgumentList(newArgumentList);
@@ -106,11 +135,11 @@ public static class ExpressionSyntaxExtensions
     public static ExpressionSyntax Format(
         this ExpressionSyntax expression,
         InitializerExpressionSyntax initializerExpression,
-        SyntaxNode parentNode,
+        StatementSyntax parentStatement,
         int indentCount)
     {
         var needLineBreak = true;
-        if (parentNode == null)
+        if (parentStatement == null)
         {
             return expression;
         }
@@ -125,68 +154,84 @@ public static class ExpressionSyntaxExtensions
         {
             newInitializerExpression = newInitializerExpression.WithOpenBraceToken(
                 newInitializerExpression.OpenBraceToken
-                    .WithIndentationTrivia(parentNode, indentCount)
+                    .WithIndentationTrivia(parentStatement, indentCount)
                     .WithEndOfLineTrivia()
             );
             newInitializerExpression = newInitializerExpression.ReplaceNodes(newInitializerExpression.Expressions, (childExpression, __) =>
             {
                 return childExpression
-                    .WithIndentationTrivia(parentNode, indentCount + 1)
+                    .WithIndentationTrivia(parentStatement, indentCount + 1)
                     .WithoutTrailingTrivia();
             });
             newInitializerExpression = newInitializerExpression.ReplaceTokens(
-                newInitializerExpression.Expressions.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia()
+                newInitializerExpression.Expressions.GetSeparators(), (childSeparator, __) =>
+                {
+                    return childSeparator
+                        .WithoutLeadingTrivia()
+                        .WithEndOfLineTrivia();
+                }
             );
             newInitializerExpression = newInitializerExpression.WithCloseBraceToken(
-                newInitializerExpression.CloseBraceToken.WithIndentationTrivia(
-                    parentNode,
-                    indentCount,
-                    mustAddLineBreakBefore: newInitializerExpression.Expressions.Count > 0
-                )
+                newInitializerExpression.CloseBraceToken
+                    .WithIndentationTrivia(
+                        parentStatement,
+                        indentCount,
+                        mustAddLineBreakBefore: newInitializerExpression.Expressions.Count > 0
+                    )
+                    .WithoutTrailingTrivia()
             );
         }
 
         var newKeyword = expression.ItemBefore(initializerExpression);
-        expression = expression.WithEndOfLineTriviaAfter(newKeyword);
-        return expression.WithInitializer(newInitializerExpression);
+        return expression.WithEndOfLineTriviaAfter(newKeyword).WithInitializer(newInitializerExpression);
     }
 
     public static AnonymousObjectCreationExpressionSyntax Format(
-        this AnonymousObjectCreationExpressionSyntax expression)
+        this AnonymousObjectCreationExpressionSyntax expression,
+        SyntaxNode parentNode,
+        int indentCount)
     {
         var needLineBreak = true;
+        if (parentNode == null)
+        {
+            return expression;
+        }
+
         var newExpression = expression;
         if (newExpression.Initializers.Count == newExpression.Initializers.GetSeparators().Count())
         {
             newExpression = newExpression.RemoveLastComma();
         }
 
-        newExpression = newExpression.WithOpenBraceToken(
-            newExpression.OpenBraceToken
-                .WithIndentationTrivia(newExpression, indentCount: 0)
-                .WithEndOfLineTrivia()
-        );
-
         if (needLineBreak)
         {
+            newExpression = newExpression.WithOpenBraceToken(
+                newExpression.OpenBraceToken
+                    .WithIndentationTrivia(parentNode, indentCount)
+                    .WithEndOfLineTrivia()
+            );
             newExpression = newExpression.ReplaceNodes(newExpression.Initializers, (childExpression, __) =>
             {
                 return childExpression
-                    .WithIndentationTrivia(newExpression, indentCount: 1)
+                    .WithIndentationTrivia(parentNode, indentCount + 1)
                     .WithoutTrailingTrivia();
             });
             newExpression = newExpression.ReplaceTokens(
-                newExpression.Initializers.GetSeparators(), (separator, __) => separator.WithEndOfLineTrivia()
+                newExpression.Initializers.GetSeparators(), (childSeparator, __) =>
+                {
+                    return childSeparator
+                        .WithoutLeadingTrivia()
+                        .WithEndOfLineTrivia();
+                }
+            );
+            newExpression = newExpression.WithCloseBraceToken(
+                newExpression.CloseBraceToken.WithIndentationTrivia(
+                    parentNode,
+                    indentCount,
+                    mustAddLineBreakBefore: newExpression.Initializers.Count > 0
+                )
             );
         }
-
-        newExpression = newExpression.WithCloseBraceToken(
-            newExpression.CloseBraceToken.WithIndentationTrivia(
-                newExpression,
-                indentCount: 0,
-                mustAddLineBreakBefore: true
-            )
-        );
 
         var newKeyword = newExpression.ItemBefore(newExpression.OpenBraceToken);
         return newExpression.WithEndOfLineTriviaAfter(newKeyword);

@@ -3,14 +3,11 @@ using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
 public sealed class FormatCode : RefactorOperationBase
 {
-    private List<KeyValuePair<string, SyntaxNode>> _updateHistory = new();
-
     public override string Name => nameof(FormatCode);
 
     public override async Task<RefactorOperationResult> StartAsync(
@@ -76,19 +73,7 @@ public sealed class FormatCode : RefactorOperationBase
                         return result;
                     }
 
-                    result = HandleParentNodeAsExpressionSyntax(documentEditor, parentNode, childNode);
-                    if (result.Updated)
-                    {
-                        return result;
-                    }
-
                     result = HandleParentNodeAsBlockSyntax(documentEditor, parentNode, childNode);
-                    if (result.Updated)
-                    {
-                        return result;
-                    }
-
-                    result = HandleChildNodeAsAnonymousObjectCreationExpressionSyntax(documentEditor, childNode);
                     if (result.Updated)
                     {
                         return result;
@@ -202,48 +187,6 @@ public sealed class FormatCode : RefactorOperationBase
         return (documentEditor.GetChangedDocument(), false);
     }
 
-    private (Document Document, bool Updated) HandleParentNodeAsExpressionSyntax(
-        DocumentEditor documentEditor,
-        SyntaxNode parentNode,
-        SyntaxNode childNode)
-    {
-        if (parentNode is ExpressionSyntax expression)
-        {
-            var hasParentMemberAccessExpression = expression.Parent is MemberAccessExpressionSyntax;
-            var hasChildMemberAccessExpression = expression.HasChildNode<MemberAccessExpressionSyntax>();
-            if (hasParentMemberAccessExpression || hasChildMemberAccessExpression)
-            {
-                return (documentEditor.GetChangedDocument(), false);
-            }
-
-            if (childNode is ArgumentListSyntax argumentList)
-            {
-                var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression);
-                var newExpression = expression.Format(argumentList, parentStatement, imbricationLevel);
-                if (!expression.IsEqualTo(newExpression))
-                {
-                    documentEditor.ReplaceNode(expression, newExpression);
-                    return (documentEditor.GetChangedDocument(), true);
-                }
-            }
-
-            if (childNode is InitializerExpressionSyntax initializerExpression)
-            {
-                var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = SyntaxTriviaHelper.GetImbricationLevel(expression);
-                var newExpression = expression.Format(initializerExpression, parentStatement, imbricationLevel);
-                if (!expression.IsEqualTo(newExpression))
-                {
-                    documentEditor.ReplaceNode(expression, newExpression);
-                    return (documentEditor.GetChangedDocument(), true);
-                }
-            }
-        }
-
-        return (documentEditor.GetChangedDocument(), false);
-    }
-
     private (Document Document, bool Updated) HandleParentNodeAsBlockSyntax(
         DocumentEditor documentEditor,
         SyntaxNode parentNode,
@@ -259,23 +202,6 @@ public sealed class FormatCode : RefactorOperationBase
                     documentEditor.ReplaceNode(childNode, newChildNode);
                     return (documentEditor.GetChangedDocument(), true);
                 }
-            }
-        }
-
-        return (documentEditor.GetChangedDocument(), false);
-    }
-
-    private (Document Document, bool Updated) HandleChildNodeAsAnonymousObjectCreationExpressionSyntax(
-        DocumentEditor documentEditor,
-        SyntaxNode childNode)
-    {
-        if (childNode is AnonymousObjectCreationExpressionSyntax anonymousObjectCreationExpression)
-        {
-            var newAnonymousObjectCreationExpression = anonymousObjectCreationExpression.Format();
-            if (!anonymousObjectCreationExpression.IsEqualTo(newAnonymousObjectCreationExpression))
-            {
-                documentEditor.ReplaceNode(anonymousObjectCreationExpression, newAnonymousObjectCreationExpression);
-                return (documentEditor.GetChangedDocument(), true);
             }
         }
 
