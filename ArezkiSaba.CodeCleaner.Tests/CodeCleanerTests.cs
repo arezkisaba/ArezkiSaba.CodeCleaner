@@ -34,7 +34,7 @@ public sealed class CodeCleanerTests
             _projectName,
             filesToAdd
         );
-        workspace = await workspace.RefactorAsync(displayOutput: false);
+        workspace = await workspace.RefactorAsync(smallRefactor: false, displayOutput: false);
 
         var contentAfterRefactoring = await ReadDocumentContentAsync(workspace, _projectName, _fileName);
         var expectedContent = await ReadEmbeddedResourceAsync($"{_resourcesFolderPath}/Expected.txt");
