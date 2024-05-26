@@ -18,47 +18,51 @@ public static class EqualsValueClauseExtensions
 
         var newEqualsValueClauseSyntax = equalsValueClauseSyntax;
 
-        var i = 0;
-        newEqualsValueClauseSyntax = newEqualsValueClauseSyntax.WithEqualsToken(
-            newEqualsValueClauseSyntax.EqualsToken
-                .WithoutLeadingTrivia()
-                .WithEndOfLineTrivia()
-        );
-        var newValue = newEqualsValueClauseSyntax.Value as CollectionExpressionSyntax;
-        newValue = newValue.WithOpenBracketToken(
-            newValue.OpenBracketToken
-                .WithIndentationTrivia(parentNode, indentCount: 0)
-                .WithEndOfLineTrivia()
-        );
-        newValue = newValue.ReplaceNodes(newValue.Elements, (childElement, __) =>
+        if (newEqualsValueClauseSyntax.Value is CollectionExpressionSyntax newCollectionExpression)
         {
-            if (i == newValue.Elements.Count - 1)
-            {
-                childElement = childElement.WithEndOfLineTrivia<ExpressionElementSyntax>();
-            }
-            else
-            {
-                childElement = childElement.WithoutTrailingTrivia();
-            }
-
-            i++;
-            return childElement.WithIndentationTrivia<ExpressionElementSyntax>(parentNode, indentCount + 1);
-        });
-        newValue = newValue.ReplaceTokens(
-            newValue.Elements.GetSeparators(), (childSeparator, __) =>
-            {
-                return childSeparator
+            var i = 0;
+            newEqualsValueClauseSyntax = newEqualsValueClauseSyntax.WithEqualsToken(
+                newEqualsValueClauseSyntax.EqualsToken
                     .WithoutLeadingTrivia()
-                    .WithEndOfLineTrivia();
-            }
-        );
-        newValue = newValue.WithCloseBracketToken(
-            newValue.CloseBracketToken
-                .WithIndentationTrivia(parentNode, indentCount: 0)
-                .WithoutTrailingTrivia()
-        );
+                    .WithEndOfLineTrivia()
+            );
 
-        newEqualsValueClauseSyntax = newEqualsValueClauseSyntax.WithValue(newValue);
+            newCollectionExpression = newCollectionExpression.WithOpenBracketToken(
+                newCollectionExpression.OpenBracketToken
+                    .WithIndentationTrivia(parentNode, indentCount: 0)
+                    .WithEndOfLineTrivia()
+            );
+            newCollectionExpression = newCollectionExpression.ReplaceNodes(newCollectionExpression.Elements, (childElement, __) =>
+            {
+                if (i == newCollectionExpression.Elements.Count - 1)
+                {
+                    childElement = childElement.WithEndOfLineTrivia<ExpressionElementSyntax>();
+                }
+                else
+                {
+                    childElement = childElement.WithoutTrailingTrivia();
+                }
+
+                i++;
+                return childElement.WithIndentationTrivia<ExpressionElementSyntax>(parentNode, indentCount + 1);
+            });
+            newCollectionExpression = newCollectionExpression.ReplaceTokens(
+                newCollectionExpression.Elements.GetSeparators(), (childSeparator, __) =>
+                {
+                    return childSeparator
+                        .WithoutLeadingTrivia()
+                        .WithEndOfLineTrivia();
+                }
+            );
+            newCollectionExpression = newCollectionExpression.WithCloseBracketToken(
+                newCollectionExpression.CloseBracketToken
+                    .WithIndentationTrivia(parentNode, indentCount: 0)
+                    .WithoutTrailingTrivia()
+            );
+
+            newEqualsValueClauseSyntax = newEqualsValueClauseSyntax.WithValue(newCollectionExpression);
+        }
+
         return newEqualsValueClauseSyntax;
     }
 }
