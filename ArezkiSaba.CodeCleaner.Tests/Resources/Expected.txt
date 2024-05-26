@@ -55,6 +55,8 @@ public class TestClass1<T>
         set => _canDoSomethingElseAgain = value;
     }
 
+    public IList<string> EmptyItems { get; } = [];
+
     public IList<string> Items { get; } =
     [
         "Item1",

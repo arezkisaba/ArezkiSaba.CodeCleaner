@@ -41,6 +41,10 @@ public class TestClass1<T>
                 "Item2",
             "Item3"     ];
 
+    public IList<string> EmptyItems { get; } =
+    [
+                    ];
+
     public async void OnSomeEventCallback(
                     object sender,
             EventArgs e)
