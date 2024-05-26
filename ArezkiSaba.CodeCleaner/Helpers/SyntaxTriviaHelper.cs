@@ -1,27 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class SyntaxTriviaHelper
 {
-    public static IList<SyntaxTrivia> GetLeadingTriviasBasedOn(
-        SyntaxNode nodeBase,
-        int indentCount = 0)
-    {
-        var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivias = nodeBase.GetLeadingTrivia().Reverse().TakeWhile(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
-        leadingTrivias.AddRange(indentationTrivias);
-
-        for (var j = 0; j < indentCount; j++)
-        {
-            leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
-        }
-
-        return leadingTrivias;
-    }
-
     public static IList<SyntaxTrivia> GetLeadingTriviasBasedOn(
         SyntaxToken nodeBase,
         int indentCount = 0)

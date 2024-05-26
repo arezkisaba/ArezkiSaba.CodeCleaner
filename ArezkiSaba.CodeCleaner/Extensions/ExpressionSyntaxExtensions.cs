@@ -52,6 +52,35 @@ public static class ExpressionSyntaxExtensions
 
     public static ExpressionSyntax Format(
         this ExpressionSyntax expression,
+        MemberAccessExpressionSyntax memberAccessExpression,
+        StatementSyntax parentStatement,
+        int indentCount)
+    {
+        var needLineBreak = true;
+        var newMemberAccessExpression = memberAccessExpression;
+        if (needLineBreak)
+        {
+            newMemberAccessExpression = newMemberAccessExpression.ReplaceTokens(newMemberAccessExpression.ChildTokens(recursive: false), (childToken, __) =>
+            {
+                if (childToken.IsKind(SyntaxKind.DotToken))
+                {
+                    childToken = childToken
+                        .WithIndentationTrivia(parentStatement, indentCount: 1, mustAddLineBreakBefore: true)
+                        .WithoutTrailingTrivia();
+                }
+
+                return childToken;
+            });
+        }
+        else
+        {
+        }
+
+        return expression.ReplaceNode(memberAccessExpression, newMemberAccessExpression);
+    }
+
+    public static ExpressionSyntax Format(
+        this ExpressionSyntax expression,
         ArgumentListSyntax argumentList,
         StatementSyntax parentStatement,
         int indentCount)

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class FormatArgumentList : RefactorOperationBase
+public sealed class FormatMemberAccessExpression : RefactorOperationBase
 {
     public override string Name => nameof(FormatArgumentList);
 
@@ -22,21 +22,22 @@ public sealed class FormatArgumentList : RefactorOperationBase
             isUpdated = false;
             documentEditor = await DocumentEditor.CreateAsync(document);
 
-            var expressions = documentEditor.OriginalRoot.DescendantNodes().OfType<ExpressionSyntax>().ToList();
+            var expressions = documentEditor.OriginalRoot.DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToList();
             foreach (var expression in expressions)
             {
-                var argumentList = expression.FirstChildNode<ArgumentListSyntax>();
-                if (argumentList == null)
+                var parentExpression = expression.Parent as InvocationExpressionSyntax;
+                var parentParentExpression = parentExpression?.Parent as MemberAccessExpressionSyntax;
+                if (parentExpression == null || parentParentExpression == null)
                 {
                     continue;
                 }
 
                 var parentStatement = expression.FirstParentNode<StatementSyntax>();
                 var imbricationLevel = expression.GetIndentCount();
-                var newExpression = expression.Format(argumentList, parentStatement, imbricationLevel);
-                if (!expression.IsEqualTo(newExpression))
+                var newParentExpression = parentExpression.Format(expression, parentStatement, imbricationLevel);
+                if (!parentExpression.IsEqualTo(newParentExpression))
                 {
-                    documentEditor.ReplaceNode(expression, newExpression);
+                    documentEditor.ReplaceNode(parentExpression, newParentExpression);
                     document = documentEditor.GetChangedDocument();
                     isUpdated = true;
                     break;

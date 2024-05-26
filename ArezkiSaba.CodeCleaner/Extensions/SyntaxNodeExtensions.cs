@@ -261,7 +261,7 @@ public static class SyntaxNodeExtensions
         bool mustAddLineBreakBefore = false)
     {
         var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivia = SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount);
+        var indentationTrivia = parentNode.GetLeadingTriviasBasedOn(indentCount);
 
         if (keepOtherTrivias)
         {
@@ -300,10 +300,11 @@ public static class SyntaxNodeExtensions
         return node.WithIndentationTrivia(parentNode, indentCount) as T;
     }
 
-    public static int GetImbricationLevel(
+    public static int GetIndentCount(
         this SyntaxNode node)
     {
         var imbricationLevel = 0;
+        var countToSubstract = node.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) ? 1 : 0;
         var ancestors = node.Ancestors().ToList();
         foreach (var ancestor in ancestors)
         {
@@ -317,7 +318,31 @@ public static class SyntaxNodeExtensions
             }
         }
 
-        return imbricationLevel;
+
+        return imbricationLevel - countToSubstract;
+    }
+
+    public static IList<SyntaxTrivia> GetLeadingTriviasBasedOn(
+        this SyntaxNode nodeBase,
+        int indentCount = 0)
+    {
+        var leadingTrivias = new List<SyntaxTrivia>();
+        var indentationTrivias = nodeBase.GetLeadingTrivia().Reverse().TakeWhile(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+        leadingTrivias.AddRange(indentationTrivias);
+
+        for (var j = 0; j < indentCount; j++)
+        {
+            leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+        }
+
+        return leadingTrivias;
+    }
+
+    public static int GetLeadingTriviasCountBasedOn(
+        this SyntaxNode nodeBase,
+        int indentCount = 0)
+    {
+        return GetLeadingTriviasBasedOn(nodeBase, indentCount).Sum(obj => obj.FullSpan.Length) / Constants.IndentationCharacterCount;
     }
 
     public static bool IsInvocationOrCreationExpression(
@@ -330,7 +355,7 @@ public static class SyntaxNodeExtensions
     public static bool IsImbricationExpression(
         this SyntaxNode root)
     {
-        return root.IsInvocationOrCreationExpression() ||
+        var result = root.IsInvocationOrCreationExpression() ||
             root is AnonymousObjectCreationExpressionSyntax ||
             root is ImplicitObjectCreationExpressionSyntax ||
             root is ArrayCreationExpressionSyntax ||
@@ -339,6 +364,12 @@ public static class SyntaxNodeExtensions
             root is ImplicitStackAllocArrayCreationExpressionSyntax ||
             root is CollectionExpressionSyntax ||
             root is ObjectCreationExpressionSyntax;
+        ////if (root.IsInvocationOrCreationExpression())
+        ////{
+        ////    result = result && !root.HasChildNode<MemberAccessExpressionSyntax>();
+        ////}
+
+        return result;
     }
 
     public static bool HasBaseOrThisInitializer(

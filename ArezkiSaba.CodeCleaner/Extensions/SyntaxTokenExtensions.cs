@@ -21,7 +21,7 @@ public static class SyntaxTokenExtensions
         bool mustAddLineBreakBefore = false)
     {
         var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivia = SyntaxTriviaHelper.GetLeadingTriviasBasedOn(parentNode, indentCount);
+        var indentationTrivia = parentNode.GetLeadingTriviasBasedOn(indentCount);
 
         if (keepOtherTrivias)
         {

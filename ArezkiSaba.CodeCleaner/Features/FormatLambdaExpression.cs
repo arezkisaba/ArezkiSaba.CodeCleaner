@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class FormatArgumentList : RefactorOperationBase
+public sealed class FormatLambdaExpression : RefactorOperationBase
 {
     public override string Name => nameof(FormatArgumentList);
 
@@ -22,18 +22,10 @@ public sealed class FormatArgumentList : RefactorOperationBase
             isUpdated = false;
             documentEditor = await DocumentEditor.CreateAsync(document);
 
-            var expressions = documentEditor.OriginalRoot.DescendantNodes().OfType<ExpressionSyntax>().ToList();
+            var expressions = documentEditor.OriginalRoot.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToList();
             foreach (var expression in expressions)
             {
-                var argumentList = expression.FirstChildNode<ArgumentListSyntax>();
-                if (argumentList == null)
-                {
-                    continue;
-                }
-
-                var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = expression.GetIndentCount();
-                var newExpression = expression.Format(argumentList, parentStatement, imbricationLevel);
+                var newExpression = expression.Format();
                 if (!expression.IsEqualTo(newExpression))
                 {
                     documentEditor.ReplaceNode(expression, newExpression);
