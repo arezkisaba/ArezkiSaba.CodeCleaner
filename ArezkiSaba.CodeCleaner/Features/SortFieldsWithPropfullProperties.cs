@@ -54,19 +54,14 @@ public sealed class SortFieldsWithPropfullProperties : RefactorOperationBase
                         var isReferencedFromProperty = propertyDeclaration != null;
                         if (isReferencedFromProperty)
                         {
-                            var indentationTrivias = propertyDeclaration.GetLeadingTrivia()
-                                .Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia))
-                                .ToList();
-                            documentEditor.InsertBefore(
-                                propertyDeclaration,
-                                fieldDeclaration
-                                    .WithLeadingTrivia(
-                                        SyntaxFactory.TriviaList()
-                                            .Add(SyntaxTriviaHelper.GetEndOfLine())
-                                            .AddRange(indentationTrivias)
-                                    )
-                                    .WithoutTrailingTrivia()
-                            );
+                            var newFieldDeclaration = fieldDeclaration
+                                .WithIndentationTrivia(propertyDeclaration, indentCount: 0, mustAddLineBreakBefore: true)
+                                .WithEndOfLineTrivia();
+                            var newPropertyDeclaration = propertyDeclaration
+                                .WithIndentationTrivia(propertyDeclaration, indentCount: 0);
+
+                            documentEditor.InsertBefore(propertyDeclaration, newFieldDeclaration);
+                            documentEditor.ReplaceNode(propertyDeclaration, newPropertyDeclaration);
                             documentEditor.RemoveNode(fieldDeclaration);
                             break;
                         }

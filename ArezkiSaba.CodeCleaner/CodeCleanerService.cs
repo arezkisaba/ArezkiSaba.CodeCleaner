@@ -24,6 +24,11 @@ public sealed class CodeCleanerService
         workspace.LoadMetadataForReferencedProjects = true;
         workspace.WorkspaceFailed += (_, e) =>
         {
+            if (e.Diagnostic.Message.Contains("Unable to load the service index for source"))
+            {
+                return;
+            }
+
             Console.WriteLine($"[{nameof(MSBuildWorkspace)}] {e.Diagnostic.Message}");
         };
         Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace initialization done.");
