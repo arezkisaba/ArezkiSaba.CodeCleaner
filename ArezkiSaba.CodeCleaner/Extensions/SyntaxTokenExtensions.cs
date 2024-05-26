@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -55,6 +56,23 @@ public static class SyntaxTokenExtensions
         this SyntaxToken token)
     {
         return token.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+    }
+
+    public static SyntaxToken WithOrWithoutTrailingTriviaBasedOnNextItems(
+        this SyntaxToken closeParentToken,
+        ArgumentListSyntax argumentList)
+    {
+        var directParentExpression = argumentList.FirstParentNode<ExpressionSyntax>();
+        if (directParentExpression != null)
+        {
+            var syntaxTokenAfter = directParentExpression.Parent.ItemAfter(directParentExpression);
+            if (syntaxTokenAfter.IsKind(SyntaxKind.CommaToken) || syntaxTokenAfter.IsKind(SyntaxKind.SemicolonToken))
+            {
+                closeParentToken = closeParentToken.WithoutTrailingTrivia();
+            }
+        }
+
+        return closeParentToken;
     }
 
     public static SyntaxToken RemoveTrivias(

@@ -6,7 +6,8 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 public static class WorkspaceExtensions
 {
     public static async Task<Workspace> RefactorAsync(
-        this Workspace workspace)
+        this Workspace workspace,
+        bool displayOutput = true)
     {
         var funcs = new List<(RefactorOperationBase, Func<Project, Task<bool>> predicate)>
         {
@@ -59,18 +60,24 @@ public static class WorkspaceExtensions
                         continue;
                     }
 
-                    ////Console.SetCursorPosition(0, Console.CursorTop - 1);
-                    ////ClearCurrentConsoleLine();
-                    ////Console.WriteLine($"Executing module {refactorOperation.Name} on {currentDocument.Name}...");
+                    if (displayOutput)
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        ClearCurrentConsoleLine();
+                        Console.WriteLine($"Executing module {refactorOperation.Name} on {currentDocument.FilePath}...");
+                    }
 
                     var result = await refactorOperation.StartAsync(currentDocument, currentSolution);
                     currentDocument = result.Document;
                     currentProject = result.Project;
                     currentSolution = result.Solution;
 
-                    ////Console.SetCursorPosition(0, Console.CursorTop - 1);
-                    ////ClearCurrentConsoleLine();
-                    ////Console.WriteLine($"Module {refactorOperation.Name} executed on {currentDocument.Name}");
+                    if (displayOutput)
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        ClearCurrentConsoleLine();
+                        Console.WriteLine($"Module {refactorOperation.Name} executed on {currentDocument.FilePath}");
+                    }
                 }
             }
         }

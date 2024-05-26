@@ -34,6 +34,8 @@ public class TestClass1<T>
         set => _canDoSomethingElseAgain = value;
     }
 
+    private string readonlyStringField2;
+
 
     public async void OnSomeEventCallback(
                     object sender,

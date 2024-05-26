@@ -65,6 +65,7 @@ public static class ExpressionSyntaxExtensions
         var newArgumentList = argumentList;
         if (needLineBreak)
         {
+            var i = 0;
             newArgumentList = newArgumentList.WithOpenParenToken(
                 newArgumentList.OpenParenToken
                     .WithoutLeadingTrivia()
@@ -72,10 +73,17 @@ public static class ExpressionSyntaxExtensions
             );
             newArgumentList = newArgumentList.ReplaceNodes(newArgumentList.Arguments, (childArgument, __) =>
             {
-                return childArgument
-                    .WithIndentationTrivia<ArgumentSyntax>(parentStatement, indentCount + 1)
-                    .WithoutTrailingTrivia()
-                ;
+                if (i == newArgumentList.Arguments.Count - 1)
+                {
+                    childArgument = childArgument.WithEndOfLineTrivia<ArgumentSyntax>();
+                }
+                else
+                {
+                    childArgument = childArgument.WithoutTrailingTrivia();
+                }
+
+                i++;
+                return childArgument.WithIndentationTrivia<ArgumentSyntax>(parentStatement, indentCount + 1);
             });
             newArgumentList = newArgumentList.ReplaceTokens(newArgumentList.Arguments.GetSeparators(), (childSeparator, __) =>
             {
@@ -87,19 +95,9 @@ public static class ExpressionSyntaxExtensions
             var closeParentToken = newArgumentList.CloseParenToken
                 .WithIndentationTrivia(
                     parentStatement,
-                    indentCount,
-                    mustAddLineBreakBefore: true
+                    indentCount
                 );
-
-            var directParentExpression = argumentList.FirstParentNode<ExpressionSyntax>();
-            if (directParentExpression != null)
-            {
-                var syntaxTokenAfter = directParentExpression.Parent.ItemAfter(directParentExpression);
-                if (syntaxTokenAfter.IsKind(SyntaxKind.CommaToken) || syntaxTokenAfter.IsKind(SyntaxKind.SemicolonToken))
-                {
-                    closeParentToken = closeParentToken.WithoutTrailingTrivia();
-                }
-            }
+            closeParentToken = closeParentToken.WithOrWithoutTrailingTriviaBasedOnNextItems(argumentList);
 
             newArgumentList = newArgumentList.WithCloseParenToken(closeParentToken);
         }
@@ -122,11 +120,12 @@ public static class ExpressionSyntaxExtensions
                     .WithoutLeadingTrivia()
                     .WithTrailingTrivia(SyntaxTriviaHelper.GetWhitespace());
             });
-            newArgumentList = newArgumentList.WithCloseParenToken(
-                newArgumentList.CloseParenToken
-                    .WithoutLeadingTrivia()
-                    .WithoutTrailingTrivia()
-            );
+
+            var closeParentToken = newArgumentList.CloseParenToken
+                .WithoutLeadingTrivia();
+            closeParentToken = closeParentToken.WithOrWithoutTrailingTriviaBasedOnNextItems(argumentList);
+
+            newArgumentList = newArgumentList.WithCloseParenToken(closeParentToken);
         }
 
         return expression.WithArgumentList(newArgumentList);
@@ -152,6 +151,7 @@ public static class ExpressionSyntaxExtensions
 
         if (needLineBreak)
         {
+            var i = 0;
             newInitializerExpression = newInitializerExpression.WithOpenBraceToken(
                 newInitializerExpression.OpenBraceToken
                     .WithIndentationTrivia(parentStatement, indentCount)
@@ -159,9 +159,17 @@ public static class ExpressionSyntaxExtensions
             );
             newInitializerExpression = newInitializerExpression.ReplaceNodes(newInitializerExpression.Expressions, (childExpression, __) =>
             {
-                return childExpression
-                    .WithIndentationTrivia(parentStatement, indentCount + 1)
-                    .WithoutTrailingTrivia();
+                if (i == newInitializerExpression.Expressions.Count - 1)
+                {
+                    childExpression = childExpression.WithEndOfLineTrivia<ExpressionSyntax>();
+                }
+                else
+                {
+                    childExpression = childExpression.WithoutTrailingTrivia();
+                }
+
+                i++;
+                return childExpression.WithIndentationTrivia<ExpressionSyntax>(parentStatement, indentCount + 1);
             });
             newInitializerExpression = newInitializerExpression.ReplaceTokens(
                 newInitializerExpression.Expressions.GetSeparators(), (childSeparator, __) =>
@@ -175,8 +183,7 @@ public static class ExpressionSyntaxExtensions
                 newInitializerExpression.CloseBraceToken
                     .WithIndentationTrivia(
                         parentStatement,
-                        indentCount,
-                        mustAddLineBreakBefore: newInitializerExpression.Expressions.Count > 0
+                        indentCount
                     )
                     .WithoutTrailingTrivia()
             );
