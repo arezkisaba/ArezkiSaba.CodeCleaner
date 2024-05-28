@@ -43,8 +43,10 @@ public sealed class AddSealedModifierOnClassesSyntaxRewriter : CSharpSyntaxRewri
     {
         var hasAlreadySealedModifier = node.Modifiers.Any(obj => obj.IsKind(SyntaxKind.SealedKeyword));
         var hasStaticModifier = node.Modifiers.Any(obj => obj.IsKind(SyntaxKind.StaticKeyword));
+        var hasPartialModifier = node.Modifiers.Any(obj => obj.IsKind(SyntaxKind.PartialKeyword));
         if (hasAlreadySealedModifier ||
-            hasStaticModifier)
+            hasStaticModifier ||
+            hasPartialModifier)
         {
             return false;
         }
