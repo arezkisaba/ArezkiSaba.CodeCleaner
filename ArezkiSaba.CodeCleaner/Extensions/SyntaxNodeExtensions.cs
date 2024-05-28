@@ -232,7 +232,7 @@ public static class SyntaxNodeExtensions
         for (var i = 0; i < items.Count(); i++)
         {
             var item = items.ElementAt(i);
-            if (item.IsEquivalentTo(syntaxItem))
+            if (item.IsStrictlyEqualTo(syntaxItem))
             {
                 return items.ElementAt(i - 1);
             }
@@ -349,7 +349,7 @@ public static class SyntaxNodeExtensions
         return node.WithIndentationTrivia(parent, indentCount, keepOtherTrivias) as T;
     }
 
-    public static int GetIndentCountbyImbrication(
+    public static int GetIndentCountByImbrication(
         this SyntaxNode node)
     {
         var imbricationLevel = 0;
@@ -366,7 +366,6 @@ public static class SyntaxNodeExtensions
                 break;
             }
         }
-
 
         return imbricationLevel - countToSubstract;
     }
@@ -500,7 +499,7 @@ public static class SyntaxNodeExtensions
         SyntaxNode node)
     {
         Console.ForegroundColor = ConsoleColor.Blue;
-        Console.WriteLine("{0}{1} {2}", new string('\u00A0', 4 * (indent)), node.Kind(), node.Span);
+        Console.WriteLine("{0}{1} {2}", new string('\u00A0', 4 * indent), node.Kind(), node.Span);
         Console.ResetColor();
     }
 
@@ -509,7 +508,7 @@ public static class SyntaxNodeExtensions
         SyntaxToken token)
     {
         Console.ForegroundColor = ConsoleColor.DarkGreen;
-        Console.Write("{0}{1} {2}", new string('\u00A0', 4 * (indent)), token.Kind(), token.Span);
+        Console.Write("{0}{1} {2}", new string('\u00A0', 4 * indent), token.Kind(), token.Span);
         Console.ResetColor();
 
         Console.ForegroundColor = ConsoleColor.Green;
@@ -523,7 +522,7 @@ public static class SyntaxNodeExtensions
         ConsoleColor consoleColor)
     {
         Console.ForegroundColor = consoleColor;
-        Console.WriteLine("{0}{1} {2}", new string('\u00A0', 4 * (indent)), trivia.Kind(), trivia.Span);
+        Console.WriteLine("{0}{1} {2}", new string('\u00A0', 4 * indent), trivia.Kind(), trivia.Span);
         Console.ResetColor();
     }
 

@@ -79,6 +79,21 @@ public class TestClass1<T>
         _readonlyStringField1 = arg1;
         _readonlyStringField2 = arg2;
         _nonReadonlyBooleanField = true;
+
+        RuleFor(beneficiaire => beneficiaire.Prenom).NotEmpty();
+        RuleFor(beneficiaire => beneficiaire.Parente).Method0().Method1(1).Method2(1, 2).Method3(
+                1,
+                2,
+                3
+            )
+            .Method4(1, 2, 3, 4)
+            .Method5(
+                1,
+                2,
+                3,
+                4,
+                5
+            );
     }
 
     public static TestClass1 SomePublicFactoryMethod()

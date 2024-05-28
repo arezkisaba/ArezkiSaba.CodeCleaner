@@ -89,7 +89,7 @@ public static class WorkspaceExtensions
                     currentProject = result.Project;
                     currentSolution = result.Solution;
                     i++;
-                    percent = ((double)i / operationCount) * 100;
+                    percent = (double)i / operationCount * 100;
 
                     if (displayOutput)
                     {
@@ -125,7 +125,7 @@ public static class WorkspaceExtensions
 
     public static void ClearCurrentConsoleLine()
     {
-        int currentLineCursor = Console.CursorTop;
+        var currentLineCursor = Console.CursorTop;
         Console.SetCursorPosition(0, Console.CursorTop);
         Console.Write(new string(' ', Console.WindowWidth));
         Console.SetCursorPosition(0, currentLineCursor);

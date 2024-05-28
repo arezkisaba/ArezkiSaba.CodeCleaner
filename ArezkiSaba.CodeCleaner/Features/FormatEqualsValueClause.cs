@@ -30,7 +30,7 @@ public sealed class FormatEqualsValueClause : RefactorOperationBase
                     continue;
                 }
 
-                var imbricationLevel = equalsValueClause.GetIndentCountbyImbrication();
+                var imbricationLevel = equalsValueClause.GetIndentCountByImbrication();
                 var newExpression = equalsValueClause.Format(parent, imbricationLevel);
                 if (!equalsValueClause.IsEqualTo(newExpression))
                 {

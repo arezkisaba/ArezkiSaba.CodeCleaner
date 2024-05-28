@@ -56,36 +56,69 @@ public static class ExpressionSyntaxExtensions
         StatementSyntax parentStatement,
         int indentCount)
     {
+        var needLineBreak = memberAccessExpression.GetLength() >= 100;
         if (parentStatement == null)
         {
             return expression;
         }
 
-        var needLineBreak = true;
         var newMemberAccessExpression = memberAccessExpression;
         if (needLineBreak)
         {
-            var i = 0;
-            var dotTokens = newMemberAccessExpression.ChildTokens(recursive: false).Where(obj => obj.IsKind(SyntaxKind.DotToken));
+            var dotTokens = newMemberAccessExpression.ChildTokens(recursive: false)
+                .Where(obj => obj.IsKind(SyntaxKind.DotToken))
+                .ToList();
             newMemberAccessExpression = newMemberAccessExpression.ReplaceTokens(dotTokens, (childToken, __) =>
             {
-                childToken = childToken
+                return childToken
                     .WithIndentationTrivia(parentStatement, indentCount: 1)
                     .WithoutTrailingTrivia();
-
-                i++;
-                return childToken;
             });
 
             var dotToken = newMemberAccessExpression.FirstChildToken();
             var itemBeforeDotToken = newMemberAccessExpression.ItemBefore(dotToken, recursive: true).AsToken();
+            var itemAfterDotToken = newMemberAccessExpression.ItemAfter(dotToken, recursive: true).AsToken();
             var newItemBeforeDotToken = itemBeforeDotToken.WithEndOfLineTrivia();
             newMemberAccessExpression = newMemberAccessExpression.ReplaceToken(itemBeforeDotToken, newItemBeforeDotToken);
-            expression = expression.Format(expression.ArgumentList, dotToken, 0);
+            var overrideNeedLineBreak =
+                dotToken.FullSpan.Length +
+                itemAfterDotToken.FullSpan.Length +
+                expression.ArgumentList.FullSpan.Length >= 100;
+            expression = expression.Format(
+                expression.ArgumentList,
+                dotToken,
+                0,
+                overrideNeedLineBreak
+            );
         }
-        else
-        {
-        }
+        ////else
+        ////{
+        ////    var dotTokens = newMemberAccessExpression.ChildTokens(recursive: false)
+        ////        .Where(obj => obj.IsKind(SyntaxKind.DotToken))
+        ////        .ToList();
+        ////    newMemberAccessExpression = newMemberAccessExpression.ReplaceTokens(dotTokens, (childToken, __) =>
+        ////    {
+        ////        return childToken
+        ////            .WithoutLeadingTrivia()
+        ////            .WithoutTrailingTrivia();
+        ////    });
+
+        ////    var dotToken = newMemberAccessExpression.FirstChildToken();
+        ////    var itemBeforeDotToken = newMemberAccessExpression.ItemBefore(dotToken, recursive: true).AsToken();
+        ////    var itemAfterDotToken = newMemberAccessExpression.ItemAfter(dotToken, recursive: true).AsToken();
+        ////    var newItemBeforeDotToken = itemBeforeDotToken.WithoutLeadingTrivia().WithoutTrailingTrivia();
+        ////    newMemberAccessExpression = newMemberAccessExpression.ReplaceToken(itemBeforeDotToken, newItemBeforeDotToken);
+        ////    var overrideNeedLineBreak =
+        ////        dotToken.FullSpan.Length +
+        ////        itemAfterDotToken.FullSpan.Length +
+        ////        expression.ArgumentList.FullSpan.Length >= 100;
+        ////    expression = expression.Format(
+        ////        expression.ArgumentList,
+        ////        dotToken,
+        ////        0,
+        ////        overrideNeedLineBreak
+        ////    );
+        ////}
 
         return expression
             .WithExpression(newMemberAccessExpression);
@@ -94,11 +127,12 @@ public static class ExpressionSyntaxExtensions
     public static InvocationExpressionSyntax Format(
         this InvocationExpressionSyntax expression,
         ArgumentListSyntax argumentList,
-        SyntaxToken parentStatement,
-        int indentCount)
+        SyntaxToken parent,
+        int indentCount,
+        bool overrideNeedLineBreak = true)
     {
-        var needLineBreak = expression.GetLength() >= 100;
-        if (!argumentList.Arguments.Any() || parentStatement == null)
+        var needLineBreak = expression.GetLength() >= 100 && overrideNeedLineBreak;
+        if (!argumentList.Arguments.Any())
         {
             return expression;
         }
@@ -123,7 +157,7 @@ public static class ExpressionSyntaxExtensions
                     childArgument = childArgument.WithoutTrailingTrivia();
                 }
 
-                childArgument = childArgument.WithIndentationTrivia<ArgumentSyntax>(parentStatement, indentCount: indentCount + 1);
+                childArgument = childArgument.WithIndentationTrivia<ArgumentSyntax>(parent, indentCount: indentCount + 1);
                 var childArgumentContentAsLambda = childArgument.FirstChildNode<LambdaExpressionSyntax>();
                 if (childArgumentContentAsLambda?.Block != null)
                 {
@@ -145,9 +179,8 @@ public static class ExpressionSyntaxExtensions
                     childArgument = childArgument.WithExpression(newChildArgumentContentAsLambda);
                 }
 
-
                 i++;
-                return childArgument.WithIndentationTrivia<ArgumentSyntax>(parentStatement, indentCount: indentCount + 1);
+                return childArgument.WithIndentationTrivia<ArgumentSyntax>(parent, indentCount: indentCount + 1);
             });
             newArgumentList = newArgumentList.ReplaceTokens(newArgumentList.Arguments.GetSeparators(), (childSeparator, __) =>
             {
@@ -158,7 +191,7 @@ public static class ExpressionSyntaxExtensions
 
             var closeParentToken = newArgumentList.CloseParenToken
                 .WithIndentationTrivia(
-                    parentStatement,
+                    parent,
                     indentCount
                 );
             closeParentToken = closeParentToken.WithOrWithoutTrailingTriviaBasedOnNextItems(argumentList);

@@ -34,7 +34,7 @@ public sealed class FormatMemberAccessExpression : RefactorOperationBase
                     continue;
                 }
 
-                var imbricationLevel = expression.GetIndentCountbyImbrication();
+                var imbricationLevel = expression.GetIndentCountByImbrication();
                 var newParentExpression = parentExpression.Format(expression, parentStatement, imbricationLevel);
                 if (!parentExpression.IsEqualTo(newParentExpression))
                 {
