@@ -1,6 +1,7 @@
 ﻿using ArezkiSaba.CodeCleaner.Extensions;
 using ArezkiSaba.CodeCleaner.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -25,15 +26,15 @@ public sealed class FormatMemberAccessExpression : RefactorOperationBase
             var expressions = documentEditor.OriginalRoot.DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToList();
             foreach (var expression in expressions)
             {
+                var parentStatement = expression.FirstParentNode<StatementSyntax>();
                 var parentExpression = expression.Parent as InvocationExpressionSyntax;
-                var parentParentExpression = parentExpression?.Parent as MemberAccessExpressionSyntax;
-                if (parentExpression == null || parentParentExpression == null)
+                var dotToken = expression.FirstChildToken();
+                if (parentExpression == null || !dotToken.IsKind(SyntaxKind.DotToken))
                 {
                     continue;
                 }
 
-                var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = expression.GetIndentCount();
+                var imbricationLevel = expression.GetIndentCountbyImbrication();
                 var newParentExpression = parentExpression.Format(expression, parentStatement, imbricationLevel);
                 if (!parentExpression.IsEqualTo(newParentExpression))
                 {

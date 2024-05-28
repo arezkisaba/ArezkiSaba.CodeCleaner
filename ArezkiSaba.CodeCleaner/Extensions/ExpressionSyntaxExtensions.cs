@@ -51,38 +51,152 @@ public static class ExpressionSyntaxExtensions
     }
 
     public static ExpressionSyntax Format(
-        this ExpressionSyntax expression,
+        this InvocationExpressionSyntax expression,
         MemberAccessExpressionSyntax memberAccessExpression,
         StatementSyntax parentStatement,
         int indentCount)
     {
+        if (parentStatement == null)
+        {
+            return expression;
+        }
+
         var needLineBreak = true;
         var newMemberAccessExpression = memberAccessExpression;
         if (needLineBreak)
         {
-            newMemberAccessExpression = newMemberAccessExpression.ReplaceTokens(newMemberAccessExpression.ChildTokens(recursive: false), (childToken, __) =>
+            var i = 0;
+            var dotTokens = newMemberAccessExpression.ChildTokens(recursive: false).Where(obj => obj.IsKind(SyntaxKind.DotToken));
+            newMemberAccessExpression = newMemberAccessExpression.ReplaceTokens(dotTokens, (childToken, __) =>
             {
-                if (childToken.IsKind(SyntaxKind.DotToken))
-                {
-                    childToken = childToken
-                        .WithIndentationTrivia(parentStatement, indentCount: 1, mustAddLineBreakBefore: true)
-                        .WithoutTrailingTrivia();
-                }
+                childToken = childToken
+                    .WithIndentationTrivia(parentStatement, indentCount: 1)
+                    .WithoutTrailingTrivia();
 
+                i++;
                 return childToken;
             });
+
+            var dotToken = newMemberAccessExpression.FirstChildToken();
+            var itemBeforeDotToken = newMemberAccessExpression.ItemBefore(dotToken, recursive: true).AsToken();
+            var newItemBeforeDotToken = itemBeforeDotToken.WithEndOfLineTrivia();
+            newMemberAccessExpression = newMemberAccessExpression.ReplaceToken(itemBeforeDotToken, newItemBeforeDotToken);
+            expression = expression.Format(expression.ArgumentList, dotToken, 0);
         }
         else
         {
         }
 
-        return expression.ReplaceNode(memberAccessExpression, newMemberAccessExpression);
+        return expression
+            .WithExpression(newMemberAccessExpression);
+    }
+
+    public static InvocationExpressionSyntax Format(
+        this InvocationExpressionSyntax expression,
+        ArgumentListSyntax argumentList,
+        SyntaxToken parentStatement,
+        int indentCount)
+    {
+        var needLineBreak = expression.GetLength() >= 100;
+        if (!argumentList.Arguments.Any() || parentStatement == null)
+        {
+            return expression;
+        }
+
+        var newArgumentList = argumentList;
+        if (needLineBreak)
+        {
+            var i = 0;
+            newArgumentList = newArgumentList.WithOpenParenToken(
+                newArgumentList.OpenParenToken
+                    .WithoutLeadingTrivia()
+                    .WithEndOfLineTrivia()
+            );
+            newArgumentList = newArgumentList.ReplaceNodes(newArgumentList.Arguments, (childArgument, __) =>
+            {
+                if (i == newArgumentList.Arguments.Count - 1)
+                {
+                    childArgument = childArgument.WithEndOfLineTrivia<ArgumentSyntax>();
+                }
+                else
+                {
+                    childArgument = childArgument.WithoutTrailingTrivia();
+                }
+
+                childArgument = childArgument.WithIndentationTrivia<ArgumentSyntax>(parentStatement, indentCount: indentCount + 1);
+                var childArgumentContentAsLambda = childArgument.FirstChildNode<LambdaExpressionSyntax>();
+                if (childArgumentContentAsLambda?.Block != null)
+                {
+                    var newChildArgumentContentAsLambda = childArgumentContentAsLambda;
+                    var indentationLevel = newChildArgumentContentAsLambda.GetIndentationLevel();
+                    newChildArgumentContentAsLambda = newChildArgumentContentAsLambda.WithArrowToken(
+                        newChildArgumentContentAsLambda.ArrowToken.WithoutLeadingTrivia().WithEndOfLineTrivia()
+                    );
+
+                    newChildArgumentContentAsLambda = newChildArgumentContentAsLambda.WithBlock(
+                        newChildArgumentContentAsLambda.Block.IndentBlock(indentationLevel)
+                            .WithOpenBraceToken(
+                                newChildArgumentContentAsLambda.Block.OpenBraceToken
+                                    .WithEndOfLineTrivia()
+                                    .WithIndentationTrivia(childArgumentContentAsLambda, indentCount = 0)
+                            )
+                    );
+
+                    childArgument = childArgument.WithExpression(newChildArgumentContentAsLambda);
+                }
+
+
+                i++;
+                return childArgument.WithIndentationTrivia<ArgumentSyntax>(parentStatement, indentCount: indentCount + 1);
+            });
+            newArgumentList = newArgumentList.ReplaceTokens(newArgumentList.Arguments.GetSeparators(), (childSeparator, __) =>
+            {
+                return childSeparator
+                    .WithoutLeadingTrivia()
+                    .WithEndOfLineTrivia();
+            });
+
+            var closeParentToken = newArgumentList.CloseParenToken
+                .WithIndentationTrivia(
+                    parentStatement,
+                    indentCount
+                );
+            closeParentToken = closeParentToken.WithOrWithoutTrailingTriviaBasedOnNextItems(argumentList);
+            newArgumentList = newArgumentList.WithCloseParenToken(closeParentToken);
+        }
+        else
+        {
+            newArgumentList = newArgumentList.WithOpenParenToken(
+                newArgumentList.OpenParenToken
+                    .WithoutLeadingTrivia()
+                    .WithoutTrailingTrivia()
+            );
+            newArgumentList = newArgumentList.ReplaceNodes(newArgumentList.Arguments, (childArgument, __) =>
+            {
+                return childArgument
+                    .WithoutLeadingTrivia()
+                    .WithoutTrailingTrivia();
+            });
+            newArgumentList = newArgumentList.ReplaceTokens(newArgumentList.Arguments.GetSeparators(), (childSeparator, __) =>
+            {
+                return childSeparator
+                    .WithoutLeadingTrivia()
+                    .WithTrailingTrivia(SyntaxTriviaHelper.GetWhitespace());
+            });
+
+            var closeParentToken = newArgumentList.CloseParenToken
+                .WithoutLeadingTrivia();
+            closeParentToken = closeParentToken.WithOrWithoutTrailingTriviaBasedOnNextItems(argumentList);
+            newArgumentList = newArgumentList.WithCloseParenToken(closeParentToken);
+        }
+
+        return expression.WithArgumentList(newArgumentList);
     }
 
     public static ExpressionSyntax Format(
         this ExpressionSyntax expression,
         ArgumentListSyntax argumentList,
-        StatementSyntax parentStatement,
+        SyntaxNode parentStatement,
         int indentCount)
     {
         var needLineBreak = expression.GetLength() >= 100;
@@ -112,7 +226,7 @@ public static class ExpressionSyntaxExtensions
                 }
 
                 i++;
-                return childArgument.WithIndentationTrivia<ArgumentSyntax>(parentStatement, indentCount + 1);
+                return childArgument.WithIndentationTrivia<ArgumentSyntax>(parentStatement, indentCount: indentCount + 1);
             });
             newArgumentList = newArgumentList.ReplaceTokens(newArgumentList.Arguments.GetSeparators(), (childSeparator, __) =>
             {
@@ -127,7 +241,6 @@ public static class ExpressionSyntaxExtensions
                     indentCount
                 );
             closeParentToken = closeParentToken.WithOrWithoutTrailingTriviaBasedOnNextItems(argumentList);
-
             newArgumentList = newArgumentList.WithCloseParenToken(closeParentToken);
         }
         else
@@ -153,7 +266,6 @@ public static class ExpressionSyntaxExtensions
             var closeParentToken = newArgumentList.CloseParenToken
                 .WithoutLeadingTrivia();
             closeParentToken = closeParentToken.WithOrWithoutTrailingTriviaBasedOnNextItems(argumentList);
-
             newArgumentList = newArgumentList.WithCloseParenToken(closeParentToken);
         }
 
@@ -198,7 +310,7 @@ public static class ExpressionSyntaxExtensions
                 }
 
                 i++;
-                return childExpression.WithIndentationTrivia<ExpressionSyntax>(parentStatement, indentCount + 1);
+                return childExpression.WithIndentationTrivia<ExpressionSyntax>(parentStatement, indentCount: indentCount + 1);
             });
             newInitializerExpression = newInitializerExpression.ReplaceTokens(
                 newInitializerExpression.Expressions.GetSeparators(), (childSeparator, __) =>

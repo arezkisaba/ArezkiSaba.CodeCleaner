@@ -22,7 +22,7 @@ public sealed class FormatLambdaExpression : RefactorOperationBase
             isUpdated = false;
             documentEditor = await DocumentEditor.CreateAsync(document);
 
-            var expressions = documentEditor.OriginalRoot.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToList();
+            var expressions = documentEditor.OriginalRoot.DescendantNodes().OfType<LambdaExpressionSyntax>().ToList();
             foreach (var expression in expressions)
             {
                 var newExpression = expression.Format();

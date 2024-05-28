@@ -7,12 +7,17 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class ParenthesizedLambdaExpressionExtensions
 {
-    public static ParenthesizedLambdaExpressionSyntax Format(
-        this ParenthesizedLambdaExpressionSyntax expression)
+    public static LambdaExpressionSyntax Format(
+        this LambdaExpressionSyntax expression)
     {
         var block = expression.FirstChildNode<BlockSyntax>();
-        return expression.WithBlock(
-            block.IndentBlock(expression.GetLeadingTriviasCountBasedOn())
-        );
+        if (block != null)
+        {
+            return expression.WithBlock(
+                block.IndentBlock(expression.GetIndentationLevel())
+            );
+        }
+
+        return expression;
     }
 }

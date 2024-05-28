@@ -31,7 +31,7 @@ public static class BlockExtensions
     {
         var indent = new string(' ', indentLevel * Constants.IndentationCharacterCount);
         var indentedStatements = block.Statements
-            .Select(statement => statement.IndentStatement(indentLevel + 1))
+            .Select((statement, index) => statement.IndentStatement(indentLevel + 1, index == block.Statements.Count - 1))
             .ToList();
         return block
             .WithOpenBraceToken(block.OpenBraceToken.WithLeadingTrivia(SyntaxFactory.Whitespace(indent)))
@@ -43,7 +43,8 @@ public static class BlockExtensions
 
     private static StatementSyntax IndentStatement(
         this StatementSyntax statement,
-        int indentLevel)
+        int indentLevel,
+        bool isLastStatement)
     {
         var indent = new string(' ', indentLevel * Constants.IndentationCharacterCount);
         if (statement is BlockSyntax block)
@@ -51,9 +52,40 @@ public static class BlockExtensions
             return IndentBlock(block, indentLevel);
         }
 
-        var lines = statement.ToFullString().Split(new[] { Environment.NewLine }, StringSplitOptions.None)
-            .Select(line => indent + line.TrimStart());
-        var indentedText = string.Join(Environment.NewLine, lines);
+        var minIndent = 0;
+        var allLines = statement.ToFullString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+        foreach (var line in allLines)
+        {
+            var i = 0;
+            foreach (var car in line)
+            {
+                if (car != ' ')
+                {
+                    if (minIndent == 0 || i < minIndent)
+                    {
+                        minIndent = i;
+                    }
+
+                    break;
+                }
+
+                i++;
+            }
+        }
+
+        var newLines = new List<string>();
+        foreach (var line in allLines)
+        {
+            var sanitizedLine = minIndent < line.Length ? line.Substring(minIndent, line.Length - minIndent) : line;
+            newLines.Add(indent + sanitizedLine);
+        }
+
+        var indentedText = string.Join(Environment.NewLine, newLines);
+        if (isLastStatement && !indentedText.EndsWith(Environment.NewLine))
+        {
+            indentedText = $"{indentedText}{Environment.NewLine}";
+        }
+
         return SyntaxFactory.ParseStatement(indentedText);
     }
 

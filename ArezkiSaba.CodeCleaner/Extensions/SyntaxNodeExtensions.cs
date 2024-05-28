@@ -261,7 +261,46 @@ public static class SyntaxNodeExtensions
         bool mustAddLineBreakBefore = false)
     {
         var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivia = parentNode.GetLeadingTriviasBasedOn(indentCount);
+        var indentationTrivia = parentNode.GetIndentation(indentCount);
+
+        if (keepOtherTrivias)
+        {
+            leadingTrivias.AddRange(node.GetLeadingTrivia().Where(obj => !obj.IsKind(SyntaxKind.WhitespaceTrivia)));
+        }
+
+        if (mustAddLineBreakBefore)
+        {
+            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+        }
+
+        leadingTrivias.AddRange(indentationTrivia);
+
+        var newTriviaList = new List<SyntaxTrivia>();
+        foreach (var trivia in leadingTrivias)
+        {
+            if (keepOtherTrivias &&
+                (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) ||
+                trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) ||
+                trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)))
+            {
+                newTriviaList.AddRange(indentationTrivia);
+            }
+
+            newTriviaList.Add(trivia);
+        }
+
+        return node.WithLeadingTrivia(newTriviaList);
+    }
+
+    public static SyntaxNode WithIndentationTrivia(
+        this SyntaxNode node,
+        SyntaxToken parent,
+        int indentCount = 1,
+        bool keepOtherTrivias = false,
+        bool mustAddLineBreakBefore = false)
+    {
+        var leadingTrivias = new List<SyntaxTrivia>();
+        var indentationTrivia = parent.GetIndentation(indentCount);
 
         if (keepOtherTrivias)
         {
@@ -294,13 +333,23 @@ public static class SyntaxNodeExtensions
 
     public static T WithIndentationTrivia<T>(
         this SyntaxNode node,
-        SyntaxNode parentNode,
+        SyntaxNode parent,
+        bool keepOtherTrivias = false,
         int indentCount = 1) where T : SyntaxNode
     {
-        return node.WithIndentationTrivia(parentNode, indentCount) as T;
+        return node.WithIndentationTrivia(parent, indentCount, keepOtherTrivias) as T;
     }
 
-    public static int GetIndentCount(
+    public static T WithIndentationTrivia<T>(
+        this SyntaxNode node,
+        SyntaxToken parent,
+        bool keepOtherTrivias = false,
+        int indentCount = 1) where T : SyntaxNode
+    {
+        return node.WithIndentationTrivia(parent, indentCount, keepOtherTrivias) as T;
+    }
+
+    public static int GetIndentCountbyImbrication(
         this SyntaxNode node)
     {
         var imbricationLevel = 0;
@@ -322,15 +371,15 @@ public static class SyntaxNodeExtensions
         return imbricationLevel - countToSubstract;
     }
 
-    public static IList<SyntaxTrivia> GetLeadingTriviasBasedOn(
+    public static IList<SyntaxTrivia> GetIndentation(
         this SyntaxNode nodeBase,
-        int indentCount = 0)
+        int indentationsToAdd = 0)
     {
         var leadingTrivias = new List<SyntaxTrivia>();
         var indentationTrivias = nodeBase.GetLeadingTrivia().Reverse().TakeWhile(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
         leadingTrivias.AddRange(indentationTrivias);
 
-        for (var j = 0; j < indentCount; j++)
+        for (var j = 0; j < indentationsToAdd; j++)
         {
             leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
         }
@@ -338,11 +387,11 @@ public static class SyntaxNodeExtensions
         return leadingTrivias;
     }
 
-    public static int GetLeadingTriviasCountBasedOn(
+    public static int GetIndentationLevel(
         this SyntaxNode nodeBase,
         int indentCount = 0)
     {
-        return GetLeadingTriviasBasedOn(nodeBase, indentCount).Sum(obj => obj.FullSpan.Length) / Constants.IndentationCharacterCount;
+        return GetIndentation(nodeBase, indentCount).Sum(obj => obj.FullSpan.Length) / Constants.IndentationCharacterCount;
     }
 
     public static bool IsInvocationOrCreationExpression(

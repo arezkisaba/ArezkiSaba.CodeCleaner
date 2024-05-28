@@ -55,7 +55,7 @@ public static class EqualsValueClauseExtensions
                 }
 
                 i++;
-                return childElement.WithIndentationTrivia<ExpressionElementSyntax>(parentNode, indentCount + 1);
+                return childElement.WithIndentationTrivia<ExpressionElementSyntax>(parentNode, indentCount: indentCount + 1);
             });
             newCollectionExpression = newCollectionExpression.ReplaceTokens(
                 newCollectionExpression.Elements.GetSeparators(), (childSeparator, __) =>

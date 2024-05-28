@@ -26,13 +26,14 @@ public sealed class FormatArgumentList : RefactorOperationBase
             foreach (var expression in expressions)
             {
                 var argumentList = expression.FirstChildNode<ArgumentListSyntax>();
+                ////var memberAccessExpression = expression.FirstChildNode<MemberAccessExpressionSyntax>();
                 if (argumentList == null)
                 {
                     continue;
                 }
 
                 var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = expression.GetIndentCount();
+                var imbricationLevel = expression.GetIndentCountbyImbrication();
                 var newExpression = expression.Format(argumentList, parentStatement, imbricationLevel);
                 if (!expression.IsEqualTo(newExpression))
                 {

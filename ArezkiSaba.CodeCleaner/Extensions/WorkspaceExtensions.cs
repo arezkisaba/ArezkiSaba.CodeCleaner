@@ -49,6 +49,7 @@ public static class WorkspaceExtensions
         funcs.Add((new FormatArgumentList(), (project) => Task.FromResult(true)));
         funcs.Add((new FormatLambdaExpression(), (project) => Task.FromResult(true)));
         funcs.Add((new FormatMemberAccessExpression(), (project) => Task.FromResult(true)));
+        ////funcs.Add((new FormatLambdaExpression(), (project) => Task.FromResult(true)));
         funcs.Add((new FormatCode(), (project) => Task.FromResult(true)));
 
         var i = 0;

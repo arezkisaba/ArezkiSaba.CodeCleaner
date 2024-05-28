@@ -32,7 +32,7 @@ public sealed class FormatInitializerExpression : RefactorOperationBase
                 }
 
                 var parentStatement = expression.FirstParentNode<StatementSyntax>();
-                var imbricationLevel = expression.GetIndentCount();
+                var imbricationLevel = expression.GetIndentCountbyImbrication();
                 var newExpression = expression.Format(initializerExpression, parentStatement, imbricationLevel);
                 if (!expression.IsEqualTo(newExpression))
                 {
