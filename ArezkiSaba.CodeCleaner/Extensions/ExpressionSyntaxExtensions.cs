@@ -47,7 +47,7 @@ public static class ExpressionSyntaxExtensions
             return stackAllocArrayCreationExpression.WithInitializer(initializerExpression);
         }
 
-        throw new NotImplementedException($"ExpressionSyntax type not found : {expression.GetType()}");
+        return expression;
     }
 
     public static ExpressionSyntax Format(

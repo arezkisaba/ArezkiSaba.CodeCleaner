@@ -18,8 +18,8 @@ public static class WorkspaceExtensions
         }
 
         funcs.Add((new ApplyTypeInference(), (project) => Task.FromResult(true)));
-        funcs.Add((new AddReadonlyModifierOnFields(), async (project) => await project.IsNonNugetProjectAsync()));
-        funcs.Add((new AddSealedModifierOnClasses(), (project) => Task.FromResult(true)));
+        funcs.Add((new AddReadonlyModifierOnFields(), (project) => Task.FromResult(true)));
+        funcs.Add((new AddSealedModifierOnClasses(), async (project) => await project.IsNonNugetProjectAsync()));
         funcs.Add((new DeleteDuplicatedEmptyLines(), (project) => Task.FromResult(true)));
         if (!smallRefactor)
         {

@@ -13,7 +13,8 @@ public static class Program
         else
         {
 #if DEBUG
-            targetLocation = @"C:\git\Prevoir.SolutionCapitalObseques\Prevoir.SolutionCapitalObseques.sln";
+            ////targetLocation = @"C:\git\Prevoir.SolutionCapitalObseques\Prevoir.SolutionCapitalObseques.sln";
+            targetLocation = @"C:\git\Prevoir.Api.GED.ApiClient\Prevoir.Api.GED.ApiClient.sln"; 
             ////targetLocation = @"C:\git\ArezkiSaba.CodeCleaner\ArezkiSaba.CodeCleaner.SampleProject.sln";
 #else
             Console.Write("Please enter target folder : ");
