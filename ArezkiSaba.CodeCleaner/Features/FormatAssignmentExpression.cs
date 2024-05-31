@@ -25,7 +25,6 @@ public sealed class FormatAssignmentExpression : RefactorOperationBase
             var assignmentExpressions = documentEditor.OriginalRoot.DescendantNodes().OfType<AssignmentExpressionSyntax>().ToList();
             foreach (var assignmentExpression in assignmentExpressions)
             {
-                var imbricationLevel = 1;
                 var newExpression = assignmentExpression.Format();
                 if (!assignmentExpression.IsEqualTo(newExpression))
                 {

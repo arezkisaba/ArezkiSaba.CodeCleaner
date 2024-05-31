@@ -270,7 +270,6 @@ public sealed class FormatCode : RefactorOperationBase
     {
         if (childNode is BlockSyntax block)
         {
-            ////var newBlock = block.IndentBlock(parentNode.GetLeadingTriviasCountBasedOn());
             var newBlock = block.AddTabLeadingTriviasOnBracesBasedOnParent(parentNode);
             if (!block.IsEqualTo(newBlock))
             {

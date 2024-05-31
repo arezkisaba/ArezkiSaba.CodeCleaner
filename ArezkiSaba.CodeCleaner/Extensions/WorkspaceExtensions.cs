@@ -10,7 +10,6 @@ public static class WorkspaceExtensions
         bool smallRefactor = true,
         bool displayOutput = true)
     {
-
         var funcs = new List<(RefactorOperationBase, Func<Project, Task<bool>> predicate)>();
         if (!smallRefactor)
         {

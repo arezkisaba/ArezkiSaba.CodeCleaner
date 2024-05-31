@@ -105,7 +105,7 @@ public sealed class SortClassMembers : RefactorOperationBase
                     leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
                 }
 
-                var commentsTrivia = obj.GetLeadingTrivia().Where(obj => obj.IsKind(SyntaxKind.SingleLineCommentTrivia));
+                var commentsTrivia = obj.GetLeadingTrivia().Where(obj => obj.IsCommentTrivia());
                 if (commentsTrivia.Any())
                 {
                     foreach (var commentTrivia in commentsTrivia)

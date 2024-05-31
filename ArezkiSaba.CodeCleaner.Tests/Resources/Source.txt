@@ -14,7 +14,9 @@ namespace ArezkiSaba.CodeCleaner.Tests;
 
 public class TestClass1<T>
 {
-
+    /// <summary>
+    /// Some method description
+    /// </summary>
     public TestClass1(string arg1, string arg2)
     {
         // some comment
@@ -52,9 +54,9 @@ public class TestClass1<T>
         get => _canDoSomethingElseAgain;
         set => _canDoSomethingElseAgain = value;
     }
-    
+
     private string readonlyStringField2;
-    
+
     public IList<string> Items { get; } = [
                     "Item1",
                 "Item2",

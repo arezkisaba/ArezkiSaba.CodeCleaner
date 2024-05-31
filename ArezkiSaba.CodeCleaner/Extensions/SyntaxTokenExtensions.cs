@@ -38,10 +38,7 @@ public static class SyntaxTokenExtensions
         var newTriviaList = new List<SyntaxTrivia>();
         foreach (var trivia in leadingTrivias)
         {
-            if (keepOtherTrivias &&
-                (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) ||
-                trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) ||
-                trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)))
+            if (keepOtherTrivias && (trivia.IsRegionTrivia() || trivia.IsCommentTrivia()))
             {
                 newTriviaList.AddRange(indentationTrivia);
             }
@@ -77,10 +74,7 @@ public static class SyntaxTokenExtensions
         var newTriviaList = new List<SyntaxTrivia>();
         foreach (var trivia in leadingTrivias)
         {
-            if (keepOtherTrivias &&
-                (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) ||
-                trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) ||
-                trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)))
+            if (keepOtherTrivias && (trivia.IsRegionTrivia() || trivia.IsCommentTrivia()))
             {
                 newTriviaList.AddRange(indentationTrivia);
             }

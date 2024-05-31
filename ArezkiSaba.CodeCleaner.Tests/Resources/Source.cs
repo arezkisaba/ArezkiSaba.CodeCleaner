@@ -14,7 +14,9 @@ namespace ArezkiSaba.CodeCleaner.Tests;
 
 public class TestClass1<T>
 {
-
+    /// <summary>
+    /// Some method description
+    /// </summary>
     public TestClass1(string arg1, string arg2)
     {
         // some comment
