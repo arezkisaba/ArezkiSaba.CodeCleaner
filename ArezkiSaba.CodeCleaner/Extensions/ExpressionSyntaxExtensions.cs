@@ -46,8 +46,12 @@ public static class ExpressionSyntaxExtensions
         {
             return stackAllocArrayCreationExpression.WithInitializer(initializerExpression);
         }
+        else if (expression is InitializerExpressionSyntax collectionInitializerExpression)
+        {
+            return expression;
+        }
 
-        return expression;
+        throw new NotImplementedException($"ExpressionSyntax type not found : {expression.GetType()}");
     }
 
     public static ExpressionSyntax Format(
@@ -353,14 +357,14 @@ public static class ExpressionSyntaxExtensions
                         .WithEndOfLineTrivia();
                 }
             );
-            newInitializerExpression = newInitializerExpression.WithCloseBraceToken(
-                newInitializerExpression.CloseBraceToken
-                    .WithIndentationTrivia(
-                        parentStatement,
-                        indentCount
-                    )
-                    .WithoutTrailingTrivia()
-            );
+
+            var closeBraceToken = newInitializerExpression.CloseBraceToken
+                .WithIndentationTrivia(
+                    parentStatement,
+                    indentCount
+                );
+            closeBraceToken = closeBraceToken.WithOrWithoutTrailingTriviaBasedOnNextItems(initializerExpression);
+            newInitializerExpression = newInitializerExpression.WithCloseBraceToken(closeBraceToken);
         }
 
         var newKeyword = expression.ItemBefore(initializerExpression);

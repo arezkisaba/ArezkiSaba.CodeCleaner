@@ -209,6 +209,41 @@ public static class SyntaxNodeExtensions
         return null;
     }
 
+    public static SyntaxToken SyntaxTokenAfter(
+        this SyntaxNode root,
+        SyntaxNodeOrToken syntaxItem,
+        bool recursive = false)
+    {
+        if (root == null)
+        {
+            return default;
+        }
+
+        IEnumerable<SyntaxNodeOrToken> items = null;
+        if (recursive)
+        {
+            items = root.DescendantNodesAndTokens();
+        }
+        else
+        {
+            items = root.ChildNodesAndTokens();
+        }
+
+        for (var i = 0; i < items.Count(); i++)
+        {
+            var item = items.ElementAt(i);
+            if (item.IsEquivalentTo(syntaxItem))
+            {
+                if (i + 1 < items.Count())
+                {
+                    return items.ElementAt(i + 1).AsToken();
+                }
+            }
+        }
+
+        return default;
+    }
+
     public static SyntaxNodeOrToken ItemBefore(
         this SyntaxNode root,
         SyntaxNodeOrToken syntaxItem,

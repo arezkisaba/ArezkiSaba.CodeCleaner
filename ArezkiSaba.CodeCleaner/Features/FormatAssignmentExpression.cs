@@ -6,9 +6,9 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
-public sealed class FormatEqualsValueClause : RefactorOperationBase
+public sealed class FormatAssignmentExpression : RefactorOperationBase
 {
-    public override string Name => nameof(FormatEqualsValueClause);
+    public override string Name => nameof(FormatAssignmentExpression);
 
     public override async Task<RefactorOperationResult> StartAsync(
         Document document,
@@ -22,19 +22,14 @@ public sealed class FormatEqualsValueClause : RefactorOperationBase
             isUpdated = false;
             documentEditor = await DocumentEditor.CreateAsync(document);
 
-            var equalsValueClauses = documentEditor.OriginalRoot.DescendantNodes().OfType<EqualsValueClauseSyntax>().ToList();
-            foreach (var equalsValueClause in equalsValueClauses)
+            var assignmentExpressions = documentEditor.OriginalRoot.DescendantNodes().OfType<AssignmentExpressionSyntax>().ToList();
+            foreach (var assignmentExpression in assignmentExpressions)
             {
-                if (equalsValueClause.Parent is not PropertyDeclarationSyntax parent)
+                var imbricationLevel = 1;
+                var newExpression = assignmentExpression.Format();
+                if (!assignmentExpression.IsEqualTo(newExpression))
                 {
-                    continue;
-                }
-
-                var imbricationLevel = equalsValueClause.GetIndentCountByImbrication();
-                var newExpression = equalsValueClause.Format(parent, imbricationLevel);
-                if (!equalsValueClause.IsEqualTo(newExpression))
-                {
-                    documentEditor.ReplaceNode(equalsValueClause, newExpression);
+                    documentEditor.ReplaceNode(assignmentExpression, newExpression);
                     document = documentEditor.GetChangedDocument();
                     isUpdated = true;
                     break;

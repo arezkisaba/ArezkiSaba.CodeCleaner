@@ -26,6 +26,21 @@ public class TestClass1<T>
         RuleFor(beneficiaire => beneficiaire.Parente).Method0().Method1(1).Method2(1, 2).Method3(1, 2, 3).Method4(1, 2, 3, 4).Method5(1, 2, 3, 4, 5);
 
 
+        var document = await _apiClient.GetDocumentAsync(
+            new GetDocumentByKeywordsQuery
+            {
+                id = customQuery.id,
+                keywordModels =
+                [
+                    new()
+                    {
+                        dataType = "AlphaNumeric",
+                        id = RechercheSouscripteurKeywordId,
+                        alphaNumericValue = souscripteurRef
+                    }                ],
+                limit = 100
+            }
+        );
     }
 
     private string _readonlyStringField1;

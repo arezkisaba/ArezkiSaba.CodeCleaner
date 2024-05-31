@@ -24,6 +24,8 @@ public static class EqualsValueClauseExtensions
         return newEqualsValueClauseSyntax;
     }
 
+    #region Private use
+
     private static EqualsValueClauseSyntax HandleCollectionExpression(
         this EqualsValueClauseSyntax newEqualsValueClauseSyntax,
         PropertyDeclarationSyntax parentNode,
@@ -94,4 +96,6 @@ public static class EqualsValueClauseExtensions
             return newEqualsValueClauseSyntax.WithValue(newCollectionExpression);
         }
     }
+
+    #endregion
 }

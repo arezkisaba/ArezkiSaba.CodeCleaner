@@ -1,11 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System;
 
 public interface IAnimal
 {
-    Task _eatAsync();
+    Task EatAsync();
 }
 
 public static class Constants
@@ -14,28 +14,27 @@ public static class Constants
 
 public class DogEventArgs : EventArgs
 {
-    public string _dogName { get; set; }
+    public string DogName { get; set; }
 }
 
 public partial class Dog : IAnimal
 {
-    public event EventHandler<DogEventArgs> lunchFinished;
+    public event EventHandler<DogEventArgs> LunchFinished;
 
-    public static Dog create(string _name)
+    public static Dog Create(
+        string name)
     {
-        return new Dog(_name);
+        return new Dog(name);
     }
 
-    private string _someUselessField;
+    private readonly string _someUselessField;
 
-    public string _name { get; private set; }
-
-
+    public string Name { get; private set; }
 
     private Dog(
-        string NAME)
+        string name)
     {
-        _name = NAME;
+        Name = name;
     }
 
     public struct DogNames
@@ -48,13 +47,15 @@ public partial class Dog : IAnimal
     {
         public void SomeMethod()
         {
-
         }
 
         private string _someProperty1;
         public string SomeProperty1
         {
-            get { return _someProperty1; }
+            get
+            {
+                return _someProperty1;
+            }
             set => _someProperty1 = value;
         }
 
@@ -62,68 +63,55 @@ public partial class Dog : IAnimal
         {
         }
 
-        private string _someProperty2;
+        private readonly string _someProperty2;
         public string SomeProperty2
         {
-            get { return _someProperty2; }
+            get
+            {
+                return _someProperty2;
+            }
         }
 
-        private int _someField1;
+        private readonly int _someField1;
     }
 }
 
 public partial class Dog
 {
-
-
     private async Task SpeakAsync()
     {
-
-        await Task.Run(() => Console.WriteLine($"{_name} says: Woof!"));
-
+        await Task.Run(() => Console.WriteLine($"{Name} says: Woof!"));
     }
 
-
-    public async Task _eatAsync()
+    public async Task EatAsync()
     {
-
-
         var random = new Random();
-        int delay = random.Next(2000, 4000);
+        var delay = random.Next(2000, 4000);
 
-        Console.WriteLine($"{_name} starts eating...");
+        Console.WriteLine($"{Name} starts eating...");
         await Task.Delay(delay);
 
-        lunchFinished?.Invoke(null, new DogEventArgs { _dogName = _name });
-
+        LunchFinished?.Invoke(null, new DogEventArgs
+            {
+                DogName = Name
+            });
 
         await SpeakAsync();
-
-
     }
-
 }
 
 public class AnimalList<T> where T : IAnimal
 {
-
-
     public async Task MakeAllAnimalsEatAsync()
     {
-
-        var eatTasks = animals.Select(animal => animal._eatAsync());
+        var eatTasks = _animals.Select(animal => animal.EatAsync());
         await Task.WhenAll(eatTasks);
-
     }
-    private List<T> animals = new();
+    private readonly List<T> _animals = new();
 
     public void AddAnimal(
         T animal)
     {
-
-        animals.Add(animal);
-
+        _animals.Add(animal);
     }
-
-
 }

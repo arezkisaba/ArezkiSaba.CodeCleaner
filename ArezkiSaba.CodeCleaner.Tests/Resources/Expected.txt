@@ -94,6 +94,23 @@ public class TestClass1<T>
                 4,
                 5
             );
+
+        var document = await _apiClient.GetDocumentAsync(
+            new GetDocumentByKeywordsQuery
+            {
+                id = customQuery.id,
+                keywordModels =
+                [
+                    new()
+                    {
+                        dataType = "AlphaNumeric",
+                        id = RechercheSouscripteurKeywordId,
+                        alphaNumericValue = souscripteurRef
+                    }
+                ],
+                limit = 100
+            }
+        );
     }
 
     public static TestClass1 SomePublicFactoryMethod()

@@ -115,9 +115,9 @@ public static class SyntaxTokenExtensions
 
     public static SyntaxToken WithOrWithoutTrailingTriviaBasedOnNextItems(
         this SyntaxToken closeParentToken,
-        ArgumentListSyntax argumentList)
+        SyntaxNode syntaxNode)
     {
-        var directParentExpression = argumentList.FirstParentNode<ExpressionSyntax>();
+        var directParentExpression = syntaxNode.FirstParentNode<ExpressionSyntax>();
         if (directParentExpression != null)
         {
             var syntaxTokenAfter = directParentExpression.Parent.ItemAfter(directParentExpression);
@@ -128,6 +128,34 @@ public static class SyntaxTokenExtensions
         }
 
         return closeParentToken;
+    }
+
+    public static SyntaxToken WithOrWithoutTrailingTriviaBasedOnNextItems2(
+        this SyntaxToken syntaxToken,
+        SyntaxNode relativeTo)
+    {
+        var tempLastParentItem = relativeTo;
+        SyntaxToken syntaxTokenAfter = default;
+        do
+        {
+            var lastParentItem = tempLastParentItem.FirstParentNode<SyntaxNode>();
+            if (tempLastParentItem != null)
+            {
+                syntaxTokenAfter = lastParentItem.SyntaxTokenAfter(tempLastParentItem);
+                if (syntaxTokenAfter.IsKind(SyntaxKind.CommaToken) || syntaxTokenAfter.IsKind(SyntaxKind.SemicolonToken))
+                {
+                    syntaxToken = syntaxToken.WithoutTrailingTrivia();
+                }
+                else
+                {
+                    syntaxToken = syntaxToken.WithEndOfLineTrivia();
+                }
+            }
+
+            tempLastParentItem = lastParentItem;
+        } while (syntaxTokenAfter.IsKind(SyntaxKind.None));
+
+        return syntaxToken;
     }
 
     public static SyntaxToken RemoveTrivias(
