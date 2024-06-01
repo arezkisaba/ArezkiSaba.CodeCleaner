@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Xml.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -15,90 +16,36 @@ public static class SyntaxTokenExtensions
 
     public static SyntaxToken WithIndentationTrivia(
         this SyntaxToken token,
-        SyntaxNode parent,
+        SyntaxNode relativeTo,
         int indentCount = 1,
         bool keepOtherTrivias = false,
         bool mustAddLineBreakBefore = false)
     {
-        var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivia = parent.GetIndentation(indentCount);
-
-        if (keepOtherTrivias)
-        {
-            leadingTrivias.AddRange(token.LeadingTrivia.Where(obj => !obj.IsKind(SyntaxKind.WhitespaceTrivia)));
-        }
-
-        if (mustAddLineBreakBefore)
-        {
-            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
-        }
-
-        leadingTrivias.AddRange(indentationTrivia);
-
-        var newTriviaList = new List<SyntaxTrivia>();
-        foreach (var trivia in leadingTrivias)
-        {
-            if (keepOtherTrivias && (trivia.IsRegionTrivia() || trivia.IsCommentTrivia()))
-            {
-                newTriviaList.AddRange(indentationTrivia);
-            }
-
-            newTriviaList.Add(trivia);
-        }
-
-        return token.WithLeadingTrivia(newTriviaList);
+        return token.WithIndentationTrivia((SyntaxNodeOrToken)relativeTo, indentCount, keepOtherTrivias, mustAddLineBreakBefore);
     }
 
     public static SyntaxToken WithIndentationTrivia(
         this SyntaxToken token,
-        SyntaxToken parent,
+        SyntaxToken relativeTo,
         int indentCount = 1,
         bool keepOtherTrivias = false,
         bool mustAddLineBreakBefore = false)
     {
-        var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivia = parent.GetIndentation(indentCount);
-
-        if (keepOtherTrivias)
-        {
-            leadingTrivias.AddRange(token.LeadingTrivia.Where(obj => !obj.IsKind(SyntaxKind.WhitespaceTrivia)));
-        }
-        
-        if (mustAddLineBreakBefore)
-        {
-            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
-        }
-
-        leadingTrivias.AddRange(indentationTrivia);
-
-        var newTriviaList = new List<SyntaxTrivia>();
-        foreach (var trivia in leadingTrivias)
-        {
-            if (keepOtherTrivias && (trivia.IsRegionTrivia() || trivia.IsCommentTrivia()))
-            {
-                newTriviaList.AddRange(indentationTrivia);
-            }
-
-            newTriviaList.Add(trivia);
-        }
-
-        return token.WithLeadingTrivia(newTriviaList);
+        return token.WithIndentationTrivia((SyntaxNodeOrToken)relativeTo, indentCount, keepOtherTrivias, mustAddLineBreakBefore);
     }
 
-    public static IList<SyntaxTrivia> GetIndentation(
-        this SyntaxToken nodeBase,
-        int indentationsToAdd = 0)
+    public static int GetIndentationLevel(
+        this SyntaxToken item,
+        int indentCount = 0)
     {
-        var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivias = nodeBase.LeadingTrivia.Reverse().TakeWhile(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
-        leadingTrivias.AddRange(indentationTrivias);
+        return ((SyntaxNodeOrToken)item).GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length) / Constants.IndentationCharacterCount;
+    }
 
-        for (var j = 0; j < indentationsToAdd; j++)
-        {
-            leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
-        }
-
-        return leadingTrivias;
+    public static int GetIndentationLength(
+        this SyntaxToken item,
+        int indentCount = 0)
+    {
+        return ((SyntaxNodeOrToken)item).GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length);
     }
 
     public static SyntaxToken WithEndOfLineTrivia(
@@ -171,4 +118,44 @@ public static class SyntaxTokenExtensions
     {
         return token.WithTrailingTrivia();
     }
+
+    #region Private use
+
+    private static SyntaxToken WithIndentationTrivia(
+        this SyntaxToken token,
+        SyntaxNodeOrToken relativeTo,
+        int indentCount = 1,
+        bool keepOtherTrivias = false,
+        bool mustAddLineBreakBefore = false)
+    {
+        var leadingTrivias = new List<SyntaxTrivia>();
+        var indentationTrivia = relativeTo.GetIndentation(indentCount);
+
+        if (keepOtherTrivias)
+        {
+            leadingTrivias.AddRange(token.LeadingTrivia.Where(obj => !obj.IsKind(SyntaxKind.WhitespaceTrivia)));
+        }
+
+        if (mustAddLineBreakBefore)
+        {
+            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+        }
+
+        leadingTrivias.AddRange(indentationTrivia);
+
+        var newTriviaList = new List<SyntaxTrivia>();
+        foreach (var trivia in leadingTrivias)
+        {
+            if (keepOtherTrivias && (trivia.IsRegionTrivia() || trivia.IsCommentTrivia()))
+            {
+                newTriviaList.AddRange(indentationTrivia);
+            }
+
+            newTriviaList.Add(trivia);
+        }
+
+        return token.WithLeadingTrivia(newTriviaList);
+    }
+
+    #endregion
 }

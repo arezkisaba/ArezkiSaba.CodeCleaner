@@ -276,90 +276,6 @@ public static class SyntaxNodeExtensions
         return null;
     }
 
-    public static SyntaxNode WithEndOfLineTrivia(
-        this SyntaxNode node)
-    {
-        return node.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
-    }
-
-    public static T WithEndOfLineTrivia<T>(
-        this SyntaxNode node) where T: class
-    {
-        return node.WithEndOfLineTrivia() as T;
-    }
-
-    public static SyntaxNode WithIndentationTrivia(
-        this SyntaxNode node,
-        SyntaxNode parentNode,
-        int indentCount = 1,
-        bool keepOtherTrivias = false,
-        bool mustAddLineBreakBefore = false)
-    {
-        var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivia = parentNode.GetIndentation(indentCount);
-
-        if (keepOtherTrivias)
-        {
-            leadingTrivias.AddRange(node.GetLeadingTrivia().Where(obj => !obj.IsKind(SyntaxKind.WhitespaceTrivia)));
-        }
-
-        if (mustAddLineBreakBefore)
-        {
-            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
-        }
-
-        leadingTrivias.AddRange(indentationTrivia);
-
-        var newTriviaList = new List<SyntaxTrivia>();
-        foreach (var trivia in leadingTrivias)
-        {
-            if (keepOtherTrivias && (trivia.IsRegionTrivia() || trivia.IsCommentTrivia()))
-            {
-                newTriviaList.AddRange(indentationTrivia);
-            }
-
-            newTriviaList.Add(trivia);
-        }
-
-        return node.WithLeadingTrivia(newTriviaList);
-    }
-
-    public static SyntaxNode WithIndentationTrivia(
-        this SyntaxNode node,
-        SyntaxToken parent,
-        int indentCount = 1,
-        bool keepOtherTrivias = false,
-        bool mustAddLineBreakBefore = false)
-    {
-        var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivia = parent.GetIndentation(indentCount);
-
-        if (keepOtherTrivias)
-        {
-            leadingTrivias.AddRange(node.GetLeadingTrivia().Where(obj => !obj.IsKind(SyntaxKind.WhitespaceTrivia)));
-        }
-
-        if (mustAddLineBreakBefore)
-        {
-            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
-        }
-
-        leadingTrivias.AddRange(indentationTrivia);
-
-        var newTriviaList = new List<SyntaxTrivia>();
-        foreach (var trivia in leadingTrivias)
-        {
-            if (keepOtherTrivias && (trivia.IsRegionTrivia() || trivia.IsCommentTrivia()))
-            {
-                newTriviaList.AddRange(indentationTrivia);
-            }
-
-            newTriviaList.Add(trivia);
-        }
-
-        return node.WithLeadingTrivia(newTriviaList);
-    }
-
     public static T WithIndentationTrivia<T>(
         this SyntaxNode node,
         SyntaxNode parent,
@@ -369,6 +285,16 @@ public static class SyntaxNodeExtensions
         return node.WithIndentationTrivia(parent, indentCount, keepOtherTrivias) as T;
     }
 
+    public static SyntaxNode WithIndentationTrivia(
+        this SyntaxNode node,
+        SyntaxNode relativeTo,
+        int indentCount = 1,
+        bool keepOtherTrivias = false,
+        bool mustAddLineBreakBefore = false)
+    {
+        return node.WithIndentationTrivia((SyntaxNodeOrToken)relativeTo, indentCount, keepOtherTrivias, mustAddLineBreakBefore);
+    }
+
     public static T WithIndentationTrivia<T>(
         this SyntaxNode node,
         SyntaxToken parent,
@@ -376,6 +302,42 @@ public static class SyntaxNodeExtensions
         int indentCount = 1) where T : SyntaxNode
     {
         return node.WithIndentationTrivia(parent, indentCount, keepOtherTrivias) as T;
+    }
+
+    public static SyntaxNode WithIndentationTrivia(
+        this SyntaxNode node,
+        SyntaxToken relativeTo,
+        int indentCount = 1,
+        bool keepOtherTrivias = false,
+        bool mustAddLineBreakBefore = false)
+    {
+        return node.WithIndentationTrivia((SyntaxNodeOrToken)relativeTo, indentCount, keepOtherTrivias, mustAddLineBreakBefore);
+    }
+
+    public static int GetIndentationLevel(
+        this SyntaxNode item,
+        int indentCount = 0)
+    {
+        return ((SyntaxNodeOrToken)item).GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length) / Constants.IndentationCharacterCount;
+    }
+
+    public static int GetIndentationLength(
+        this SyntaxNode item,
+        int indentCount = 0)
+    {
+        return ((SyntaxNodeOrToken)item).GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length);
+    }
+
+    public static SyntaxNode WithEndOfLineTrivia(
+        this SyntaxNode node)
+    {
+        return node.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+    }
+
+    public static T WithEndOfLineTrivia<T>(
+        this SyntaxNode node) where T : class
+    {
+        return node.WithEndOfLineTrivia() as T;
     }
 
     public static int GetIndentCountByImbrication(
@@ -397,29 +359,6 @@ public static class SyntaxNodeExtensions
         }
 
         return imbricationLevel - countToSubstract;
-    }
-
-    public static IList<SyntaxTrivia> GetIndentation(
-        this SyntaxNode nodeBase,
-        int indentationsToAdd = 0)
-    {
-        var leadingTrivias = new List<SyntaxTrivia>();
-        var indentationTrivias = nodeBase.GetLeadingTrivia().Reverse().TakeWhile(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
-        leadingTrivias.AddRange(indentationTrivias);
-
-        for (var j = 0; j < indentationsToAdd; j++)
-        {
-            leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
-        }
-
-        return leadingTrivias;
-    }
-
-    public static int GetIndentationLevel(
-        this SyntaxNode nodeBase,
-        int indentCount = 0)
-    {
-        return GetIndentation(nodeBase, indentCount).Sum(obj => obj.FullSpan.Length) / Constants.IndentationCharacterCount;
     }
 
     public static bool IsInvocationOrCreationExpression(
@@ -511,38 +450,6 @@ public static class SyntaxNodeExtensions
         }
     }
 
-    private static void DisplayNodeAsTree(
-        int indent,
-        SyntaxNode node)
-    {
-        Console.ForegroundColor = ConsoleColor.Blue;
-        Console.WriteLine("{0}{1} {2}", new string('\u00A0', 4 * indent), node.Kind(), node.Span);
-        Console.ResetColor();
-    }
-
-    private static void DisplayTokenAsTree(
-        int indent,
-        SyntaxToken token)
-    {
-        Console.ForegroundColor = ConsoleColor.DarkGreen;
-        Console.Write("{0}{1} {2}", new string('\u00A0', 4 * indent), token.Kind(), token.Span);
-        Console.ResetColor();
-
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine(" {0}", token);
-        Console.ResetColor();
-    }
-
-    private static void DisplayTriviaAsTree(
-        int indent,
-        SyntaxTrivia trivia,
-        ConsoleColor consoleColor)
-    {
-        Console.ForegroundColor = consoleColor;
-        Console.WriteLine("{0}{1} {2}", new string('\u00A0', 4 * indent), trivia.Kind(), trivia.Span);
-        Console.ResetColor();
-    }
-
     public static void DisplayCodeAsRaw(
         this SyntaxNode node)
     {
@@ -580,6 +487,76 @@ public static class SyntaxNodeExtensions
         }
     }
 
+    #region Private use
+
+    private static SyntaxNode WithIndentationTrivia(
+        this SyntaxNode node,
+        SyntaxNodeOrToken relativeTo,
+        int indentCount = 1,
+        bool keepOtherTrivias = false,
+        bool mustAddLineBreakBefore = false)
+    {
+        var leadingTrivias = new List<SyntaxTrivia>();
+        var indentationTrivia = relativeTo.GetIndentation(indentCount);
+
+        if (keepOtherTrivias)
+        {
+            leadingTrivias.AddRange(node.GetLeadingTrivia().Where(obj => !obj.IsKind(SyntaxKind.WhitespaceTrivia)));
+        }
+
+        if (mustAddLineBreakBefore)
+        {
+            leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+        }
+
+        leadingTrivias.AddRange(indentationTrivia);
+
+        var newTriviaList = new List<SyntaxTrivia>();
+        foreach (var trivia in leadingTrivias)
+        {
+            if (keepOtherTrivias && (trivia.IsRegionTrivia() || trivia.IsCommentTrivia()))
+            {
+                newTriviaList.AddRange(indentationTrivia);
+            }
+
+            newTriviaList.Add(trivia);
+        }
+
+        return node.WithLeadingTrivia(newTriviaList);
+    }
+
+    private static void DisplayNodeAsTree(
+        int indent,
+        SyntaxNode node)
+    {
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.WriteLine("{0}{1} {2}", new string('\u00A0', 4 * indent), node.Kind(), node.Span);
+        Console.ResetColor();
+    }
+
+    private static void DisplayTokenAsTree(
+        int indent,
+        SyntaxToken token)
+    {
+        Console.ForegroundColor = ConsoleColor.DarkGreen;
+        Console.Write("{0}{1} {2}", new string('\u00A0', 4 * indent), token.Kind(), token.Span);
+        Console.ResetColor();
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(" {0}", token);
+        Console.ResetColor();
+    }
+
+    private static void DisplayTriviaAsTree(
+        int indent,
+        SyntaxTrivia trivia,
+        ConsoleColor consoleColor)
+    {
+        Console.ForegroundColor = consoleColor;
+        Console.WriteLine("{0}{1} {2}", new string('\u00A0', 4 * indent), trivia.Kind(), trivia.Span);
+        Console.ResetColor();
+    }
+
     private static void DisplayTokenAsRaw(
         SyntaxToken token)
     {
@@ -593,4 +570,6 @@ public static class SyntaxNodeExtensions
         Console.ResetColor();
         Console.Write("{0}", trivia);
     }
+
+    #endregion
 }

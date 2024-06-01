@@ -44,7 +44,7 @@ public sealed class AddPrivateUseRegion : RefactorOperationBase
                 SyntaxTriviaHelper.GetRegion("Private use"),
                 SyntaxTriviaHelper.GetEndOfLine(),
                 SyntaxTriviaHelper.GetEndOfLine(),
-                SyntaxTriviaHelper.GetWhitespace(firstDeclaration.GetIndentation().Sum(obj => obj.FullSpan.Length))
+                SyntaxTriviaHelper.GetWhitespace(firstDeclaration.GetIndentationLength())
             };
             var newFirstDeclaration = firstDeclaration.WithLeadingTrivia(firstPrivateMethodLeadingTrivias);
             var newMembers = classDeclaration.Members.Replace(firstDeclaration, newFirstDeclaration);

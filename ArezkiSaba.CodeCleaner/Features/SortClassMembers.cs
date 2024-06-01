@@ -91,7 +91,6 @@ public sealed class SortClassMembers : RefactorOperationBase
         SyntaxKind syntaxKind,
         SyntaxNode parentNode)
     {
-        var baseLeadingTrivia = parentNode.FindFirstLeadingTrivia();
         var sortedemberDeclarations = memberDeclarations
             .Where(obj => obj.IsKind(syntaxKind))
             .OrderBy(obj => GetMemberDeclarationModifierRank(obj, syntaxKind))
@@ -105,6 +104,7 @@ public sealed class SortClassMembers : RefactorOperationBase
                     leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
                 }
 
+                var baseLeadingTrivia = parentNode.FindFirstLeadingTrivia();
                 var commentsTrivia = obj.GetLeadingTrivia().Where(obj => obj.IsCommentTrivia());
                 if (commentsTrivia.Any())
                 {
@@ -117,7 +117,6 @@ public sealed class SortClassMembers : RefactorOperationBase
 
                         leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
                         leadingTrivias.Add(commentTrivia);
-                        ////leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
                     }
                 }
 
