@@ -449,18 +449,6 @@ public static class SyntaxNodeExtensions
         return result;
     }
 
-    public static bool HasBaseOrThisInitializer(
-        this SyntaxNode root)
-    {
-        return root.DescendantNodes().OfType<ConstructorInitializerSyntax>().Any();
-    }
-
-    public static bool HasDeclaration(
-        this SyntaxNode root)
-    {
-        return root.DescendantNodes().OfType<BlockSyntax>().Any();
-    }
-
     public static SyntaxTrivia? FindFirstLeadingTrivia(
         this SyntaxNode root)
     {

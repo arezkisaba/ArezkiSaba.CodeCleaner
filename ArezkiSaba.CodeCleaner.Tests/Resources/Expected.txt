@@ -71,6 +71,9 @@ public class TestClass1<T>
         _nonReadonlyBooleanField = false;
     }
 
+    /// <summary>
+    /// Some method description
+    /// </summary>
     public TestClass1(
         string arg1,
         string arg2)

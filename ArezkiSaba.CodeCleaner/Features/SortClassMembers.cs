@@ -76,11 +76,10 @@ public sealed class SortClassMembers : RefactorOperationBase
             memberDeclarationsToAdd.Add(newMemberDeclaration);
         }
 
-        var baseLeadingTrivia = typeDeclarationRoot.FindFirstLeadingTrivia();
         var orderedMemberDeclarations = new List<MemberDeclarationSyntax>();
         foreach (var declarationToExtract in declarationsToExtract)
         {
-            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, baseLeadingTrivia));
+            orderedMemberDeclarations.AddRange(GetMemberDeclarations(memberDeclarationsToAdd, declarationToExtract, typeDeclarationRoot));
         }
 
         return typeDeclarationRoot
@@ -90,8 +89,9 @@ public sealed class SortClassMembers : RefactorOperationBase
     private List<MemberDeclarationSyntax> GetMemberDeclarations(
         List<MemberDeclarationSyntax> memberDeclarations,
         SyntaxKind syntaxKind,
-        SyntaxTrivia? baseLeadingTrivia)
+        SyntaxNode parentNode)
     {
+        var baseLeadingTrivia = parentNode.FindFirstLeadingTrivia();
         var sortedemberDeclarations = memberDeclarations
             .Where(obj => obj.IsKind(syntaxKind))
             .OrderBy(obj => GetMemberDeclarationModifierRank(obj, syntaxKind))
@@ -117,7 +117,7 @@ public sealed class SortClassMembers : RefactorOperationBase
 
                         leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
                         leadingTrivias.Add(commentTrivia);
-                        leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
+                        ////leadingTrivias.Add(SyntaxTriviaHelper.GetEndOfLine());
                     }
                 }
 

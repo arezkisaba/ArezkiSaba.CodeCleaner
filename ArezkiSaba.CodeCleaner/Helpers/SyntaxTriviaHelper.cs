@@ -6,6 +6,22 @@ namespace ArezkiSaba.CodeCleaner.Extensions;
 public static class SyntaxTriviaHelper
 {
     public static IList<SyntaxTrivia> GetLeadingTriviasBasedOn(
+        SyntaxNode nodeBase,
+        int indentCount = 0)
+    {
+        var leadingTrivias = new List<SyntaxTrivia>();
+        var indentationTrivias = nodeBase.GetLeadingTrivia().Where(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia)).ToList();
+        leadingTrivias.AddRange(indentationTrivias);
+
+        for (var j = 0; j < indentCount; j++)
+        {
+            leadingTrivias.Add(SyntaxTriviaHelper.GetTab());
+        }
+
+        return leadingTrivias;
+    }
+
+    public static IList<SyntaxTrivia> GetLeadingTriviasBasedOn(
         SyntaxToken nodeBase,
         int indentCount = 0)
     {
@@ -46,12 +62,14 @@ public static class SyntaxTriviaHelper
 
     public static SyntaxTrivia GetTab()
     {
-        return SyntaxFactory.Whitespace("    ");
+        return GetWhitespace(4);
     }
 
-    public static SyntaxTrivia GetWhitespace()
+    public static SyntaxTrivia GetWhitespace(
+        int count = 1)
     {
-        return SyntaxFactory.Whitespace(" ");
+        var whitespaces = StringHelper.GenerateCharacterOccurences(' ', count);
+        return SyntaxFactory.Whitespace(whitespaces);
     }
 
     public static SyntaxTrivia GetRegion(

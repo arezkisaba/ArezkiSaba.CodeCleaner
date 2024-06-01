@@ -171,10 +171,4 @@ public static class SyntaxTokenExtensions
     {
         return token.WithTrailingTrivia();
     }
-
-    public static SyntaxToken WithoutTrivia(
-        this SyntaxToken token)
-    {
-        return token.WithoutLeadingTrivia().WithoutTrailingTrivia();
-    }
 }
