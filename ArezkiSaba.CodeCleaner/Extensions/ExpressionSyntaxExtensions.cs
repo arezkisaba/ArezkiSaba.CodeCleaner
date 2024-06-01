@@ -170,7 +170,6 @@ public static class ExpressionSyntaxExtensions
                     newChildArgumentContentAsLambda = newChildArgumentContentAsLambda.WithArrowToken(
                         newChildArgumentContentAsLambda.ArrowToken.WithoutLeadingTrivia().WithEndOfLineTrivia()
                     );
-
                     newChildArgumentContentAsLambda = newChildArgumentContentAsLambda.WithBlock(
                         newChildArgumentContentAsLambda.Block.IndentBlock(indentationLevel)
                             .WithOpenBraceToken(

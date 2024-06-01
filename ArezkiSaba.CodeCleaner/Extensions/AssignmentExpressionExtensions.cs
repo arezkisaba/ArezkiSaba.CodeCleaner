@@ -65,32 +65,29 @@ public static class AssignmentExpressionExtensions
                     assignmentExpression,
                     indentCount : 0
                 );
-            closeBracketToken = closeBracketToken.WithOrWithoutTrailingTriviaBasedOnNextItems2(collectionExpression);
+            closeBracketToken = closeBracketToken.WithOrWithoutTrailingTriviaBasedOnNextItems(collectionExpression);
             newCollectionExpression = newCollectionExpression.WithCloseBracketToken(closeBracketToken);
             return assignmentExpression.WithRight(newCollectionExpression);
         }
-        ////else
-        ////{
-        ////    newAssignmentExpression = newAssignmentExpression.WithEqualsToken(
-        ////        newAssignmentExpression.EqualsToken
-        ////            .WithoutLeadingTrivia()
-        ////            .WithTrailingTrivia(SyntaxTriviaHelper.GetWhitespace())
-        ////    );
-        ////    newCollectionExpression = newCollectionExpression.WithOpenBracketToken(
-        ////        newCollectionExpression.OpenBracketToken
-        ////            .WithLeadingTrivia()
-        ////            .WithoutTrailingTrivia()
-        ////    );
-        ////    newCollectionExpression = newCollectionExpression.WithCloseBracketToken(
-        ////        newCollectionExpression.CloseBracketToken
-        ////            .WithoutLeadingTrivia()
-        ////            .WithoutTrailingTrivia()
-        ////    );
+        else
+        {
+            assignmentExpression = assignmentExpression.WithOperatorToken(
+                assignmentExpression.OperatorToken
+                    .WithoutLeadingTrivia()
+                    .WithTrailingTrivia(SyntaxTriviaHelper.GetWhitespace())
+            );
+            newCollectionExpression = newCollectionExpression.WithOpenBracketToken(
+                newCollectionExpression.OpenBracketToken
+                    .WithoutLeadingTrivia()
+                    .WithoutTrailingTrivia()
+            );
 
-        ////    return newAssignmentExpression.WithValue(newCollectionExpression);
-        ////}
-
-        return assignmentExpression;
+            var closeBracketToken = newCollectionExpression.CloseBracketToken
+                .WithoutLeadingTrivia();
+            closeBracketToken = closeBracketToken.WithOrWithoutTrailingTriviaBasedOnNextItems(collectionExpression);
+            newCollectionExpression = newCollectionExpression.WithCloseBracketToken(closeBracketToken);
+            return assignmentExpression.WithRight(newCollectionExpression);
+        }
     }
 
     #endregion

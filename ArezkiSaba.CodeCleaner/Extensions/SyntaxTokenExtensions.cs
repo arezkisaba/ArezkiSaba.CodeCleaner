@@ -14,6 +14,12 @@ public static class SyntaxTokenExtensions
         return token.FullSpan.Length == compareTo.FullSpan.Length;
     }
 
+    public static SyntaxToken WithEndOfLineTrivia(
+        this SyntaxToken token)
+    {
+        return (SyntaxToken)((SyntaxNodeOrToken)token).WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+    }
+
     public static SyntaxToken WithIndentationTrivia(
         this SyntaxToken token,
         SyntaxNode relativeTo,
@@ -38,20 +44,14 @@ public static class SyntaxTokenExtensions
         this SyntaxToken item,
         int indentCount = 0)
     {
-        return ((SyntaxNodeOrToken)item).GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length) / Constants.IndentationCharacterCount;
+        return ((SyntaxNodeOrToken)item).GetIndentationLevel(indentCount);
     }
 
     public static int GetIndentationLength(
         this SyntaxToken item,
         int indentCount = 0)
     {
-        return ((SyntaxNodeOrToken)item).GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length);
-    }
-
-    public static SyntaxToken WithEndOfLineTrivia(
-        this SyntaxToken token)
-    {
-        return token.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+        return ((SyntaxNodeOrToken)item).GetIndentationLength(indentCount);
     }
 
     public static SyntaxToken WithOrWithoutTrailingTriviaBasedOnNextItems(
@@ -71,11 +71,11 @@ public static class SyntaxTokenExtensions
         return closeParentToken;
     }
 
-    public static SyntaxToken WithOrWithoutTrailingTriviaBasedOnNextItems2(
+    public static SyntaxToken WithOrWithoutTrailingTriviaBasedOnNextItems(
         this SyntaxToken syntaxToken,
-        SyntaxNode relativeTo)
+        CollectionExpressionSyntax relativeTo)
     {
-        var tempLastParentItem = relativeTo;
+        SyntaxNode tempLastParentItem = relativeTo;
         SyntaxToken syntaxTokenAfter = default;
         do
         {

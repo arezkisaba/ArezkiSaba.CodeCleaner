@@ -32,7 +32,7 @@ public class TestClass1<T>
             new GetDocumentByKeywordsQuery
             {
                 id = customQuery.id,
-                keywordModels =
+                items1 =
                 [
                     new()
                     {
@@ -40,6 +40,8 @@ public class TestClass1<T>
                         id = RechercheSouscripteurKeywordId,
                         alphaNumericValue = souscripteurRef
                     }                ],
+                items2 =
+                [ ],
                 limit = 100
             }
         );

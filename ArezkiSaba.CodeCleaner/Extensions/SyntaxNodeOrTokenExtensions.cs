@@ -31,7 +31,14 @@ public static class SyntaxNodeOrTokenExtensions
         this SyntaxNodeOrToken item,
         int indentCount = 0)
     {
-        return item.GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length) / Constants.IndentationCharacterCount;
+        return item.GetIndentationLength(indentCount) / Constants.IndentationCharacterCount;
+    }
+
+    public static int GetIndentationLength(
+        this SyntaxNodeOrToken item,
+        int indentCount = 0)
+    {
+        return item.GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length);
     }
 
     public static bool IsStrictlyEqualTo(

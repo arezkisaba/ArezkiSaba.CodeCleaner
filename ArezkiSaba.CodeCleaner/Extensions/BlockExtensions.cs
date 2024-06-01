@@ -29,7 +29,7 @@ public static class BlockExtensions
         this BlockSyntax block,
         int indentLevel)
     {
-        var indent = new string(' ', indentLevel * Constants.IndentationCharacterCount);
+        var indent = StringHelper.GenerateCharacterOccurences(' ', indentLevel * Constants.IndentationCharacterCount);
         var indentedStatements = block.Statements
             .Select((statement, index) => statement.IndentStatement(indentLevel + 1, index == block.Statements.Count - 1))
             .ToList();

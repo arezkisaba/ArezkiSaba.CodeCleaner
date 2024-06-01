@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Xml.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -276,6 +277,18 @@ public static class SyntaxNodeExtensions
         return null;
     }
 
+    public static T WithEndOfLineTrivia<T>(
+        this SyntaxNode node) where T : class
+    {
+        return node.WithEndOfLineTrivia() as T;
+    }
+
+    public static SyntaxNode WithEndOfLineTrivia(
+        this SyntaxNode node)
+    {
+        return (SyntaxNode)((SyntaxNodeOrToken)node).WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
+    }
+
     public static T WithIndentationTrivia<T>(
         this SyntaxNode node,
         SyntaxNode parent,
@@ -318,26 +331,14 @@ public static class SyntaxNodeExtensions
         this SyntaxNode item,
         int indentCount = 0)
     {
-        return ((SyntaxNodeOrToken)item).GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length) / Constants.IndentationCharacterCount;
+        return ((SyntaxNodeOrToken)item).GetIndentationLevel(indentCount);
     }
 
     public static int GetIndentationLength(
         this SyntaxNode item,
         int indentCount = 0)
     {
-        return ((SyntaxNodeOrToken)item).GetIndentation(indentCount).Sum(obj => obj.FullSpan.Length);
-    }
-
-    public static SyntaxNode WithEndOfLineTrivia(
-        this SyntaxNode node)
-    {
-        return node.WithTrailingTrivia(SyntaxTriviaHelper.GetEndOfLine());
-    }
-
-    public static T WithEndOfLineTrivia<T>(
-        this SyntaxNode node) where T : class
-    {
-        return node.WithEndOfLineTrivia() as T;
+        return ((SyntaxNodeOrToken)item).GetIndentationLength(indentCount);
     }
 
     public static int GetIndentCountByImbrication(
