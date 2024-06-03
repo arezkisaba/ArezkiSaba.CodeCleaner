@@ -1,6 +1,6 @@
-﻿using ArezkiSaba.CodeCleaner.Extensions;
+﻿using Microsoft.CodeAnalysis;
+using ArezkiSaba.CodeCleaner.Extensions;
 using ArezkiSaba.CodeCleaner.Models;
-using Microsoft.CodeAnalysis;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
@@ -12,7 +12,7 @@ public sealed class AddSealedModifierOnClasses : RefactorOperationBase
         Document document,
         Solution solution)
     {
-        var allTypeDeclarations = await document.Project.Solution.GetAllTypeDeclarations();
+        var allTypeDeclarations = await document.Project.Solution.GetAllTypeDeclarationsAsync();
         var root = await document.GetSyntaxRootAsync();
         var semanticModel = await document.GetSemanticModelAsync();
         document = document.WithSyntaxRoot(

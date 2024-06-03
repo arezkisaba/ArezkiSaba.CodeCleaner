@@ -1,13 +1,13 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Rename;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Rename;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class SolutionExtensions
 {
-    public static async Task<IList<TypeDeclarationSyntax>> GetAllTypeDeclarations(
+    public static async Task<IList<TypeDeclarationSyntax>> GetAllTypeDeclarationsAsync(
         this Solution solution)
     {
         var typeDeclarations = new List<TypeDeclarationSyntax>();

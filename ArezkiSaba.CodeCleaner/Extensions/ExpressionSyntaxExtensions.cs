@@ -1,5 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
@@ -106,7 +106,6 @@ public static class ExpressionSyntaxExtensions
         ////            .WithoutLeadingTrivia()
         ////            .WithoutTrailingTrivia();
         ////    });
-
         ////    var dotToken = newMemberAccessExpression.FirstChildToken();
         ////    var itemBeforeDotToken = newMemberAccessExpression.ItemBefore(dotToken, recursive: true).AsToken();
         ////    var itemAfterDotToken = newMemberAccessExpression.ItemAfter(dotToken, recursive: true).AsToken();
@@ -123,7 +122,6 @@ public static class ExpressionSyntaxExtensions
         ////        overrideNeedLineBreak
         ////    );
         ////}
-
         return expression
             .WithExpression(newMemberAccessExpression);
     }

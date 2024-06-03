@@ -1,7 +1,7 @@
-﻿using ArezkiSaba.CodeCleaner.Extensions;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using ArezkiSaba.CodeCleaner.Extensions;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 

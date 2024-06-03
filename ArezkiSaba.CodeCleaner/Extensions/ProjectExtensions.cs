@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Evaluation;
-using RoslynProject = Microsoft.CodeAnalysis.Project;
 using MSBuildProject = Microsoft.Build.Evaluation.Project;
+using RoslynProject = Microsoft.CodeAnalysis.Project;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 

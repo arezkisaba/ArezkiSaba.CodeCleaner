@@ -1,8 +1,8 @@
-﻿using ArezkiSaba.CodeCleaner.Extensions;
-using ArezkiSaba.CodeCleaner.Models;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
+using ArezkiSaba.CodeCleaner.Extensions;
+using ArezkiSaba.CodeCleaner.Models;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
@@ -19,7 +19,6 @@ public sealed class DeleteEmptyLinesAroundBraces : RefactorOperationBase
         List<SyntaxToken> tokens = [];
 
         // After open brace
-
         do
         {
             isUpdated = false;
@@ -59,7 +58,6 @@ public sealed class DeleteEmptyLinesAroundBraces : RefactorOperationBase
         } while (isUpdated);
 
         // Before close brace
-
         do
         {
             isUpdated = false;

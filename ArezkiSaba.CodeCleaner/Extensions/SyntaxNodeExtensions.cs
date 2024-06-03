@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Xml.Linq;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 
@@ -385,7 +384,6 @@ public static class SyntaxNodeExtensions
         ////{
         ////    result = result && !root.HasChildNode<MemberAccessExpressionSyntax>();
         ////}
-
         return result;
     }
 
@@ -464,7 +462,6 @@ public static class SyntaxNodeExtensions
         {
             foreach (var child in children)
             {
-
                 if (child.IsToken)
                 {
                     foreach (var trivia in child.AsToken().LeadingTrivia)

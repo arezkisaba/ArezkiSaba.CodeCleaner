@@ -1,8 +1,8 @@
-﻿using ArezkiSaba.CodeCleaner.Models;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using ArezkiSaba.CodeCleaner.Models;
 
 namespace ArezkiSaba.CodeCleaner.Extensions;
 

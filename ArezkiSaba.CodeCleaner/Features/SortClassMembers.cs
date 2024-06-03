@@ -1,9 +1,9 @@
-﻿using ArezkiSaba.CodeCleaner.Extensions;
-using ArezkiSaba.CodeCleaner.Models;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using ArezkiSaba.CodeCleaner.Extensions;
+using ArezkiSaba.CodeCleaner.Models;
 
 namespace ArezkiSaba.CodeCleaner.Features;
 
@@ -24,7 +24,7 @@ public sealed class SortClassMembers : RefactorOperationBase
             .ToList();
         foreach (var typeDeclaration in typeDeclarations)
         {
-            var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
+            var newTypeDeclaration = await GetSortedTypeDeclarationAsync(documentEditor, typeDeclaration);
             documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
         }
 
@@ -38,7 +38,7 @@ public sealed class SortClassMembers : RefactorOperationBase
 
     #region Private use
 
-    private async Task<TypeDeclarationSyntax> GetSortedTypeDeclaration(
+    private async Task<TypeDeclarationSyntax> GetSortedTypeDeclarationAsync(
         DocumentEditor documentEditor,
         TypeDeclarationSyntax typeDeclarationRoot)
     {
@@ -68,7 +68,7 @@ public sealed class SortClassMembers : RefactorOperationBase
 
             if (newMemberDeclaration is TypeDeclarationSyntax typeDeclaration)
             {
-                var newTypeDeclaration = await GetSortedTypeDeclaration(documentEditor, typeDeclaration);
+                var newTypeDeclaration = await GetSortedTypeDeclarationAsync(documentEditor, typeDeclaration);
                 documentEditor.ReplaceNode(typeDeclaration, newTypeDeclaration);
                 newMemberDeclaration = newTypeDeclaration;
             }

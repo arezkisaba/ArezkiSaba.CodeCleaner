@@ -1,7 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
-namespace ArezkiSaba.CodeCleaner.Extensions;
+﻿namespace ArezkiSaba.CodeCleaner.Extensions;
 
 public static class StringHelper
 {

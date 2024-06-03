@@ -1,6 +1,6 @@
-﻿using ArezkiSaba.CodeCleaner.Extensions;
-using Microsoft.Build.Locator;
+﻿using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.MSBuild;
+using ArezkiSaba.CodeCleaner.Extensions;
 
 namespace ArezkiSaba.CodeCleaner;
 
