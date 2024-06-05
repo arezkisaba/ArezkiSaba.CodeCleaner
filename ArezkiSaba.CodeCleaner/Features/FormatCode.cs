@@ -67,11 +67,11 @@ public sealed class FormatCode : RefactorOperationBase
                         return result;
                     }
 
-                    result = HandleParentNodeAsAccessorDeclarationSyntax(documentEditor, parentNode, childNode);
-                    if (result.Updated)
-                    {
-                        return result;
-                    }
+                    ////result = HandleParentNodeAsAccessorDeclarationSyntax(documentEditor, parentNode, childNode);
+                    ////if (result.Updated)
+                    ////{
+                    ////    return result;
+                    ////}
 
                     ////result = HandleParentNodeAsBlockSyntax(documentEditor, parentNode, childNode);
                     ////if (result.Updated)
