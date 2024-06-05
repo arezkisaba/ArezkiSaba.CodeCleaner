@@ -87,9 +87,9 @@ public static class WorkspaceExtensions
 
                     if (displayOutput)
                     {
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
-                        ClearCurrentConsoleLine();
-                        Console.WriteLine($"[{percent.ToString("F2")} %] Executing module {refactorOperation.Name} on {currentDocument.Name}...");
+                        LogHelper.Log(
+                            $"[{percent.ToString("F2")} %] Executing module {refactorOperation.Name} on {currentDocument.Name}..."
+                        );
                     }
 
                     var result = await refactorOperation.StartAsync(currentDocument, currentSolution);
@@ -101,9 +101,9 @@ public static class WorkspaceExtensions
 
                     if (displayOutput)
                     {
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
-                        ClearCurrentConsoleLine();
-                        Console.WriteLine($"[{percent.ToString("F2")} %] Module {refactorOperation.Name} executed on {currentDocument.Name}");
+                        LogHelper.Log(
+                            $"[{percent.ToString("F2")} %] Module {refactorOperation.Name} executed on {currentDocument.Name}"
+                        );
                     }
                 }
             }
@@ -121,22 +121,8 @@ public static class WorkspaceExtensions
     {
         if (!ReferenceEquals(newSolution, workspace.CurrentSolution))
         {
-            var changesApplied = workspace.TryApplyChanges(newSolution);
-            if (changesApplied)
-            {
-            }
-            else
-            {
-            }
+            workspace.TryApplyChanges(newSolution);
         }
-    }
-
-    public static void ClearCurrentConsoleLine()
-    {
-        var currentLineCursor = Console.CursorTop;
-        Console.SetCursorPosition(0, Console.CursorTop);
-        Console.Write(new string(' ', Console.WindowWidth));
-        Console.SetCursorPosition(0, currentLineCursor);
     }
 
     #endregion

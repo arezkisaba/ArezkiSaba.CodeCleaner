@@ -18,7 +18,7 @@ public sealed class CodeCleanerService
 
     public async Task StartAsync()
     {
-        Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace initialization...");
+        LogHelper.Log($"[{nameof(CodeCleanerService)}] Workspace initialization...");
 
         using var workspace = MSBuildWorkspace.Create();
         workspace.LoadMetadataForReferencedProjects = true;
@@ -31,7 +31,7 @@ public sealed class CodeCleanerService
 
             Console.WriteLine($"[{nameof(MSBuildWorkspace)}] {e.Diagnostic.Message}");
         };
-        Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace initialization done.");
+        LogHelper.Log($"[{nameof(CodeCleanerService)}] Workspace initialization done.");
 
         if (_targetLocation.EndsWith(".sln"))
         {
@@ -39,9 +39,9 @@ public sealed class CodeCleanerService
         }
         else
         {
-            Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace scan...");
+            LogHelper.Log($"[{nameof(CodeCleanerService)}] Workspace scan...");
             var files = Directory.GetDirectories(_targetLocation);
-            Console.WriteLine($"[{nameof(CodeCleanerService)}] Workspace scan done.");
+            LogHelper.Log($"[{nameof(CodeCleanerService)}] Workspace scan done.");
 
             foreach (var file in files)
             {
@@ -60,13 +60,13 @@ public sealed class CodeCleanerService
         MSBuildWorkspace workspace,
         string slnFile)
     {
-        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution opening ({new FileInfo(slnFile).Name})...");
+        LogHelper.Log($"[{nameof(CodeCleanerService)}] Solution opening ({new FileInfo(slnFile).Name})...");
         var solution = await workspace.OpenSolutionAsync(slnFile);
-        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution opening done.");
+        LogHelper.Log($"[{nameof(CodeCleanerService)}] Solution opening done.");
 
-        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution formatting...");
+        LogHelper.Log($"[{nameof(CodeCleanerService)}] Solution formatting...");
         await workspace.RefactorAsync();
-        Console.WriteLine($"[{nameof(CodeCleanerService)}] Solution formatting done.");
+        LogHelper.Log($"[{nameof(CodeCleanerService)}] Solution formatting done.");
     }
 
     #endregion

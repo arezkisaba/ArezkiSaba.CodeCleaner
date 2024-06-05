@@ -78,31 +78,26 @@ public sealed class FormatCode : RefactorOperationBase
                     ////{
                     ////    return result;
                     ////}
-
                     ////result = HandleChildNodeAsIfStatementSyntax(documentEditor, parentNode, childNode);
                     ////if (result.Updated)
                     ////{
                     ////    return result;
                     ////}
-
                     ////result = HandleChildNodeAsForStatementSyntax(documentEditor, parentNode, childNode);
                     ////if (result.Updated)
                     ////{
                     ////    return result;
                     ////}
-
                     ////result = HandleChildNodeAsWhileStatementSyntax(documentEditor, parentNode, childNode);
                     ////if (result.Updated)
                     ////{
                     ////    return result;
                     ////}
-
                     ////result = HandleChildNodeAsBlockSyntax(documentEditor, parentNode, childNode);
                     ////if (result.Updated)
                     ////{
                     ////    return result;
                     ////}
-
                     // recursive method
                     result = FormatCodeInternal(documentEditor, child.AsNode(), newIndentLevel);
                     if (result.Updated)
