@@ -72,7 +72,6 @@ public sealed class FormatCode : RefactorOperationBase
                     ////{
                     ////    return result;
                     ////}
-
                     ////result = HandleParentNodeAsBlockSyntax(documentEditor, parentNode, childNode);
                     ////if (result.Updated)
                     ////{

@@ -46,10 +46,10 @@ public static class WorkspaceExtensions
         funcs.Add((new RenameParameters(), (project) => Task.FromResult(true)));
         funcs.Add((new RenameUnusedMethodParameters(), (project) => Task.FromResult(true)));
         funcs.Add((new RenameAsyncMethod(), (project) => Task.FromResult(true)));
-        funcs.Add((new FormatEqualsValueClause(), (project) => Task.FromResult(true)));
 
         if (!smallRefactor)
         {
+            funcs.Add((new FormatEqualsValueClause(), (project) => Task.FromResult(true)));
             funcs.Add((new FormatAssignmentExpression(), (project) => Task.FromResult(true)));
             funcs.Add((new FormatInitializerExpression(), (project) => Task.FromResult(true)));
             funcs.Add((new FormatAnonymousObjectCreationExpression(), (project) => Task.FromResult(true)));
